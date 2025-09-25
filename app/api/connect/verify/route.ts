@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -13,6 +12,11 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    // Skip during build time
+    if (process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV === 'preview') {
+      return NextResponse.json({ message: 'Route not available during build' }, { status: 503 });
+    }
+
     const { accountId } = await request.json();
 
     if (!accountId) {
@@ -22,8 +26,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Import Prisma only when needed
+    const { prisma } = await import('@/lib/prisma');
+
     // Update user as verified
-    await (prisma as any).user.update({
+    await prisma.user.update({
       where: { stripeConnectAccountId: accountId },
       data: { isVerified: true }
     });

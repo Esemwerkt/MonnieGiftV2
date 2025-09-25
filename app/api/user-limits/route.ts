@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const accountId = searchParams.get('account_id');
-    const email = searchParams.get('email'); // Keep for backward compatibility
+    const email = searchParams.get('email');
 
     if (!accountId && !email) {
       return NextResponse.json(
@@ -17,18 +17,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // If accountId is provided, use it; otherwise fall back to email (for backward compatibility)
     const identifier = accountId || email!;
     const limits = await getUserLimits(identifier);
 
     return NextResponse.json({
       success: true,
       limits: {
-        currentAmount: limits.currentAmount / 100, // Convert to euros
+        currentAmount: limits.currentAmount / 100,
         currentGiftCount: limits.currentGiftCount,
-        remainingAmount: limits.remainingAmount / 100, // Convert to euros
+        remainingAmount: limits.remainingAmount / 100,
         remainingGifts: limits.remainingGifts,
-        monthlyLimit: limits.monthlyLimit / 100, // Convert to euros
+        monthlyLimit: limits.monthlyLimit / 100,
         monthlyGiftLimit: limits.monthlyGiftLimit,
       },
     });
