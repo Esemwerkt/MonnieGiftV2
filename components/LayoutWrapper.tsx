@@ -86,26 +86,12 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
   }, []);
 
   const fetchUserData = async (email: string) => {
-    try {
-      const authToken = localStorage.getItem('authToken');
-      const url = authToken 
-        ? `/api/dashboard?email=${encodeURIComponent(email)}&token=${encodeURIComponent(authToken)}`
-        : `/api/dashboard?email=${encodeURIComponent(email)}`;
-      
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (response.ok) {
-        setUserData(data);
-        // Update profile picture if we have one from the API
-        if (data.profilePicture) {
-          setUserProfilePicture(data.profilePicture);
-          localStorage.setItem('profilePicture', data.profilePicture);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching user data in LayoutWrapper:', error);
-    }
+    // Simplified user data loading - just set basic info from localStorage
+    // No need for dashboard API call since dashboard page was removed
+    setUserData({
+      email,
+      profilePicture: userProfilePicture,
+    });
   };
 
   // Check if current page should hide sidebar and header
