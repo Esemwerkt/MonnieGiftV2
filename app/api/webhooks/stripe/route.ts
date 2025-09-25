@@ -60,9 +60,20 @@ export async function POST(request: NextRequest) {
         // Only send email if payment was successful
         if (giftId && paymentIntent.status === 'succeeded') {
           // Get gift details for email
-          const gift = await prisma.gift.findUnique({
-            where: { id: giftId },
-          });
+          let gift;
+          try {
+            gift = await prisma.gift.findUnique({
+              where: { id: giftId },
+            });
+          } catch (dbError) {
+            console.error('❌ Database error in webhook:', dbError);
+            console.error('Database error details:', {
+              giftId,
+              error: dbError instanceof Error ? dbError.message : String(dbError)
+            });
+            // Continue without sending email if database is unavailable
+            gift = null;
+          }
 
           if (gift) {
             console.log('Found gift for email sending:', {
@@ -93,6 +104,40 @@ export async function POST(request: NextRequest) {
             }
           } else {
             console.error('❌ Gift not found for ID:', giftId);
+            
+            // Fallback: Try to send email using payment intent metadata if database is unavailable
+            const recipientEmail = paymentIntent.metadata?.recipientEmail;
+            const senderEmail = paymentIntent.metadata?.senderEmail;
+            const giftAmount = paymentIntent.metadata?.giftAmount;
+            
+            if (recipientEmail && senderEmail && giftAmount) {
+              console.log('🔄 Attempting fallback email using payment metadata:', {
+                recipientEmail,
+                senderEmail,
+                giftAmount,
+                giftId
+              });
+              
+              try {
+                await sendGiftEmail({
+                  recipientEmail,
+                  giftId,
+                  authenticationCode: 'TEMP123', // Temporary code since we can't get the real one
+                  amount: parseInt(giftAmount),
+                  message: paymentIntent.metadata?.message || undefined,
+                  senderEmail,
+                });
+                console.log('✅ Fallback email sent successfully!');
+              } catch (fallbackError) {
+                console.error('❌ Fallback email also failed:', fallbackError);
+              }
+            } else {
+              console.error('❌ Cannot send fallback email - missing metadata:', {
+                recipientEmail: !!recipientEmail,
+                senderEmail: !!senderEmail,
+                giftAmount: !!giftAmount
+              });
+            }
           }
         }
         break;
