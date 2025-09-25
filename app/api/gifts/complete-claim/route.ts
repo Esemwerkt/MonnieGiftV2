@@ -1,4 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
+export async function GET() {
+  return NextResponse.json({ 
+    message: 'This endpoint only accepts POST requests',
+    method: 'POST'
+  });
+}
 import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 import { updateUserLimits, checkUserLimits, LIMITS } from '@/lib/limits';

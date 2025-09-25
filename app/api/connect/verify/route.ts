@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
+export async function GET() {
+  return NextResponse.json({ 
+    message: 'This endpoint only accepts POST requests',
+    method: 'POST'
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { accountId } = await request.json();

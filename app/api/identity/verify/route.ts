@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 import { stripe } from '@/lib/stripe';
 
 export async function POST(request: NextRequest) {
