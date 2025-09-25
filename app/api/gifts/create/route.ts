@@ -39,9 +39,15 @@ export async function POST(request: NextRequest) {
 
     // Check if recipient already has a Stripe account (existing user)
     // If they do, enforce limits immediately to prevent money loss
-    const existingUser = await (prisma as any).user.findUnique({
-      where: { email: recipientEmail },
-    });
+    let existingUser = null;
+    try {
+      existingUser = await (prisma as any).user.findUnique({
+        where: { email: recipientEmail },
+      });
+    } catch (dbError) {
+      console.warn('Database connection failed, continuing without user lookup:', dbError);
+      // Continue without user lookup if database is unavailable
+    }
 
     if (existingUser && existingUser.stripeConnectAccountId) {
       // User has completed KYC and has Stripe account - check limits
@@ -71,16 +77,28 @@ export async function POST(request: NextRequest) {
     const authenticationCode = generateVerificationCode();
 
     // Create gift record in database
-    const gift = await prisma.gift.create({
-      data: {
-        amount,
-        currency,
-        message,
-        senderEmail,
-        recipientEmail,
-        authenticationCode,
-      },
-    });
+    let gift;
+    try {
+      gift = await prisma.gift.create({
+        data: {
+          amount,
+          currency,
+          message,
+          senderEmail,
+          recipientEmail,
+          authenticationCode,
+        },
+      });
+    } catch (dbError) {
+      console.error('Database error creating gift:', dbError);
+      return NextResponse.json(
+        { 
+          error: 'Database connection failed. Please check your environment variables.',
+          details: 'Unable to create gift record in database'
+        },
+        { status: 500 }
+      );
+    }
 
     // Calculate amounts according to SCT model
     const giftAmount = amount; // Gift amount in cents
