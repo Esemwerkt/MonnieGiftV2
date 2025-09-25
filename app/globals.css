@@ -1,0 +1,251 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  .theme {
+    --font-sans: Poppins;
+    --font-mono: Fira Code;
+    --font-serif: Lora;
+    --radius: 0.75rem;
+    --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
+    --tracking-tight: calc(var(--tracking-normal) - 0.025em);
+    --tracking-wide: calc(var(--tracking-normal) + 0.025em);
+    --tracking-wider: calc(var(--tracking-normal) + 0.05em);
+    --tracking-widest: calc(var(--tracking-normal) + 0.1em);
+  }
+  
+  :root {
+      --background: #fdfbf7;
+      --foreground: #0a2d27;
+      --card: #ffffff;
+      --card-foreground: #0a2d27;
+      --popover: #ffffff;
+      --popover-foreground: #0a2d27;
+      --primary: #0a2d27;
+      --primary-foreground: #fdfbf7;
+      --secondary: #d4b483;
+      --secondary-foreground: #0a2d27;
+      --muted: #f3f4f6;
+      --muted-foreground: #556b68;
+      --accent: #e9e3d8;
+      --accent-foreground: #0a2d27;
+      --destructive: #ef4444;
+      --destructive-foreground: #f8fafc;
+      --border: #e5e7eb;
+      --input: #e5e7eb;
+      --ring: #0a2d27;
+      --chart-1: #0a2d27;
+      --chart-2: #d4b483;
+      --chart-3: #1a584e;
+      --chart-4: #e4c59a;
+      --chart-5: #809c98;
+      --sidebar: #0a2d27;
+      --sidebar-foreground: #fdfbf7;
+      --sidebar-primary: #d4b483;
+      --sidebar-primary-foreground: #0a2d27;
+      --sidebar-accent: #10453c;
+      --sidebar-accent-foreground: #fdfbf7;
+      --sidebar-border: #1a584e;
+      --sidebar-ring: #d4b483;
+      --font-sans: Poppins;
+      --font-serif: Lora;
+      --font-mono: Fira Code;
+      --radius: 0.75rem;
+      --shadow-2xs: 0px 4px 8px 0px hsl(0 0% 0% / 0.05);
+      --shadow-xs: 0px 4px 8px 0px hsl(0 0% 0% / 0.05);
+      --shadow-sm: 0px 4px 8px 0px hsl(0 0% 0% / 0.10), 0px 1px 2px -1px hsl(0 0% 0% / 0.10);
+      --shadow: 0px 4px 8px 0px hsl(0 0% 0% / 0.10), 0px 1px 2px -1px hsl(0 0% 0% / 0.10);
+      --shadow-md: 0px 4px 8px 0px hsl(0 0% 0% / 0.10), 0px 2px 4px -1px hsl(0 0% 0% / 0.10);
+      --shadow-lg: 0px 4px 8px 0px hsl(0 0% 0% / 0.10), 0px 4px 6px -1px hsl(0 0% 0% / 0.10);
+      --shadow-xl: 0px 4px 8px 0px hsl(0 0% 0% / 0.10), 0px 8px 10px -1px hsl(0 0% 0% / 0.10);
+      --shadow-2xl: 0px 4px 8px 0px hsl(0 0% 0% / 0.25);
+      --tracking-normal: 0px;
+      --spacing: 0.25rem;
+    }
+    
+    .dark {
+      --background: #0a2d27;
+      --foreground: #fdfbf7;
+      --card: #1a584e;
+      --card-foreground: #fdfbf7;
+      --popover: #0a2d27;
+      --popover-foreground: #fdfbf7;
+      --primary: #d4b483;
+      --primary-foreground: #0a2d27;
+      --secondary: #10453c;
+      --secondary-foreground: #fdfbf7;
+      --muted: #10453c;
+      --muted-foreground: #a3b5b2;
+      --accent: #10453c;
+      --accent-foreground: #fdfbf7;
+      --destructive: #7f1d1d;
+      --destructive-foreground: #f8fafc;
+      --border: #1a584e;
+      --input: #1a584e;
+      --ring: #d4b483;
+      --chart-1: #d4b483;
+      --chart-2: #fdfbf7;
+      --chart-3: #1a584e;
+      --chart-4: #e4c59a;
+      --chart-5: #809c98;
+      --sidebar: #08241f;
+      --sidebar-foreground: #fdfbf7;
+      --sidebar-primary: #d4b483;
+      --sidebar-primary-foreground: #0a2d27;
+      --sidebar-accent: #10453c;
+      --sidebar-accent-foreground: #fdfbf7;
+      --sidebar-border: #1a584e;
+      --sidebar-ring: #d4b483;
+      --font-sans: Poppins;
+      --font-serif: Lora;
+      --font-mono: Fira Code;
+      --radius: 0.75rem;
+      --shadow-2xs: 0px 4px 8px 0px hsl(0 0% 0% / 0.10);
+      --shadow-xs: 0px 4px 8px 0px hsl(0 0% 0% / 0.10);
+      --shadow-sm: 0px 4px 8px 0px hsl(0 0% 0% / 0.20), 0px 1px 2px -1px hsl(0 0% 0% / 0.20);
+      --shadow: 0px 4px 8px 0px hsl(0 0% 0% / 0.20), 0px 1px 2px -1px hsl(0 0% 0% / 0.20);
+      --shadow-md: 0px 4px 8px 0px hsl(0 0% 0% / 0.20), 0px 2px 4px -1px hsl(0 0% 0% / 0.20);
+      --shadow-lg: 0px 4px 8px 0px hsl(0 0% 0% / 0.20), 0px 4px 6px -1px hsl(0 0% 0% / 0.20);
+      --shadow-xl: 0px 4px 8px 0px hsl(0 0% 0% / 0.20), 0px 8px 10px -1px hsl(0 0% 0% / 0.20);
+      --shadow-2xl: 0px 4px 8px 0px hsl(0 0% 0% / 0.50);
+    }
+    
+  body {
+    letter-spacing: var(--tracking-normal);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  
+  /* Fix preloader color flash */
+  #__next {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+  
+  /* Ensure smooth theme transitions */
+  html {
+    background-color: hsl(var(--background));
+  }
+  
+  /* Fix for Next.js loading spinner */
+  [data-nextjs-scroll-focus-boundary] {
+    background-color: hsl(var(--background));
+  }
+  
+  /* Fix Next.js loading indicator color flash */
+  .nextjs-loading-bar {
+    background-color: hsl(var(--primary)) !important;
+  }
+  
+  /* Ensure loading states use theme colors */
+  [data-nextjs-loading] {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+  
+  /* Fix for any loading spinners */
+  .loading-spinner,
+  .spinner,
+  [class*="loading"] {
+    border-color: hsl(var(--primary)) !important;
+  }
+  
+  /* Prevent color flash during page transitions */
+  * {
+    transition: background-color 0s, color 0s, border-color 0s !important;
+  }
+  
+  /* Ensure immediate theme application */
+  html[data-theme] {
+    background-color: hsl(var(--background)) !important;
+    color: hsl(var(--foreground)) !important;
+  }
+  
+  /* Fix for Next.js page transitions */
+  [data-nextjs-router] {
+    background-color: hsl(var(--background)) !important;
+  }
+  
+  /* Ensure loading states inherit theme immediately */
+  .loading,
+  .loading * {
+    background-color: hsl(var(--background)) !important;
+    color: hsl(var(--foreground)) !important;
+  }
+}
+
+@layer utilities {
+  /* Remove focus rings and borders from chart components */
+  .recharts-wrapper,
+  .recharts-wrapper *,
+  .recharts-cartesian-axis,
+  .recharts-cartesian-axis *,
+  .recharts-line,
+  .recharts-line *,
+  .recharts-area,
+  .recharts-area *,
+  .recharts-bar,
+  .recharts-bar *,
+  .recharts-pie,
+  .recharts-pie *,
+  .recharts-cell,
+  .recharts-cell *,
+  .recharts-dot,
+  .recharts-dot *,
+  .recharts-tooltip-wrapper,
+  .recharts-tooltip-wrapper *,
+  .recharts-legend-wrapper,
+  .recharts-legend-wrapper * {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* Remove focus states from chart containers */
+  .recharts-wrapper:focus,
+  .recharts-wrapper:focus-visible,
+  .recharts-wrapper:focus-within {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* Remove any click/focus indicators */
+  .recharts-wrapper:active,
+  .recharts-wrapper:hover {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* Additional chart element styling */
+  .recharts-surface,
+  .recharts-surface *,
+  .recharts-curve,
+  .recharts-curve *,
+  .recharts-sector,
+  .recharts-sector *,
+  .recharts-rectangle,
+  .recharts-rectangle * {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* Remove any SVG focus indicators */
+  svg:focus,
+  svg:focus-visible,
+  svg:active {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
