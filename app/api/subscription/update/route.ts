@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { SUBSCRIPTION_PLANS } from '@/lib/subscription-plans';
+import { stripe } from '@/lib/stripe';
+
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
@@ -8,9 +12,6 @@ export async function GET() {
     method: 'POST'
   });
 }
-import { prisma } from '@/lib/prisma';
-import { SUBSCRIPTION_PLANS } from '@/lib/subscription-plans';
-import { stripe } from '@/lib/stripe';
 
 export async function POST(request: NextRequest) {
   try {

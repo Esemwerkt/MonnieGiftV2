@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { sendGiftEmail } from '@/lib/email';
+
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
@@ -8,8 +11,6 @@ export async function GET() {
     method: 'POST'
   });
 }
-import { prisma } from '@/lib/prisma';
-import { sendGiftEmail } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   try {

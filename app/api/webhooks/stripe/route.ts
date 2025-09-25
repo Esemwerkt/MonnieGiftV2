@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { stripe } from '@/lib/stripe';
+import { prisma } from '@/lib/prisma';
+import { sendGiftEmail } from '@/lib/email';
+
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
@@ -8,9 +12,6 @@ export async function GET() {
     method: 'POST'
   });
 }
-import { stripe } from '@/lib/stripe';
-import { prisma } from '@/lib/prisma';
-import { sendGiftEmail } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   const body = await request.text();

@@ -1,4 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { stripe } from '@/lib/stripe';
+import { prisma } from '@/lib/prisma';
+import { generateVerificationCode } from '@/lib/auth';
+import { sendGiftEmail } from '@/lib/email';
+import { checkUserLimits, LIMITS } from '@/lib/limits';
+
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
@@ -8,11 +14,6 @@ export async function GET() {
     method: 'POST'
   });
 }
-import { stripe } from '@/lib/stripe';
-import { prisma } from '@/lib/prisma';
-import { generateVerificationCode } from '@/lib/auth';
-import { sendGiftEmail } from '@/lib/email';
-import { checkUserLimits, LIMITS } from '@/lib/limits';
 
 export async function POST(request: NextRequest) {
   try {
