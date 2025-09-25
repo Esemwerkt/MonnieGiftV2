@@ -13,6 +13,7 @@ export async function GET() {
     RESEND_API_KEY: process.env.RESEND_API_KEY ? 'SET' : 'MISSING',
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET ? 'SET' : 'MISSING',
     STRIPE_WEBHOOK_SECRET_THIN: process.env.STRIPE_WEBHOOK_SECRET_THIN ? 'SET' : 'MISSING',
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? 'SET' : 'MISSING',
   };
 
   return NextResponse.json({
