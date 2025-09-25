@@ -7,13 +7,15 @@ const globalForPrisma = globalThis as unknown as {
 // Create Prisma client with error handling
 const createPrismaClient = () => {
   try {
-    // Add connection pooling parameters for Supabase Transaction pooler
+    // Add connection pooling parameters for Supabase pooler
     let databaseUrl = process.env.DATABASE_URL;
     if (databaseUrl?.includes('pooler.supabase.com')) {
-      // Add connection pooling parameters for Transaction pooler
+      // Add connection pooling parameters for pooler
       const url = new URL(databaseUrl);
       url.searchParams.set('pgbouncer', 'true');
       url.searchParams.set('connection_limit', '1');
+      url.searchParams.set('pool_timeout', '0');
+      url.searchParams.set('statement_timeout', '0');
       databaseUrl = url.toString();
     }
 
