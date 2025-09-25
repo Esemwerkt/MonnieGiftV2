@@ -4,10 +4,7 @@ const nextConfig = {
     serverComponentsExternalPackages: ['@prisma/client']
   },
   // Force dynamic rendering to avoid build issues
-  trailingSlash: false,
-  generateBuildId: async () => {
-    return 'build-' + Date.now()
-  }
+  trailingSlash: false
 }
 
 module.exports = nextConfig
