@@ -2,8 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 
+export async function GET() {
+  return NextResponse.json({ 
+    message: 'This endpoint only accepts POST requests',
+    method: 'POST'
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
+    // Skip during build time
+    if (process.env.NODE_ENV === 'production' && !request) {
+      return NextResponse.json({ message: 'Route not available during build' }, { status: 503 });
+    }
+
     // Find all pending gifts
     const pendingGifts = await prisma.gift.findMany({
       where: {
