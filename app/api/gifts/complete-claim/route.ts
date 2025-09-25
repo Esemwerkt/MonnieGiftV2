@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
     console.log('accountIdForLookup:', accountIdForLookup);
     console.log('email:', email);
     console.log('Found pending gifts:', pendingGifts.length);
-    console.log('Pending gifts details:', pendingGifts.map(g => ({
+    console.log('Pending gifts details:', pendingGifts.map((g: any) => ({
       id: g.id,
       amount: g.amount,
       stripeTransferId: g.stripeTransferId,
