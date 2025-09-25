@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircle, Home, ArrowRight } from 'lucide-react';
+import BeautifulConfetti from '@/components/BeautifulConfetti';
 
 export default function OnboardSuccessPage() {
   const searchParams = useSearchParams();
@@ -11,14 +12,35 @@ export default function OnboardSuccessPage() {
   const [loading, setIsLoading] = useState(true);
   const [completingClaims, setCompletingClaims] = useState(false);
   const [claimsCompleted, setClaimsCompleted] = useState(false);
+  const [giftData, setGiftData] = useState<any>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const accountId = searchParams.get('account_id');
+  const giftId = searchParams.get('gift_id');
 
   useEffect(() => {
     if (accountId) {
       checkAccountStatus(accountId);
     }
-  }, [accountId]);
+    if (giftId) {
+      fetchGiftData(giftId);
+    }
+  }, [accountId, giftId]);
+
+  const fetchGiftData = async (giftId: string) => {
+    try {
+      const response = await fetch(`/api/gifts/${giftId}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setGiftData(data);
+        // Trigger confetti immediately when gift data is loaded
+        setShowConfetti(true);
+      }
+    } catch (error) {
+      console.error('Error fetching gift data:', error);
+    }
+  };
 
   const checkAccountStatus = async (accountId: string) => {
     try {
@@ -60,6 +82,7 @@ export default function OnboardSuccessPage() {
       const data = await response.json();
       if (response.ok && data.completedGifts > 0) {
         setClaimsCompleted(true);
+        setShowConfetti(true);
       }
     } catch (error) {
       console.error('Error completing claims:', error);
@@ -81,6 +104,13 @@ export default function OnboardSuccessPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-chart-1/10 to-chart-2/10 flex items-center justify-center p-4">
+      {/* Confetti */}
+      <BeautifulConfetti 
+        trigger={showConfetti} 
+        variant="money"
+        onComplete={() => setShowConfetti(false)}
+      />
+      
       <div className="w-full max-w-md">
         {/* Success Content */}
         <div className="text-center">
@@ -95,6 +125,28 @@ export default function OnboardSuccessPage() {
           <p className="text-muted-foreground mb-6">
             Je account is succesvol ingesteld. Je kunt nu geld cadeaus ontvangen!
           </p>
+
+          {/* Gift Amount Display */}
+          {giftData && (
+            <div className="bg-gradient-to-r from-chart-1/20 to-chart-2/20 border border-chart-1/30 rounded-2xl p-6 mb-6 shadow-lg">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-chart-1 mb-2">
+                  🎁 Je hebt een gift ontvangen!
+                </h2>
+                <div className="text-4xl font-bold text-foreground mb-2">
+                  €{(giftData.amount / 100).toFixed(2)}
+                </div>
+                {giftData.message && (
+                  <p className="text-muted-foreground italic">
+                    "{giftData.message}"
+                  </p>
+                )}
+                <p className="text-sm text-muted-foreground mt-2">
+                  van {giftData.senderEmail}
+                </p>
+              </div>
+            </div>
+          )}
 
           {completingClaims && (
             <div className="bg-chart-1/10 border border-chart-1/20 rounded-lg p-4 mb-6">
