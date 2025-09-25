@@ -39,8 +39,8 @@ export async function GET(request: NextRequest) {
         const isFullServiceAgreement = serviceAgreement === 'full';
         
         // Check requirements
-        const hasRequirements = account.requirements?.currently_due?.length > 0;
-        const hasPastDue = account.requirements?.past_due?.length > 0;
+        const hasRequirements = (account.requirements?.currently_due?.length || 0) > 0;
+        const hasPastDue = (account.requirements?.past_due?.length || 0) > 0;
         
         const accountInfo = {
           userId: user.id,
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
           hasCardPayments,
           serviceAgreement,
           hasRequirements,
-          needsNewAccount: accountInfo.needsNewAccount
+          needsNewAccount: accountInfo.accountDetails.needsNewAccount
         });
 
       } catch (error) {
@@ -94,8 +94,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Summary
-    const problematicAccounts = accountDetails.filter(acc => acc.accountDetails?.needsNewAccount);
-    const workingAccounts = accountDetails.filter(acc => acc.accountDetails && !acc.accountDetails.needsNewAccount);
+    const problematicAccounts = accountDetails.filter(acc => 'accountDetails' in acc && acc.accountDetails?.needsNewAccount);
+    const workingAccounts = accountDetails.filter(acc => 'accountDetails' in acc && acc.accountDetails && !acc.accountDetails.needsNewAccount);
 
     console.log(`Summary: ${workingAccounts.length} working accounts, ${problematicAccounts.length} problematic accounts`);
 

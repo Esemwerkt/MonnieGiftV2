@@ -30,13 +30,15 @@ export async function GET(request: NextRequest) {
       balance: {
         available: formatBalance(balance.available),
         pending: formatBalance(balance.pending),
-        instant_available: formatBalance(balance.instant_available)
+        instant_available: formatBalance(balance.instant_available || [])
       },
       summary: {
         totalAvailable: balance.available.reduce((sum, b) => sum + b.amount, 0),
         totalPending: balance.pending.reduce((sum, b) => sum + b.amount, 0),
+        totalInstantAvailable: (balance.instant_available || []).reduce((sum, b) => sum + b.amount, 0),
         totalAvailableFormatted: `€${(balance.available.reduce((sum, b) => sum + b.amount, 0) / 100).toFixed(2)}`,
-        totalPendingFormatted: `€${(balance.pending.reduce((sum, b) => sum + b.amount, 0) / 100).toFixed(2)}`
+        totalPendingFormatted: `€${(balance.pending.reduce((sum, b) => sum + b.amount, 0) / 100).toFixed(2)}`,
+        totalInstantAvailableFormatted: `€${((balance.instant_available || []).reduce((sum, b) => sum + b.amount, 0) / 100).toFixed(2)}`
       }
     });
 
