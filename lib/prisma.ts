@@ -7,8 +7,23 @@ const globalForPrisma = globalThis as unknown as {
 // Create Prisma client with error handling
 const createPrismaClient = () => {
   try {
+    // Add connection pooling parameters for Supabase Transaction pooler
+    let databaseUrl = process.env.DATABASE_URL;
+    if (databaseUrl?.includes('pooler.supabase.com')) {
+      // Add connection pooling parameters for Transaction pooler
+      const url = new URL(databaseUrl);
+      url.searchParams.set('pgbouncer', 'true');
+      url.searchParams.set('connection_limit', '1');
+      databaseUrl = url.toString();
+    }
+
     return new PrismaClient({
       log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+      datasources: {
+        db: {
+          url: databaseUrl,
+        },
+      },
     });
   } catch (error) {
     console.error('Failed to create Prisma client:', error);
