@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
+import { sendGiftEmail } from '@/lib/email';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -50,6 +51,102 @@ export async function POST(request: NextRequest) {
     console.log(`Created: ${new Date(event.created * 1000).toISOString()}`);
 
     switch (event.type) {
+      // ===== PAYMENT EVENTS =====
+      
+      case 'payment_intent.succeeded': {
+        const paymentIntent = event.data.object;
+        const giftId = paymentIntent.metadata?.giftId;
+
+        console.log('PaymentIntent succeeded for gift:', giftId);
+        console.log('Payment status:', paymentIntent.status);
+        console.log('Amount:', paymentIntent.amount);
+        
+        // Only send email if payment was successful
+        if (giftId && paymentIntent.status === 'succeeded') {
+          // Get gift details for email
+          let gift;
+          try {
+            gift = await prisma.gift.findUnique({
+              where: { id: giftId },
+            });
+          } catch (dbError) {
+            console.error('❌ Database error in thin webhook:', dbError);
+            console.error('Database error details:', {
+              giftId,
+              error: dbError instanceof Error ? dbError.message : String(dbError)
+            });
+            // Continue without sending email if database is unavailable
+            gift = null;
+          }
+
+          if (gift) {
+            console.log('Found gift for email sending:', {
+              giftId: gift.id,
+              recipientEmail: gift.recipientEmail,
+              amount: gift.amount,
+              authenticationCode: gift.authenticationCode
+            });
+            
+            // Send email to recipient
+            try {
+              await sendGiftEmail({
+                recipientEmail: gift.recipientEmail,
+                giftId: gift.id,
+                authenticationCode: gift.authenticationCode,
+                amount: gift.amount,
+                message: gift.message || undefined,
+                senderEmail: gift.senderEmail,
+              });
+              console.log('✅ Email sent successfully after payment (thin webhook)!');
+            } catch (emailError) {
+              console.error('❌ Failed to send email after payment (thin webhook):', emailError);
+              console.error('Email error details:', {
+                giftId: gift.id,
+                recipientEmail: gift.recipientEmail,
+                error: emailError instanceof Error ? emailError.message : String(emailError)
+              });
+            }
+          } else {
+            console.error('❌ Gift not found for ID:', giftId);
+            
+            // Fallback: Try to send email using payment intent metadata if database is unavailable
+            const recipientEmail = paymentIntent.metadata?.recipientEmail;
+            const senderEmail = paymentIntent.metadata?.senderEmail;
+            const giftAmount = paymentIntent.metadata?.giftAmount;
+            
+            if (recipientEmail && senderEmail && giftAmount) {
+              console.log('🔄 Attempting fallback email using payment metadata (thin webhook):', {
+                recipientEmail,
+                senderEmail,
+                giftAmount,
+                giftId
+              });
+              
+              try {
+                await sendGiftEmail({
+                  recipientEmail,
+                  giftId,
+                  authenticationCode: 'TEMP123', // Temporary code since we can't get the real one
+                  amount: parseInt(giftAmount),
+                  message: paymentIntent.metadata?.message || undefined,
+                  senderEmail,
+                });
+                console.log('✅ Fallback email sent successfully (thin webhook)!');
+              } catch (fallbackError) {
+                console.error('❌ Fallback email also failed (thin webhook):', fallbackError);
+              }
+            } else {
+              console.error('❌ Cannot send fallback email - missing metadata (thin webhook):', {
+                recipientEmail: !!recipientEmail,
+                senderEmail: !!senderEmail,
+                giftAmount: !!giftAmount
+              });
+            }
+          }
+        }
+        break;
+      }
+
       // ===== THIN PAYLOAD SPECIFIC EVENTS =====
       
       case 'account.requirements.updated' as any: {
