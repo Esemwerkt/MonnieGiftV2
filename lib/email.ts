@@ -29,8 +29,25 @@ export async function sendGiftEmail({
   const dashboardUrl = `${baseUrl}/dashboard?gift=${giftId}`;
   const formattedAmount = (amount / 100).toFixed(2);
 
-  // Use consistent from email (same as sign-in emails)
+  // Use Resend development domain for testing
+  // TODO: Change to your domain email when you have a custom domain verified in Resend
   const fromEmail = 'MonnieGift <hello@resend.dev>';
+  
+  // For development/testing: Only send to verified email addresses
+  // In production with domain verification, this restriction can be removed
+  const verifiedEmails = ['enes@semwerkt.nl']; // Add more verified emails as needed
+  
+  if (!verifiedEmails.includes(recipientEmail)) {
+    console.log(`⚠️ Skipping email to ${recipientEmail} - not in verified list`);
+    console.log(`📧 Verified emails: ${verifiedEmails.join(', ')}`);
+    console.log(`💡 To send to any email, verify a domain at resend.com/domains`);
+    
+    // Return a mock success response for development
+    return {
+      id: `mock-${Date.now()}`,
+      message: `Email would be sent to ${recipientEmail} in production`
+    };
+  }
 
   try {
     console.log('Sending gift email to:', recipientEmail);
