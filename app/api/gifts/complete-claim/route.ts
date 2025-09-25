@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check user limits before processing transfers (based on KYC-verified Stripe account)
-    const totalPendingAmount = pendingGifts.reduce((sum, gift) => sum + gift.amount, 0);
+    const totalPendingAmount = pendingGifts.reduce((sum: number, gift: any) => sum + gift.amount, 0);
     const limitCheck = await checkUserLimits(stripeAccountId, totalPendingAmount);
     
     if (!limitCheck.allowed) {
