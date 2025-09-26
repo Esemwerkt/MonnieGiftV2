@@ -97,7 +97,14 @@ export async function POST(request: NextRequest) {
               recipientAccountId: recipientAccountId,
               hasStripeConnect: !!recipientAccountId,
               applicationFeeAmount: paymentIntent.application_fee_amount,
+              transferData: paymentIntent.transfer_data,
             });
+            
+            if (recipientAccountId) {
+              console.log('✅ Using Stripe Connect application fees - automatic fee splitting enabled');
+            } else {
+              console.log('⚠️ No Stripe Connect account - platform keeps full amount until manual payout');
+            }
             
             if (recipientEmail && senderEmail && giftAmount) {
               try {
@@ -173,6 +180,9 @@ export async function POST(request: NextRequest) {
 
       case 'transfer.created': {
         const transfer = event.data.object;
+        console.log('Transfer created (legacy system):', transfer.id, 'Amount:', transfer.amount);
+        // Note: This is from the old manual transfer system
+        // New system uses Stripe Connect application fees automatically
         break;
       }
 
