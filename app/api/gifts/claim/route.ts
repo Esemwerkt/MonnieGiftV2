@@ -41,9 +41,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate authentication code
     if (gift.authenticationCode !== authenticationCode) {
       return NextResponse.json(
-        { error: 'Ongeldige authenticatiecode' },
+        { error: 'Ongeldige authenticatiecode. Controleer of je de juiste code hebt ingevoerd.' },
+        { status: 400 }
+      );
+    }
+
+    // Validate email matches the gift's recipient email
+    if (gift.recipientEmail.toLowerCase() !== email.toLowerCase()) {
+      return NextResponse.json(
+        { error: 'E-mailadres komt niet overeen met het cadeau. Controleer of je het juiste e-mailadres hebt ingevoerd.' },
         { status: 400 }
       );
     }
