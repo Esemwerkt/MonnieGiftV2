@@ -39,7 +39,7 @@ export default function ClaimGiftPage() {
   
   useEffect(() => {
     if (showConfetti && gift) {
-      const animationPreset = (gift.animationPreset as AnimationPreset) || 'confettiRealistic';
+      const animationPreset = (gift.animationPreset as AnimationPreset);
       
       // Dynamically import and execute confetti
       const runConfetti = async () => {

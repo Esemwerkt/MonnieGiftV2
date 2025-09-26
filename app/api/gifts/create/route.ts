@@ -28,10 +28,14 @@ export async function POST(request: NextRequest) {
       message, 
       senderEmail, 
       recipientEmail,
-      animationPreset = 'confettiRealistic'
+      animationPreset
     } = body;
     
+    // Ensure animationPreset is not undefined, null, or empty string
+    const finalAnimationPreset = animationPreset && animationPreset.trim() !== '' ? animationPreset : 'confettiRealistic';
+    
     console.log('animationPreset after destructuring:', animationPreset);
+    console.log('finalAnimationPreset:', finalAnimationPreset);
 
     if (!amount || !senderEmail || !recipientEmail) {
       return NextResponse.json(
@@ -80,10 +84,11 @@ export async function POST(request: NextRequest) {
         senderEmail,
         recipientEmail,
         authenticationCode,
-        animationPreset,
+        animationPreset: finalAnimationPreset,
       };
       
       console.log('Creating gift with data:', giftData);
+      console.log('animationPreset in giftData:', giftData.animationPreset);
       
       gift = await prisma.gift.create({
         data: giftData,

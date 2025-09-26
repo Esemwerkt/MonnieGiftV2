@@ -44,7 +44,7 @@ model Gift {
   stripePaymentIntentId String?
   stripeTransferId      String?
   platformFee           Int?      
-  animationPreset       String?   @default("confettiRealistic") 
+  animationPreset       String 
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
