@@ -74,8 +74,45 @@ export default function SuccessPage() {
       const wasProcessed = sessionStorage.getItem(processingKey);
       
       if (wasProcessed) {
-        console.log('Processing already complete for this payment intent, skipping...');
-        setProcessingComplete(true);
+        console.log('Processing already complete for this payment intent, fetching existing data...');
+        // Fetch the existing gift data and display it
+        const fetchExistingGift = async () => {
+          try {
+            const response = await fetch(`/api/gifts/by-payment-intent/${paymentIntentId}`);
+            if (response.ok) {
+              const gift = await response.json();
+              console.log('Found existing gift:', gift);
+              
+              const newGiftData = {
+                id: gift.id,
+                amount: parseInt(amount),
+                currency,
+                recipientEmail,
+                message: message || undefined,
+              };
+              
+              setGiftData(newGiftData);
+              
+              // Generate claim URL
+              const baseUrl = window.location.origin;
+              const claimLink = `${baseUrl}/claim/${gift.id}`;
+              setClaimUrl(claimLink);
+              
+              setShowConfetti(true);
+              setEmailSent(true); // Assume email was already sent
+              setProcessingComplete(true);
+              console.log('Existing gift data loaded successfully');
+            } else {
+              console.error('Failed to fetch existing gift:', response.status);
+              setProcessingComplete(true);
+            }
+          } catch (error) {
+            console.error('Error fetching existing gift:', error);
+            setProcessingComplete(true);
+          }
+        };
+        
+        fetchExistingGift();
         return;
       }
 
