@@ -68,9 +68,36 @@ export default function SuccessPage() {
     const animationPreset = searchParams.get('animation_preset');
 
     if (paymentIntentId && amount && currency && recipientEmail && senderEmail) {
-      // Create the gift from payment intent
-      const createGift = async () => {
+      // Check if gift already exists for this payment intent
+      const checkAndCreateGift = async () => {
         try {
+          // First, check if a gift already exists for this payment intent
+          const checkResponse = await fetch(`/api/gifts/by-payment-intent/${paymentIntentId}`);
+          
+          if (checkResponse.ok) {
+            // Gift already exists, use it
+            const existingGift = await checkResponse.json();
+            const newGiftData = {
+              id: existingGift.id,
+              amount: parseInt(amount),
+              currency,
+              recipientEmail,
+              message: message || undefined,
+            };
+            
+            setGiftData(newGiftData);
+            
+            // Generate claim URL
+            const baseUrl = window.location.origin;
+            const claimLink = `${baseUrl}/claim/${existingGift.id}`;
+            setClaimUrl(claimLink);
+            
+            setShowConfetti(true);
+            setEmailSent(true); // Assume email was already sent
+            return;
+          }
+
+          // Gift doesn't exist, create it
           const response = await fetch('/api/gifts/create', {
             method: 'POST',
             headers: {
@@ -136,11 +163,11 @@ export default function SuccessPage() {
             console.error('Failed to create gift:', data.error);
           }
         } catch (error) {
-          console.error('Error creating gift:', error);
+          console.error('Error checking/creating gift:', error);
         }
       };
 
-      createGift();
+      checkAndCreateGift();
     }
   }, [searchParams]);
 
