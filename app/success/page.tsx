@@ -19,42 +19,6 @@ export default function SuccessPage() {
   const [showConfetti, setShowConfetti] = useState(false);
   const { triggerFullScreenExplosion } = useBeautifulConfetti();
 
-  useEffect(() => {
-    // Get gift data from URL params
-    const giftId = searchParams.get('gift_id');
-    const amount = searchParams.get('amount');
-    const currency = searchParams.get('currency');
-    const recipientEmail = searchParams.get('recipient');
-    const message = searchParams.get('message');
-
-    if (giftId && amount && currency && recipientEmail) {
-      setGiftData({
-        id: giftId,
-        amount: parseInt(amount),
-        currency,
-        recipientEmail,
-        message: message || undefined,
-      });
-      
-      // Trigger confetti celebration
-      setShowConfetti(true);
-      // Also trigger full-screen explosion for maximum impact
-      setTimeout(() => {
-        triggerFullScreenExplosion('mixed');
-      }, 500);
-
-      // Automatically send email when page loads
-      setTimeout(() => {
-        handleSendEmail();
-      }, 1000);
-    }
-  }, [searchParams]);
-
-  const formatAmount = (amount: number, currency: string) => {
-    const symbol = currency === 'eur' ? '€' : currency === 'usd' ? '$' : '£';
-    return `${symbol}${(amount / 100).toFixed(2)}`;
-  };
-
   const handleSendEmail = async () => {
     if (!giftData) return;
     
@@ -79,6 +43,64 @@ export default function SuccessPage() {
     } finally {
       setSendingEmail(false);
     }
+  };
+
+  useEffect(() => {
+    // Get gift data from URL params
+    const giftId = searchParams.get('gift_id');
+    const amount = searchParams.get('amount');
+    const currency = searchParams.get('currency');
+    const recipientEmail = searchParams.get('recipient');
+    const message = searchParams.get('message');
+
+    if (giftId && amount && currency && recipientEmail) {
+      const newGiftData = {
+        id: giftId,
+        amount: parseInt(amount),
+        currency,
+        recipientEmail,
+        message: message || undefined,
+      };
+      
+      setGiftData(newGiftData);
+      
+      // Trigger confetti celebration
+      setShowConfetti(true);
+      // Also trigger full-screen explosion for maximum impact
+      setTimeout(() => {
+        triggerFullScreenExplosion('mixed');
+      }, 500);
+
+      // Automatically send email when page loads
+      setTimeout(async () => {
+        setSendingEmail(true);
+        try {
+          const response = await fetch('/api/send-gift-email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ giftId: newGiftData.id }),
+          });
+
+          if (response.ok) {
+            setEmailSent(true);
+            console.log('✅ Email sent successfully!');
+          } else {
+            console.error('Failed to send email');
+          }
+        } catch (error) {
+          console.error('Error sending email:', error);
+        } finally {
+          setSendingEmail(false);
+        }
+      }, 1000);
+    }
+  }, [searchParams]);
+
+  const formatAmount = (amount: number, currency: string) => {
+    const symbol = currency === 'eur' ? '€' : currency === 'usd' ? '$' : '£';
+    return `${symbol}${(amount / 100).toFixed(2)}`;
   };
 
   return (
