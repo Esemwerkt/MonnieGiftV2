@@ -305,6 +305,11 @@ export default function HomePage() {
         amount: amountInCents,
       });
 
+      // Double-check the animationPreset before sending
+      if (formData.animationPreset === 'confettiRealistic') {
+        console.warn('WARNING: animationPreset is still confettiRealistic! This might be the issue.');
+      }
+
       const response = await fetch("/api/gifts/create", {
         method: "POST",
         headers: {
