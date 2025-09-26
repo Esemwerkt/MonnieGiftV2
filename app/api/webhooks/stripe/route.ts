@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object;
         console.log('Webhook received payment_intent.succeeded:', paymentIntent.id, paymentIntent.status);
+        console.log('Payment intent metadata:', paymentIntent.metadata);
         
         if (paymentIntent.status === 'succeeded') {
           // Check if gift already exists for this payment intent
@@ -129,6 +130,10 @@ export async function POST(request: NextRequest) {
                 console.log('Email sent for new gift');
               } catch (error) {
                 console.error('Error creating gift or sending email:', error);
+                console.error('Error details:', {
+                  message: error instanceof Error ? error.message : String(error),
+                  stack: error instanceof Error ? error.stack : undefined
+                });
               }
             } else {
               console.log('Missing required metadata for gift creation:', {

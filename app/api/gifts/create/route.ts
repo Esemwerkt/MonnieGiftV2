@@ -116,31 +116,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const giftAmount = amount;
-    const platformFee = 99;
-    const totalAmount = giftAmount + platformFee;
+    // Only create payment intent if this is not a fallback call (no paymentIntentId provided)
+    if (!paymentIntentId) {
+      const giftAmount = amount;
+      const platformFee = 99;
+      const totalAmount = giftAmount + platformFee;
 
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: totalAmount,
-      currency: currency.toLowerCase(),
-      payment_method_types: ['ideal'],
-      description: `MonnieGift - Gift €${(giftAmount/100).toFixed(2)} + Service fee €${(platformFee/100).toFixed(2)}`,
-      metadata: {
-        giftId: gift.id,
-        giftAmount: giftAmount.toString(),
-        platformFee: platformFee.toString(),
-        totalAmount: totalAmount.toString(),
-        senderEmail,
-        recipientEmail,
-      },
-    });
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: totalAmount,
+        currency: currency.toLowerCase(),
+        payment_method_types: ['ideal'],
+        description: `MonnieGift - Gift €${(giftAmount/100).toFixed(2)} + Service fee €${(platformFee/100).toFixed(2)}`,
+        metadata: {
+          giftId: gift.id,
+          giftAmount: giftAmount.toString(),
+          platformFee: platformFee.toString(),
+          totalAmount: totalAmount.toString(),
+          senderEmail,
+          recipientEmail,
+        },
+      });
 
-    await prisma.gift.update({
-      where: { id: gift.id },
-      data: { 
-        stripePaymentIntentId: paymentIntent.id,
-      },
-    });
+      await prisma.gift.update({
+        where: { id: gift.id },
+        data: { 
+          stripePaymentIntentId: paymentIntent.id,
+        },
+      });
+    }
 
 
     
@@ -148,13 +151,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       giftId: gift.id,
-      paymentIntentId: paymentIntent.id,
-      clientSecret: paymentIntent.client_secret,
-      giftAmount: giftAmount,
-      platformFee: platformFee,
-      totalAmount: totalAmount,
+      paymentIntentId: paymentIntentId || null,
+      clientSecret: null, // No client secret for fallback calls
+      giftAmount: amount,
+      platformFee: 99,
+      totalAmount: amount + 99,
       animationPreset: gift.animationPreset, // Return the saved animation preset
-      message: 'Gift created successfully. Please complete payment to send the gift.',
+      message: paymentIntentId ? 'Gift created successfully as fallback.' : 'Gift created successfully. Please complete payment to send the gift.',
     });
   } catch (error) {
     return NextResponse.json(
