@@ -83,17 +83,13 @@ export async function POST(request: NextRequest) {
       }
     } else {
       try {
-        // Create Express account with ToS acceptance handled on frontend
+        // Create Express account with OAuth flow
         const account = await stripe.accounts.create({
           type: 'express',
           country: 'NL',
           email: email,
           capabilities: {
             transfers: { requested: true }
-          },
-          tos_acceptance: {
-            date: Math.floor(Date.now() / 1000),
-            ip: '127.0.0.1', // This will be updated with real IP in production
           },
         });
 

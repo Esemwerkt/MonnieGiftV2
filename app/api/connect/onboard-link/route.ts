@@ -15,18 +15,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create onboarding link according to playbook
-    const link = await stripe.accountLinks.create({
-      account: accountId,
-      type: 'account_onboarding',
-      refresh_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://monnie-gift-v222.vercel.app'}/stripe/refresh`,
-      return_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://monnie-gift-v222.vercel.app'}/stripe/terug?gift_id=${giftId}&email=${encodeURIComponent(email)}`,
+    // Create OAuth link for Express onboarding
+    const link = await stripe.oauth.authorizeUrl({
+      client_id: process.env.TEST_CLIENT_ID || 'ca_T7CBc0ces4KI6ZjnZyQfmRthI17yuwp6',
+      response_type: 'code',
+      scope: 'read_write',
+      redirect_uri: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://monnie-gift-v222.vercel.app'}/stripe/terug?gift_id=${giftId}&email=${encodeURIComponent(email)}`,
+      state: `gift_${giftId}_${email}`,
     });
 
     return NextResponse.json({
       success: true,
-      onboardingUrl: link.url,
-      expiresAt: link.expires_at,
+      onboardingUrl: link,
     });
   } catch (error) {
     console.error('Error creating onboarding link:', error);

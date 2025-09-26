@@ -18,12 +18,27 @@ export default function StripeReturnPage() {
   useEffect(() => {
     const checkOnboardingStatus = async () => {
       try {
-        if (accountId) {
-          // Check if account is fully onboarded
-          const response = await fetch(`/api/connect/account-update?account_id=${accountId}`);
+        const code = searchParams.get('code');
+        const state = searchParams.get('state');
+        
+        if (code && state) {
+          // OAuth callback - process the authorization code
+          const response = await fetch('/api/connect/oauth-callback', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              code,
+              state,
+              giftId,
+              email,
+            }),
+          });
+
           const data = await response.json();
 
-          if (response.ok && !data.needsUpdate) {
+          if (response.ok) {
             setStatus('success');
             setMessage('Account setup voltooid! Je cadeau wordt nu verwerkt...');
             
@@ -37,11 +52,31 @@ export default function StripeReturnPage() {
             }, 3000);
           } else {
             setStatus('error');
+            setMessage(data.error || 'Account setup niet voltooid. Probeer het opnieuw.');
+          }
+        } else if (accountId) {
+          // Fallback to account ID check
+          const response = await fetch(`/api/connect/account-update?account_id=${accountId}`);
+          const data = await response.json();
+
+          if (response.ok && !data.needsUpdate) {
+            setStatus('success');
+            setMessage('Account setup voltooid! Je cadeau wordt nu verwerkt...');
+            
+            setTimeout(() => {
+              if (giftId && email) {
+                router.push(`/claim/${giftId}?email=${encodeURIComponent(email)}&onboarding_complete=true&auto_claim=true`);
+              } else {
+                router.push('/');
+              }
+            }, 3000);
+          } else {
+            setStatus('error');
             setMessage('Account setup niet voltooid. Probeer het opnieuw.');
           }
         } else {
           setStatus('error');
-          setMessage('Geen account ID gevonden.');
+          setMessage('Geen account ID of OAuth code gevonden.');
         }
       } catch (error) {
         setStatus('error');
@@ -52,7 +87,7 @@ export default function StripeReturnPage() {
     };
 
     checkOnboardingStatus();
-  }, [accountId, giftId, email, router]);
+  }, [searchParams, accountId, giftId, email, router]);
 
   if (loading) {
     return (
