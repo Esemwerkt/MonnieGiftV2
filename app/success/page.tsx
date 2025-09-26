@@ -104,11 +104,17 @@ export default function SuccessPage() {
               console.log('Existing gift data loaded successfully');
             } else {
               console.error('Failed to fetch existing gift:', response.status);
-              setProcessingComplete(true);
+              // Clear sessionStorage if gift doesn't exist (previous processing failed)
+              sessionStorage.removeItem(processingKey);
+              console.log('Cleared sessionStorage, will retry processing');
+              setProcessingComplete(false);
             }
           } catch (error) {
             console.error('Error fetching existing gift:', error);
-            setProcessingComplete(true);
+            // Clear sessionStorage if there was an error
+            sessionStorage.removeItem(processingKey);
+            console.log('Cleared sessionStorage due to error, will retry processing');
+            setProcessingComplete(false);
           }
         };
         
@@ -121,6 +127,9 @@ export default function SuccessPage() {
         console.log('Processing already complete, skipping...');
         return;
       }
+
+      // If we reach here, we need to process the gift
+      console.log('Starting gift processing for payment intent:', paymentIntentId);
       // Simply retrieve the existing gift (created by webhook)
       const retrieveGift = async () => {
         try {
