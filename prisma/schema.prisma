@@ -45,6 +45,9 @@ model Gift {
   stripeTransferId      String?
   platformFee           Int?      
   animationPreset       String 
+  stripeConnectAccountId String? // Stripe Connect account ID for recipient
+  platformFeeAmount     Int?     // Platform fee amount in cents
+  applicationFeeAmount  Int?     // Stripe application fee amount in cents
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 

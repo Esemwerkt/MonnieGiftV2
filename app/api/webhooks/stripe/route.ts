@@ -87,6 +87,17 @@ export async function POST(request: NextRequest) {
             const giftAmount = paymentIntent.metadata?.giftAmount;
             const message = paymentIntent.metadata?.message;
             const animationPreset = paymentIntent.metadata?.animationPreset;
+            const recipientAccountId = paymentIntent.metadata?.recipientAccountId;
+            
+            // Log fee distribution
+            console.log('Payment fee distribution:', {
+              totalAmount: paymentIntent.amount,
+              giftAmount: giftAmount,
+              platformFee: paymentIntent.metadata?.platformFee,
+              recipientAccountId: recipientAccountId,
+              hasStripeConnect: !!recipientAccountId,
+              applicationFeeAmount: paymentIntent.application_fee_amount,
+            });
             
             if (recipientEmail && senderEmail && giftAmount) {
               try {
@@ -112,6 +123,10 @@ export async function POST(request: NextRequest) {
                     authenticationCode,
                     animationPreset: animationPreset || 'confettiRealistic',
                     stripePaymentIntentId: paymentIntent.id,
+                    // Store Stripe Connect information for payout tracking
+                    stripeConnectAccountId: recipientAccountId || null,
+                    platformFeeAmount: parseInt(paymentIntent.metadata?.platformFee || '0'),
+                    applicationFeeAmount: paymentIntent.application_fee_amount || 0,
                   },
                 });
 

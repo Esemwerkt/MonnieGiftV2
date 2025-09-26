@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if recipient exists and has limits
+    // Check if recipient exists and has Stripe Connect account
     let existingUser = null;
     try {
       existingUser = await (prisma as any).user.findUnique({
@@ -53,7 +53,14 @@ export async function POST(request: NextRequest) {
       // Continue without user check if database error
     }
 
+    const platformFee = 99; // €0.99 in cents
+    const totalAmount = amount + platformFee;
+
+    // Create payment intent with Stripe Connect application fee
+    let paymentIntent;
+    
     if (existingUser && existingUser.stripeConnectAccountId) {
+      // Recipient has Stripe Connect account - use application fee
       const limitCheck = await checkUserLimits(existingUser.stripeConnectAccountId, amount);
       
       if (!limitCheck.allowed) {
@@ -62,26 +69,44 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
+
+      paymentIntent = await stripe.paymentIntents.create({
+        amount: totalAmount,
+        currency: currency.toLowerCase(),
+        payment_method_types: ['ideal'],
+        application_fee_amount: platformFee, // Platform keeps €0.99
+        transfer_data: {
+          destination: existingUser.stripeConnectAccountId, // Recipient gets €8.00
+        },
+        metadata: {
+          type: 'gift',
+          senderEmail,
+          recipientEmail,
+          message: message || '',
+          animationPreset: finalAnimationPreset,
+          giftAmount: amount.toString(),
+          platformFee: platformFee.toString(),
+          recipientAccountId: existingUser.stripeConnectAccountId,
+        },
+      });
+    } else {
+      // Recipient doesn't have Stripe Connect account - platform keeps all
+      paymentIntent = await stripe.paymentIntents.create({
+        amount: totalAmount,
+        currency: currency.toLowerCase(),
+        payment_method_types: ['ideal'],
+        metadata: {
+          type: 'gift',
+          senderEmail,
+          recipientEmail,
+          message: message || '',
+          animationPreset: finalAnimationPreset,
+          giftAmount: amount.toString(),
+          platformFee: platformFee.toString(),
+          recipientAccountId: null, // No Stripe Connect account
+        },
+      });
     }
-
-    const platformFee = 99; // €0.99 in cents
-    const totalAmount = amount + platformFee;
-
-    // Create payment intent (gift will be created by webhook after payment succeeds)
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: totalAmount,
-      currency: currency.toLowerCase(),
-      payment_method_types: ['ideal'], // Only allow iDEAL payments
-      metadata: {
-        type: 'gift',
-        senderEmail,
-        recipientEmail,
-        message: message || '',
-        animationPreset: finalAnimationPreset,
-        giftAmount: amount.toString(),
-        platformFee: platformFee.toString(),
-      },
-    });
 
     return NextResponse.json({
       success: true,
@@ -90,6 +115,8 @@ export async function POST(request: NextRequest) {
       giftAmount: amount,
       platformFee: platformFee,
       totalAmount: totalAmount,
+      hasStripeConnect: !!(existingUser && existingUser.stripeConnectAccountId),
+      recipientAccountId: existingUser?.stripeConnectAccountId || null,
     });
 
   } catch (error) {
