@@ -299,7 +299,9 @@ export default function HomePage() {
       const amount = parseFloat(formData.amount);
       const amountInCents = Math.round(amount * 100);
 
-      // Form data is ready for submission
+      // Debug form data before submission
+      console.log('Form submission - animationPreset:', formData.animationPreset);
+      console.log('Form submission - full formData:', formData);
 
       const response = await fetch("/api/gifts/create", {
         method: "POST",
@@ -703,12 +705,17 @@ export default function HomePage() {
                         <div className="flex gap-2">
                           <button
                             type="button"
-                            onClick={() =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                animationPreset: key,
-                              }))
-                            }
+                            onClick={() => {
+                              console.log('User clicked animation preset:', key);
+                              setFormData((prev) => {
+                                const newData = {
+                                  ...prev,
+                                  animationPreset: key,
+                                };
+                                console.log('Updated formData after click:', newData);
+                                return newData;
+                              });
+                            }}
                             className={`flex-1 px-3 py-2 text-xs sm:text-sm rounded-md transition-colors ${
                               formData.animationPreset === key
                                 ? "bg-primary text-primary-foreground"
