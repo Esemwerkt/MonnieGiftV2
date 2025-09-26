@@ -2,27 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { sendGiftEmail } from '@/lib/email';
 
-// Force dynamic rendering
 export const dynamic = 'force-dynamic';
-
-export async function GET() {
-  return NextResponse.json({ 
-    message: 'This endpoint only accepts POST requests',
-    method: 'POST'
-  });
-}
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("=== SEND GIFT EMAIL AFTER PAYMENT API CALLED ===");
     const body = await request.json();
     const { paymentIntentId } = body;
-    
-    console.log("Payment Intent ID:", paymentIntentId);
+
+    console.log('=== SEND GIFT EMAIL AFTER PAYMENT ===');
+    console.log('PaymentIntent ID:', paymentIntentId);
 
     if (!paymentIntentId) {
       return NextResponse.json(
-        { error: 'Payment Intent ID is required' },
+        { error: 'PaymentIntent ID is required' },
         { status: 400 }
       );
     }
@@ -33,9 +25,9 @@ export async function POST(request: NextRequest) {
     });
 
     if (!gift) {
-      console.error('Gift not found for payment intent:', paymentIntentId);
+      console.error('❌ Gift not found for PaymentIntent:', paymentIntentId);
       return NextResponse.json(
-        { error: 'Gift not found for this payment' },
+        { error: 'Gift not found' },
         { status: 404 }
       );
     }
@@ -44,13 +36,12 @@ export async function POST(request: NextRequest) {
       giftId: gift.id,
       recipientEmail: gift.recipientEmail,
       amount: gift.amount,
-      authenticationCode: gift.authenticationCode,
-      senderEmail: gift.senderEmail
+      authenticationCode: gift.authenticationCode
     });
 
     // Send email to recipient
     try {
-      await sendGiftEmail({
+      const emailResult = await sendGiftEmail({
         recipientEmail: gift.recipientEmail,
         giftId: gift.id,
         authenticationCode: gift.authenticationCode,
@@ -58,7 +49,15 @@ export async function POST(request: NextRequest) {
         message: gift.message || undefined,
         senderEmail: gift.senderEmail,
       });
-      console.log('✅ Email sent successfully after payment!');
+      
+      console.log('✅ Email sent successfully after payment!', emailResult);
+      
+      return NextResponse.json({
+        success: true,
+        message: 'Email sent successfully',
+        giftId: gift.id,
+        emailResult
+      });
     } catch (emailError) {
       console.error('❌ Failed to send email after payment:', emailError);
       return NextResponse.json(
@@ -70,18 +69,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Email sent successfully',
-      giftId: gift.id,
-      recipientEmail: gift.recipientEmail
-    });
-
   } catch (error) {
-    console.error('Error sending gift email after payment:', error);
+    console.error('❌ Send gift email after payment failed:', error);
     return NextResponse.json(
       { 
-        error: 'Failed to send email',
+        error: 'Failed to send gift email',
         details: error instanceof Error ? error.message : String(error)
       },
       { status: 500 }

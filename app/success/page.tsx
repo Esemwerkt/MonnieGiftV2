@@ -60,16 +60,25 @@ export default function SuccessPage() {
     
     setSendingEmail(true);
     try {
-      const response = await fetch('/api/send-gift-email', {
+      // Get payment intent ID from URL params
+      const paymentIntentId = searchParams.get('payment_intent');
+      
+      if (!paymentIntentId) {
+        console.error('No payment intent ID found');
+        return;
+      }
+
+      const response = await fetch('/api/send-gift-email-after-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ giftId: giftData.id }),
+        body: JSON.stringify({ paymentIntentId }),
       });
 
       if (response.ok) {
         setEmailSent(true);
+        console.log('✅ Email sent successfully!');
       } else {
         console.error('Failed to send email');
       }
