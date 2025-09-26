@@ -69,6 +69,16 @@ export default function SuccessPage() {
     const senderEmail = searchParams.get('sender');
     const animationPreset = searchParams.get('animation_preset');
 
+    // Check if email was already sent for this payment intent
+    if (paymentIntentId) {
+      const emailSentKey = `email_sent_${paymentIntentId}`;
+      const wasEmailSent = sessionStorage.getItem(emailSentKey);
+      if (wasEmailSent) {
+        setEmailSent(true);
+        console.log('Email already sent for this payment intent (restored from sessionStorage)');
+      }
+    }
+
     if (paymentIntentId) {
       // First verify the payment with Stripe server-side
       const verifyPayment = async () => {
@@ -122,7 +132,6 @@ export default function SuccessPage() {
           // Now process the gift with verified data
           processGiftWithVerifiedData({
             paymentIntentId,
-            amount: verifiedAmount,
             currency: verifiedCurrency,
             recipientEmail: verifiedRecipientEmail,
             senderEmail: verifiedSenderEmail,
@@ -143,14 +152,13 @@ export default function SuccessPage() {
 
   const processGiftWithVerifiedData = async (verifiedData: {
     paymentIntentId: string;
-    amount: number;
     currency: string;
     recipientEmail: string;
     senderEmail: string;
     message: string;
     animationPreset: string;
   }) => {
-    const { paymentIntentId, amount, currency, recipientEmail, senderEmail, message, animationPreset } = verifiedData;
+    const { paymentIntentId, currency, recipientEmail, senderEmail, message, animationPreset } = verifiedData;
     // Check if processing was already completed for this payment intent
     const processingKey = `gift_processed_${paymentIntentId}`;
     const wasProcessed = sessionStorage.getItem(processingKey);
@@ -167,10 +175,10 @@ export default function SuccessPage() {
             
             const newGiftData = {
               id: gift.id,
-              amount: amount,
-              currency,
-              recipientEmail,
-              message: message || undefined,
+              amount: gift.amount, // Use gift amount from database (without platform fee)
+              currency: gift.currency,
+              recipientEmail: gift.recipientEmail,
+              message: gift.message || undefined,
             };
             
             setGiftData(newGiftData);
@@ -184,8 +192,11 @@ export default function SuccessPage() {
             setProcessingComplete(true);
             console.log('Existing gift data loaded successfully');
             
-            // Ensure email is sent
-            if (!emailSent) {
+            // Check if email was already sent for this payment intent
+            const emailSentKey = `email_sent_${paymentIntentId}`;
+            const wasEmailSent = sessionStorage.getItem(emailSentKey);
+            
+            if (!wasEmailSent) {
               console.log('Sending email for existing gift...');
               try {
                 const emailResponse = await fetch('/api/send-gift-email', {
@@ -198,6 +209,7 @@ export default function SuccessPage() {
                 
                 if (emailResponse.ok) {
                   setEmailSent(true);
+                  sessionStorage.setItem(emailSentKey, 'true');
                   console.log('Email sent successfully for existing gift');
                 } else {
                   console.error('Failed to send email for existing gift');
@@ -205,6 +217,9 @@ export default function SuccessPage() {
               } catch (error) {
                 console.error('Error sending email for existing gift:', error);
               }
+            } else {
+              setEmailSent(true);
+              console.log('Email already sent for this payment intent');
             }
           } else {
             console.error('Failed to fetch existing gift:', response.status);
@@ -247,10 +262,10 @@ export default function SuccessPage() {
           
           const newGiftData = {
             id: gift.id,
-            amount: amount,
-            currency,
-            recipientEmail,
-            message: message || undefined,
+            amount: gift.amount, // Use gift amount from database (without platform fee)
+            currency: gift.currency,
+            recipientEmail: gift.recipientEmail,
+            message: gift.message || undefined,
           };
           
           setGiftData(newGiftData);
@@ -265,8 +280,11 @@ export default function SuccessPage() {
           sessionStorage.setItem(processingKey, 'true');
           console.log('Gift retrieved successfully');
           
-          // Ensure email is sent
-          if (!emailSent) {
+          // Check if email was already sent for this payment intent
+          const emailSentKey = `email_sent_${paymentIntentId}`;
+          const wasEmailSent = sessionStorage.getItem(emailSentKey);
+          
+          if (!wasEmailSent) {
             console.log('Sending email for retrieved gift...');
             try {
               const emailResponse = await fetch('/api/send-gift-email', {
@@ -279,6 +297,7 @@ export default function SuccessPage() {
               
               if (emailResponse.ok) {
                 setEmailSent(true);
+                sessionStorage.setItem(emailSentKey, 'true');
                 console.log('Email sent successfully for retrieved gift');
               } else {
                 console.error('Failed to send email for retrieved gift');
@@ -286,6 +305,9 @@ export default function SuccessPage() {
             } catch (error) {
               console.error('Error sending email for retrieved gift:', error);
             }
+          } else {
+            setEmailSent(true);
+            console.log('Email already sent for this payment intent');
           }
         } else {
           console.error('Failed to retrieve gift:', response.status);
@@ -300,10 +322,10 @@ export default function SuccessPage() {
                 
                 const newGiftData = {
                   id: gift.id,
-                  amount: amount,
-                  currency,
-                  recipientEmail,
-                  message: message || undefined,
+                  amount: gift.amount, // Use gift amount from database (without platform fee)
+                  currency: gift.currency,
+                  recipientEmail: gift.recipientEmail,
+                  message: gift.message || undefined,
                 };
                 
                 setGiftData(newGiftData);
@@ -317,8 +339,11 @@ export default function SuccessPage() {
                 sessionStorage.setItem(processingKey, 'true');
                 console.log('Gift retrieved successfully on retry');
                 
-                // Ensure email is sent
-                if (!emailSent) {
+                // Check if email was already sent for this payment intent
+                const emailSentKey = `email_sent_${paymentIntentId}`;
+                const wasEmailSent = sessionStorage.getItem(emailSentKey);
+                
+                if (!wasEmailSent) {
                   console.log('Sending email for retry gift...');
                   try {
                     const emailResponse = await fetch('/api/send-gift-email', {
@@ -331,6 +356,7 @@ export default function SuccessPage() {
                     
                     if (emailResponse.ok) {
                       setEmailSent(true);
+                      sessionStorage.setItem(emailSentKey, 'true');
                       console.log('Email sent successfully for retry gift');
                     } else {
                       console.error('Failed to send email for retry gift');
@@ -338,6 +364,9 @@ export default function SuccessPage() {
                   } catch (error) {
                     console.error('Error sending email for retry gift:', error);
                   }
+                } else {
+                  setEmailSent(true);
+                  console.log('Email already sent for this payment intent');
                 }
               } else {
                 console.error('Still no gift found after retry');
@@ -366,7 +395,7 @@ export default function SuccessPage() {
                   if (fallbackData.success) {
                     const newGiftData = {
                       id: fallbackData.giftId,
-                      amount: amount,
+                      amount: fallbackData.giftAmount, // Use gift amount from fallback response (without platform fee)
                       currency,
                       recipientEmail,
                       message: message || undefined,
@@ -379,9 +408,10 @@ export default function SuccessPage() {
                     setClaimUrl(claimLink);
                     
                     setShowConfetti(true);
-                    setEmailSent(true); // Assume email was sent by the API
-                    setProcessingComplete(true);
+                    setEmailSent(true);
                     sessionStorage.setItem(processingKey, 'true');
+                    sessionStorage.setItem(`email_sent_${paymentIntentId}`, 'true');
+                    setProcessingComplete(true);
                     console.log('Gift created successfully as fallback');
                   } else {
                     console.error('Fallback gift creation failed:', fallbackData.error);
