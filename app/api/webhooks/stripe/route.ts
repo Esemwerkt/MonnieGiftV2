@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { prisma } from '@/lib/prisma';
+import { createClient } from '@supabase/supabase-js';
 import { sendGiftEmail } from '@/lib/email';
 import crypto from 'crypto';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ANON_KEY!
+);
 
 export const dynamic = 'force-dynamic';
 
@@ -46,9 +51,12 @@ export async function POST(request: NextRequest) {
         if (paymentIntent.status === 'succeeded') {
           let existingGift;
           try {
-            existingGift = await prisma.gift.findFirst({
-              where: { stripePaymentIntentId: paymentIntent.id },
-            });
+            const { data: gift } = await supabase
+              .from('gifts')
+              .select('*')
+              .eq('stripePaymentIntentId', paymentIntent.id)
+              .single();
+            existingGift = gift;
           } catch (dbError) {
             console.error('Database error finding existing gift:', dbError);
             existingGift = null;
@@ -85,8 +93,9 @@ export async function POST(request: NextRequest) {
                 const authenticationCode = crypto.randomBytes(3).toString('hex').toUpperCase();
                 console.log('Generated authentication code:', authenticationCode);
                 
-                const gift = await prisma.gift.create({
-                  data: {
+                const { data: gift, error: giftError } = await supabase
+                  .from('gifts')
+                  .insert([{
                     amount: parseInt(giftAmount),
                     currency: paymentIntent.currency,
                     message: message || '',
@@ -96,8 +105,13 @@ export async function POST(request: NextRequest) {
                     stripeConnectAccountId: null,
                     platformFeeAmount: parseInt(paymentIntent.metadata?.platformFee || '0'),
                     applicationFeeAmount: 0, // No application fee in simplified flow
-                  },
-                });
+                  }])
+                  .select()
+                  .single();
+
+                if (giftError) {
+                  throw giftError;
+                }
 
                 console.log('Gift created successfully:', gift.id);
                 console.log('Authentication code:', gift.authenticationCode);

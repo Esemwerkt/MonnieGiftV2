@@ -1,38 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ANON_KEY!
+);
 
 export async function GET() {
   try {
-    console.log('Testing database connection...');
-    console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
-    console.log('DATABASE_URL preview:', process.env.DATABASE_URL?.substring(0, 30) + '...');
+    console.log('Testing Supabase connection...');
+    console.log('SUPABASE_URL exists:', !!process.env.SUPABASE_URL);
+    console.log('SUPABASE_ANON_KEY exists:', !!process.env.SUPABASE_ANON_KEY);
     
     // Test basic database connection
-    await prisma.$connect();
-    console.log('✅ Database connection successful');
+    const { data: gifts, error } = await supabase
+      .from('gifts')
+      .select('id')
+      .limit(1);
     
-    // Test a simple query
-    const result = await prisma.gift.count();
-    console.log('✅ Database query successful, gift count:', result);
+    if (error) {
+      throw error;
+    }
+    
+    console.log('✅ Supabase connection successful');
+    console.log('✅ Database query successful, gift count:', gifts?.length || 0);
     
     return NextResponse.json({
       success: true,
-      message: 'Database connection successful',
-      giftCount: result,
-      databaseUrl: process.env.DATABASE_URL ? 'Set' : 'Not set'
+      message: 'Supabase connection successful',
+      giftCount: gifts?.length || 0,
+      supabaseUrl: process.env.SUPABASE_URL ? 'Set' : 'Not set',
+      supabaseKey: process.env.SUPABASE_ANON_KEY ? 'Set' : 'Not set'
     });
   } catch (error) {
-    console.error('❌ Database connection failed:', error);
+    console.error('❌ Supabase connection failed:', error);
     return NextResponse.json(
       { 
         success: false,
-        error: 'Database connection failed',
+        error: 'Supabase connection failed',
         details: error instanceof Error ? error.message : String(error),
-        databaseUrl: process.env.DATABASE_URL ? 'Set' : 'Not set'
+        supabaseUrl: process.env.SUPABASE_URL ? 'Set' : 'Not set',
+        supabaseKey: process.env.SUPABASE_ANON_KEY ? 'Set' : 'Not set'
       },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

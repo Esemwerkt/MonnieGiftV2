@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ANON_KEY!
+);
 
 export const dynamic = 'force-dynamic';
 
@@ -18,11 +23,11 @@ export async function GET(
       );
     }
 
-    const gift = await prisma.gift.findFirst({
-      where: {
-        stripePaymentIntentId: paymentIntentId,
-      },
-    });
+    const { data: gift } = await supabase
+      .from('gifts')
+      .select('*')
+      .eq('stripePaymentIntentId', paymentIntentId)
+      .single();
 
     console.log('Found gift:', gift ? 'Yes' : 'No');
 
