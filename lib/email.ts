@@ -30,7 +30,7 @@ export async function sendGiftEmail({
 
   const fromEmail = 'MonnieGift <hello@resend.dev>';
   
-  const verifiedEmails = ['enes@semwerkt.nl']; // Add more verified emails as needed
+  const verifiedEmails = ['enes@semwerkt.nl, netnuonline@gmail.com']; 
   
   if (!verifiedEmails.includes(recipientEmail)) {
     

@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
                 await sendGiftEmail({
                   recipientEmail,
                   giftId,
-                  authenticationCode: 'TEMP123', // Temporary code since we can't get the real one
+                  authenticationCode: 'TEMP123',
                   amount: parseInt(giftAmount),
                   message: paymentIntent.metadata?.message || undefined,
                   senderEmail,
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
             await prisma.gift.update({
               where: { id: transfer.metadata.giftId },
               data: {
-                isClaimed: false, // Reset claim status
+                isClaimed: false, 
                 claimedAt: null,
                 stripeTransferId: `reversed_${transfer.id}`,
               },
@@ -175,7 +175,7 @@ export async function POST(request: NextRequest) {
             for (const gift of pendingGifts) {
               try {
                 const transfer = await stripe.transfers.create({
-                  amount: gift.amount, // Only gift amount, not total
+                  amount: gift.amount, 
                   currency: gift.currency,
                   destination: account.id,
                   description: 'MonnieGift uitbetaling',

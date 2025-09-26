@@ -72,7 +72,7 @@ function PaymentForm({
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    event.stopPropagation(); // Prevent event from bubbling up to parent form
+    event.stopPropagation();
 
 
     if (!stripe || !elements) {
@@ -213,6 +213,7 @@ export default function HomePage() {
     message: "",
     senderEmail: "",
     recipientEmail: "",
+    animationPreset: "confetti",
   });
   const [showCustomAmount, setShowCustomAmount] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -506,6 +507,34 @@ export default function HomePage() {
                 <p className="text-xs text-muted-foreground mt-2">
                   {formData.message.length}/500 karakters
                 </p>
+              </div>
+
+              {/* Animation Preset Selection */}
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-foreground">
+                  🎨 Kies een animatie voor de ontvanger
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { value: 'confetti', label: '🎉 Confetti', description: 'Explosie van confetti' },
+                    { value: 'hearts', label: '❤️ Hearts', description: 'Harten en liefde' },
+                    { value: 'money', label: '💰 Money', description: 'Geld regen' }
+                  ].map((preset) => (
+                    <button
+                      key={preset.value}
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, animationPreset: preset.value }))}
+                      className={`p-3 rounded-xl border-2 transition-all duration-200 ${
+                        formData.animationPreset === preset.value
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border hover:border-primary/50 hover:bg-accent/50'
+                      }`}
+                    >
+                      <div className="text-lg mb-1">{preset.label}</div>
+                      <div className="text-xs text-muted-foreground">{preset.description}</div>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Payment Form - Show when form is complete */}

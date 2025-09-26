@@ -58,7 +58,7 @@ export default function BeautifulConfetti({
             confettiColors: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3']
           };
         
-        default: // celebration
+        default: 
           return {
             ...baseConfig,
             emojis: type === 'confetti' ? [] : ['🎉', '🎊', '✨', '🌟'],
@@ -115,7 +115,7 @@ export default function BeautifulConfetti({
 
   }, [trigger, variant, onComplete]);
 
-  return null; // This component doesn't render anything
+  return null;
 }
 
 export function useBeautifulConfetti() {
@@ -153,7 +153,7 @@ export function useBeautifulConfetti() {
             confettiColors: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3']
           };
         
-        default: // celebration
+        default: 
           return {
             ...baseConfig,
             emojis: type === 'confetti' ? [] : ['🎉', '🎊', '✨', '🌟'],
@@ -235,7 +235,7 @@ export function useBeautifulConfetti() {
             confettiColors: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3']
           };
         
-        default: // celebration
+        default: 
           return {
             ...baseConfig,
             emojis: type === 'confetti' ? [] : ['🎉', '🎊', '✨', '🌟', '⭐'],

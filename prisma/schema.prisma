@@ -25,7 +25,6 @@ model User {
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 
-  // Relations
   notifications          Notification[]
   userLimits            UserLimits[]
 
@@ -44,11 +43,11 @@ model Gift {
   claimedAt             DateTime?
   stripePaymentIntentId String?
   stripeTransferId      String?
-  platformFee           Int?      // Platform fee in cents
+  platformFee           Int?      
+  animationPreset       String?   @default("confetti") 
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
-  // Relations
   platformFees          PlatformFee[]
 
   @@map("gifts")
@@ -57,14 +56,13 @@ model Gift {
 model PlatformFee {
   id          String   @id @default(cuid())
   giftId      String?  @unique
-  amount      Int      // Platform fee amount in cents
+  amount      Int      
   currency    String   @default("eur")
   isProcessed Boolean  @default(false)
   processedAt DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  // Relations
   gift        Gift?    @relation(fields: [giftId], references: [id])
 
   @@map("platform_fees")
@@ -73,16 +71,15 @@ model PlatformFee {
 model Notification {
   id        String   @id @default(cuid())
   userId    String
-  type      String   // 'gift_sent', 'gift_received', 'gift_claimed', 'welcome', 'error', 'success'
+  type      String  
   title     String
   message   String
   isRead    Boolean  @default(false)
   readAt    DateTime?
-  data      String?  // JSON string for additional data (e.g., giftId, amount, etc.)
+  data      String?  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
   user      User     @relation(fields: [userId], references: [id])
 
   @@map("notifications")
@@ -91,14 +88,13 @@ model Notification {
 model UserLimits {
   id          String   @id @default(cuid())
   userId      String
-  month       Int      // 1-12
-  year        Int      // e.g., 2025
-  totalAmount Int      @default(0) // Total amount in cents for this month
-  giftCount   Int      @default(0) // Number of gifts received this month
+  month       Int      
+  year        Int     
+  totalAmount Int      @default(0) 
+  giftCount   Int      @default(0) 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  // Relations
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, month, year])

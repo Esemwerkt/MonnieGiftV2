@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
           status: 'succeeded',
           amount: 599,
           metadata: {
-            giftId: body.giftId || 'cmg0ipdv800008wpxsdmx1a77', // Use provided giftId or the one from your payment
+            giftId: body.giftId || 'cmg0ipdv800008wpxsdmx1a77', 
             giftAmount: '500',
             platformFee: '99',
             recipientEmail: 'enes@semwerkt.nl',

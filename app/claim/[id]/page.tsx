@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Gift, ArrowRight, Mail, CheckCircle, Home } from 'lucide-react';
 import MoneyLoader from '@/components/MoneyLoader';
 import JSConfetti from 'js-confetti';
+import { ANIMATION_PRESETS, AnimationPreset } from '@/lib/animations';
 
 interface GiftData {
   id: string;
@@ -16,6 +17,7 @@ interface GiftData {
   claimedAt?: string;
   createdAt: string;
   authenticationCode?: string;
+  animationPreset?: string;
   previewConfettiType?: string;
   previewConfettiVariant?: string;
   previewAnimationStyle?: string;
@@ -45,34 +47,40 @@ export default function ClaimGiftPage() {
   }, []);
 
   useEffect(() => {
-    if (showConfetti && jsConfetti) {
+    if (showConfetti && jsConfetti && gift) {
+      const animationPreset = (gift.animationPreset as AnimationPreset) || 'confetti';
+      const config = ANIMATION_PRESETS[animationPreset];
+      
       setTimeout(() => {
-        const createExplosion = (delay: number, config: any) => {
+        const createExplosion = (delay: number, explosionConfig: any) => {
           setTimeout(() => {
-            jsConfetti.addConfetti(config);
+            jsConfetti.addConfetti(explosionConfig);
           }, delay);
         };
 
         createExplosion(0, {
-          confettiColors: ['#0a2d27', '#d4b483', '#1a584e', '#e4c59a', '#fdfbf7'],
-          confettiNumber: 500,
-          confettiRadius: 2,
+          confettiColors: config.confettiColors,
+          confettiNumber: config.confettiNumber,
+          confettiRadius: config.confettiRadius,
+          emojis: config.emojis,
         });
 
         createExplosion(150, {
-          confettiColors: ['#0a2d27', '#d4b483', '#1a584e', '#e4c59a', '#fdfbf7'],
-          confettiNumber: 150,
-          confettiRadius: 4,
+          confettiColors: config.confettiColors,
+          confettiNumber: Math.floor(config.confettiNumber * 0.3),
+          confettiRadius: config.confettiRadius + 2,
+          emojis: config.emojis,
         });
 
         createExplosion(300, {
-          confettiColors: ['#0a2d27', '#d4b483', '#1a584e', '#e4c59a', '#fdfbf7'],
-          confettiNumber: 100,
-          confettiRadius: 3,
+          confettiColors: config.confettiColors,
+          confettiNumber: Math.floor(config.confettiNumber * 0.2),
+          confettiRadius: config.confettiRadius + 1,
+          emojis: config.emojis,
         });
-      }, 300); // Small delay to let the success state render first
+      }, 300); 
     }
-  }, [showConfetti, jsConfetti]);
+  }, [showConfetti, jsConfetti, gift]);
 
   useEffect(() => {
     if (giftId) {
@@ -170,7 +178,7 @@ export default function ClaimGiftPage() {
         return {
           needsUpdate: true,
           requirements: data.requirements,
-          updateUrl: null // Will be generated when user clicks to update
+          updateUrl: null 
         };
       }
       

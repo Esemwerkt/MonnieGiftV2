@@ -23,7 +23,8 @@ export async function POST(request: NextRequest) {
       currency = 'eur', 
       message, 
       senderEmail, 
-      recipientEmail
+      recipientEmail,
+      animationPreset = 'confetti'
     } = body;
 
     if (!amount || !senderEmail || !recipientEmail) {
@@ -74,6 +75,7 @@ export async function POST(request: NextRequest) {
           senderEmail,
           recipientEmail,
           authenticationCode,
+          animationPreset,
         },
       });
     } catch (dbError) {
@@ -86,9 +88,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const giftAmount = amount; // Gift amount in cents
-    const platformFee = 99; // €0.99 platform fee in cents
-    const totalAmount = giftAmount + platformFee; // Total amount to charge
+    const giftAmount = amount;
+    const platformFee = 99;
+    const totalAmount = giftAmount + platformFee;
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: totalAmount,

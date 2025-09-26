@@ -48,7 +48,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-
     let user = await (prisma as any).user.findUnique({
       where: { email },
     });
@@ -88,9 +87,9 @@ export async function POST(request: NextRequest) {
         country: 'NL',
         email: email,
         capabilities: {
-          transfers: { requested: true } // ONLY transfers - no card_payments
+          transfers: { requested: true }
         },
-        business_type: 'individual', // Required for individual accounts
+        business_type: 'individual',
         individual: {
           email: email,
           first_name: email.split('@')[0],
@@ -98,13 +97,13 @@ export async function POST(request: NextRequest) {
           dob: {
             day: 1,
             month: 1,
-            year: 1990, // Default, user can change during onboarding
+            year: 1990, 
           },
           address: {
             country: 'NL',
-            line1: '', // Will be filled during onboarding
-            city: '', // Will be filled during onboarding
-            postal_code: '', // Will be filled during onboarding
+            line1: '', 
+            city: '',
+            postal_code: '', 
           },
         },
         settings: {
@@ -115,8 +114,8 @@ export async function POST(request: NextRequest) {
           },
         },
         business_profile: {
-          url: 'https://monniegift.com', // Default platform URL
-          mcc: '5999', // Miscellaneous retail - appropriate for gift platform
+          url: 'https://monniegift.com', 
+          mcc: '5999', 
         },
         metadata: {
           onboarding_type: 'kyc_light',
@@ -131,7 +130,7 @@ export async function POST(request: NextRequest) {
           email,
           name: email.split('@')[0],
           stripeConnectAccountId: account.id,
-          isVerified: true, // Auto-verify for minimal flow
+          isVerified: true,
         },
       });
 
@@ -141,7 +140,7 @@ export async function POST(request: NextRequest) {
         where: { id: giftId },
         data: {
           recipientEmail: email,
-          stripeTransferId: `pending_${stripeAccountId}`, // Mark as pending
+          stripeTransferId: `pending_${stripeAccountId}`,
         },
       });
 
@@ -170,7 +169,7 @@ export async function POST(request: NextRequest) {
         isClaimed: true,
         claimedAt: new Date(),
         stripeTransferId: transfer.id,
-        recipientEmail: email, // Update recipient email
+        recipientEmail: email,
       },
     });
 
