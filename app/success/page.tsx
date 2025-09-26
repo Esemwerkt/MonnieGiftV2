@@ -60,20 +60,12 @@ export default function SuccessPage() {
     
     setSendingEmail(true);
     try {
-      // Get payment intent ID from URL params
-      const paymentIntentId = searchParams.get('payment_intent');
-      
-      if (!paymentIntentId) {
-        console.error('No payment intent ID found');
-        return;
-      }
-
-      const response = await fetch('/api/send-gift-email-after-payment', {
+      const response = await fetch('/api/send-gift-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ paymentIntentId }),
+        body: JSON.stringify({ giftId: giftData.id }),
       });
 
       if (response.ok) {
