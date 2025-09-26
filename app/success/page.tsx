@@ -124,6 +124,7 @@ export default function SuccessPage() {
           // Now process the gift with verified data
           processGiftWithVerifiedData({
             paymentIntentId,
+            amount: verifiedAmount,
             currency: verifiedCurrency,
             recipientEmail: verifiedRecipientEmail,
             senderEmail: verifiedSenderEmail,
@@ -144,13 +145,14 @@ export default function SuccessPage() {
 
   const processGiftWithVerifiedData = async (verifiedData: {
     paymentIntentId: string;
+    amount: number;
     currency: string;
     recipientEmail: string;
     senderEmail: string;
     message: string;
     animationPreset: string;
   }) => {
-    const { paymentIntentId, currency, recipientEmail, senderEmail, message, animationPreset } = verifiedData;
+    const { paymentIntentId, amount, currency, recipientEmail, senderEmail, message, animationPreset } = verifiedData;
     // Check if processing was already completed for this payment intent
     const processingKey = `gift_processed_${paymentIntentId}`;
     const wasProcessed = sessionStorage.getItem(processingKey);
@@ -287,7 +289,7 @@ export default function SuccessPage() {
                       'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                      amount: amount,
+                      amount: amount, // Use verified amount from payment intent
                       currency,
                       senderEmail,
                       recipientEmail,
