@@ -65,11 +65,22 @@ export default function StripeReturnPage() {
             setMessage(data.error || 'Account setup niet voltooid. Probeer het opnieuw.');
           }
         } else if (accountId) {
-          // Fallback to account ID check
-          const response = await fetch(`/api/connect/account-update?account_id=${accountId}`);
+          // Express onboarding completion - process the gift transfer
+          const response = await fetch('/api/connect/express-complete', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              accountId,
+              giftId,
+              email,
+            }),
+          });
+
           const data = await response.json();
 
-          if (response.ok && !data.needsUpdate) {
+          if (response.ok) {
             setStatus('success');
             setMessage('Account setup voltooid! Je cadeau wordt nu verwerkt...');
             
@@ -82,7 +93,7 @@ export default function StripeReturnPage() {
             }, 3000);
           } else {
             setStatus('error');
-            setMessage('Account setup niet voltooid. Probeer het opnieuw.');
+            setMessage(data.error || 'Er is een fout opgetreden bij het verwerken van je cadeau.');
           }
         } else {
           setStatus('error');

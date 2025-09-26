@@ -15,14 +15,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create OAuth link for Express onboarding
-    const link = await stripe.oauth.authorizeUrl({
-      client_id: process.env.TEST_CLIENT_ID || 'ca_T7CBc0ces4KI6ZjnZyQfmRthI17yuwp6',
-      response_type: 'code',
-      scope: 'read_write',
-      redirect_uri: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://monnie-gift-v222.vercel.app'}/stripe/terug`,
-      state: `gift_${giftId}_${email}`,
+    // Create Express account first
+    const account = await stripe.accounts.create({
+      type: 'express',
+      country: 'NL',
+      email: email,
+      capabilities: {
+        card_payments: { requested: true },
+        transfers: { requested: true },
+      },
     });
+
+    // Create account link for Express onboarding
+    const accountLink = await stripe.accountLinks.create({
+      account: account.id,
+      refresh_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://monnie-gift-v222.vercel.app'}/stripe/terug?account_id=${account.id}&gift_id=${giftId}&email=${encodeURIComponent(email)}`,
+      return_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://monnie-gift-v222.vercel.app'}/stripe/terug?account_id=${account.id}&gift_id=${giftId}&email=${encodeURIComponent(email)}`,
+      type: 'account_onboarding',
+    });
+
+    const link = accountLink.url;
 
     return NextResponse.json({
       success: true,

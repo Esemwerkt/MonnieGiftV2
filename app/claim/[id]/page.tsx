@@ -130,8 +130,24 @@ export default function ClaimGiftPage() {
       }
 
       if (data.needsOnboarding) {
-        router.push(`/onboard/custom?account_id=${data.accountId}&gift_id=${giftId}&email=${encodeURIComponent(email)}`);
-        return;
+        // Go directly to Express onboarding
+        const response = await fetch('/api/connect/onboard-link', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            accountId: data.accountId,
+            giftId,
+            email,
+          }),
+        });
+
+        const onboardData = await response.json();
+        if (onboardData.onboardingUrl) {
+          window.location.href = onboardData.onboardingUrl;
+          return;
+        }
       }
 
       setClaimSuccess(true);
