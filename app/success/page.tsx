@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Gift, CheckCircle, Mail, ArrowRight, Home, Send } from 'lucide-react';
-import BeautifulConfetti, { useBeautifulConfetti } from '@/components/BeautifulConfetti';
+// import BeautifulConfetti, { useBeautifulConfetti } from '@/components/BeautifulConfetti';
 
 export default function SuccessPage() {
   const searchParams = useSearchParams();
@@ -17,7 +17,7 @@ export default function SuccessPage() {
   const [emailSent, setEmailSent] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  const { triggerFullScreenExplosion } = useBeautifulConfetti();
+  // const { triggerFullScreenExplosion } = useBeautifulConfetti();
 
   const handleSendEmail = async () => {
     if (!giftData) return;
@@ -67,9 +67,9 @@ export default function SuccessPage() {
       // Trigger confetti celebration
       setShowConfetti(true);
       // Also trigger full-screen explosion for maximum impact
-      setTimeout(() => {
-        triggerFullScreenExplosion('mixed');
-      }, 500);
+      // setTimeout(() => {
+      //   triggerFullScreenExplosion('mixed');
+      // }, 500);
 
       // Automatically send email when page loads
       setTimeout(async () => {
@@ -106,11 +106,11 @@ export default function SuccessPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-12 px-4">
       {/* Success Confetti */}
-      <BeautifulConfetti 
+      {/* <BeautifulConfetti 
         trigger={showConfetti} 
         variant="mixed"
         onComplete={() => setShowConfetti(false)}
-      />
+      /> */}
       
       <div className="max-w-2xl mx-auto">
         {/* Navigation */}
