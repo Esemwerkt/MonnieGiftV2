@@ -13,7 +13,7 @@ export function calculatePayoutEstimate(amount: number, currency: string = 'eur'
   
   const stripeFeePercentage = 0.029; // 2.9%
   
-  let platformFeePercentage = 0.005; // Default 0.5% for free plan
+  let platformFeePercentage = 0.005; 
   switch (subscriptionPlan) {
     case 'pro':
       platformFeePercentage = 0.003; // 0.3%

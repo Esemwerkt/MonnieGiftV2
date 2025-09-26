@@ -23,8 +23,6 @@ export async function POST(request: NextRequest) {
       amount, 
       currency = 'eur', 
       message, 
-      senderEmail, 
-      recipientEmail,
       animationPreset,
       paymentIntentId
     } = body;
@@ -32,41 +30,13 @@ export async function POST(request: NextRequest) {
     // Ensure animationPreset is not undefined, null, or empty string
     const finalAnimationPreset = animationPreset && animationPreset.trim() !== '' ? animationPreset : 'confettiRealistic';
 
-    if (!amount || !senderEmail || !recipientEmail) {
+    if (!amount) {
       return NextResponse.json(
-        { error: 'Bedrag, verzender e-mail en ontvanger e-mail zijn vereist' },
+        { error: 'Bedrag is vereist' },
         { status: 400 }
       );
     }
 
-    let existingUser = null;
-    try {
-      existingUser = await (prisma as any).user.findUnique({
-        where: { email: recipientEmail },
-      });
-    } catch (dbError) {
-    }
-
-    if (existingUser && existingUser.stripeConnectAccountId) {
-      const limitCheck = await checkUserLimits(existingUser.stripeConnectAccountId, amount);
-      
-      if (!limitCheck.allowed) {
-        return NextResponse.json(
-          { 
-            error: limitCheck.reason || 'Limiet overschreden',
-            limitInfo: {
-              currentAmount: limitCheck.currentAmount / 100,
-              currentGiftCount: limitCheck.currentGiftCount,
-              remainingAmount: limitCheck.remainingAmount / 100,
-              remainingGifts: limitCheck.remainingGifts,
-              monthlyLimit: LIMITS.MAX_MONTHLY_AMOUNT / 100,
-              monthlyGiftLimit: LIMITS.MAX_MONTHLY_GIFTS,
-            }
-          },
-          { status: 400 }
-        );
-      }
-    }
 
     // Check if gift already exists for this payment intent (prevent duplicates)
     if (paymentIntentId) {
@@ -97,11 +67,14 @@ export async function POST(request: NextRequest) {
         amount,
         currency,
         message,
-        senderEmail,
-        recipientEmail,
+        senderEmail: 'noreply@monniegift.nl', // Placeholder for simplified flow
+        recipientEmail: 'pending@monniegift.nl', // Placeholder - will be collected during claim
         authenticationCode,
         animationPreset: finalAnimationPreset,
         stripePaymentIntentId: paymentIntentId || null,
+        stripeConnectAccountId: null, // No Stripe Connect in simplified flow
+        platformFeeAmount: 99, // €0.99 in cents
+        applicationFeeAmount: 0, // No application fee in simplified flow
       };
       
       gift = await prisma.gift.create({
@@ -133,8 +106,8 @@ export async function POST(request: NextRequest) {
           giftAmount: giftAmount.toString(),
           platformFee: platformFee.toString(),
           totalAmount: totalAmount.toString(),
-          senderEmail,
-          recipientEmail,
+          message: message || '',
+          animationPreset: finalAnimationPreset,
         },
       });
 
