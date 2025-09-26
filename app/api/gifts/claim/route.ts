@@ -111,6 +111,7 @@ export async function POST(request: NextRequest) {
           transfers: { requested: true } // ONLY transfers - no card_payments
         },
         business_type: 'individual', // Required for individual accounts
+        tos_acceptance: { service_agreement: 'recipient' }, // Required for recipient accounts
         // Prefill individual information to minimize user input
         individual: {
           email: email,
