@@ -119,7 +119,7 @@ export default function CustomOnboardPage() {
         </div>
 
         {/* Form */}
-        <div className=" bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6 shadow-xl w-fit mx-auto">
+        <div className=" bg-card/50 backdrop-blur-sm border  rounded-2xl p-6 shadow-xl w-fit mx-auto">
           <form onSubmit={handleSubmit} className="relative justify-center flex items-center gap-3">
             {/* Email */}
             <div>

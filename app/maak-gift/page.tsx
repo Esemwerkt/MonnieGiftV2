@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
+import HamburgerMenu from "@/components/HamburgerMenu";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -170,7 +171,7 @@ function PaymentForm({
             €{(platformFee / 100).toFixed(2)}
           </span>
         </div>
-        <div className="border-t border-border/50 pt-2 mt-2">
+        <div className="border-t  pt-2 mt-2">
           <div className="flex justify-between items-center">
             <span className="text-base font-bold text-foreground">Totaal:</span>
             <span className="text-base font-bold text-primary">
@@ -447,7 +448,7 @@ export default function HomePage() {
       {/* Mobile-first container */}
       <div className="w-full mx-auto min-h-screen max-w-4xl flex flex-col">
         {/* Mobile Header - Fixed at top */}
-        <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border/50 px-4 py-3">
+        <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b  px-4 py-3">
           <div className="flex items-center justify-between">
             <button
               onClick={() => router.push("/")}
@@ -460,6 +461,7 @@ export default function HomePage() {
               <Gift className="h-5 w-5 text-primary" />
               <span className="font-semibold text-foreground">MonnieGift</span>
             </div>
+            <HamburgerMenu />
           </div>
         </div>
 
@@ -789,7 +791,7 @@ export default function HomePage() {
 
               {/* Payment Form - Show when form is complete */}
               {isFormComplete && (
-                <div className="border-t border-border/50 pt-6 px-4">
+                <div className="border-t  pt-6 px-4">
                   <div className="text-center mb-6">
                     <h3 className="text-lg font-semibold text-foreground mb-3">
                       Je bent er bijna!
@@ -949,6 +951,9 @@ export default function HomePage() {
             <p className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
               <Check className="h-4 w-4" /> Geen account nodig • Directcheck
               verzonden
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              Uitbetaling via ABN AMRO • Service fee: €0,99 per gift
             </p>
           </div>
         </div>

@@ -302,7 +302,7 @@ export default function ClaimGiftPage() {
         </div>
 
         {/* Gift Details */}
-        <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6 mb-6 ">
+        <div className="bg-card/50 backdrop-blur-sm border  rounded-2xl p-6 mb-6 ">
           <div className="text-center">
             <div className="text-4xl font-bold text-primary mb-2">
               {formatAmount(gift.amount, gift.currency)}
@@ -321,7 +321,7 @@ export default function ClaimGiftPage() {
         </div>
 
         {/* Claim Form */}
-        <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6 ">
+        <div className="bg-card/50 backdrop-blur-sm border  rounded-2xl p-6 ">
           <form onSubmit={handleClaim} className="space-y-4">
             {/* Email */}
             <div>

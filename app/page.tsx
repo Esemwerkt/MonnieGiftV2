@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Gift, ArrowRight, Heart, Shield, Zap, Users } from "lucide-react";
 import Link from "next/link";
 import { ANIMATION_PRESETS, executeAnimation } from "@/lib/animations";
+import HamburgerMenu from "@/components/HamburgerMenu";
 
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);
@@ -83,12 +84,15 @@ export default function HomePage() {
             <Gift className="h-8 w-8 text-primary" />
             <span className="text-2xl font-bold text-foreground">MonnieGift</span>
           </div>
-          <Link
-            href="/maak-gift"
-            className="px-6 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors font-medium"
-          >
-            Geef een MonnieGift
-          </Link>
+          <div className="flex items-center gap-4">
+            <HamburgerMenu />
+            <Link
+              href="/maak-gift"
+              className="px-6 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors font-medium"
+            >
+              Geef een MonnieGift
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -275,10 +279,13 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="container mx-auto px-4 py-8 mt-16 border-t border-border">
-        <div className="text-center text-muted-foreground">
+        <div className="text-center text-muted-foreground space-y-2">
           <p className="flex items-center justify-center gap-2 text-sm">
             <Shield className="h-4 w-4" />
             Beveiligd door Stripe • Geen account nodig
+          </p>
+          <p className="text-xs">
+            Uitbetaling via ABN AMRO • Service fee: €0,99 per gift
           </p>
         </div>
       </footer>

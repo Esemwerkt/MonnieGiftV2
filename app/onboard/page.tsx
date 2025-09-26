@@ -69,7 +69,7 @@ export default function OnboardPage() {
         </div>
 
         {/* Main Content */}
-        <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6 shadow-xl">
+        <div className="bg-card/50 backdrop-blur-sm border  rounded-2xl p-6 shadow-xl">
           {error ? (
             <div className="text-center">
               <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-4">

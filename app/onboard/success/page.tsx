@@ -166,7 +166,7 @@ export default function OnboardSuccessPage() {
           )}
 
           {accountStatus && (
-            <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6 mb-6 shadow-xl">
+            <div className="bg-card/50 backdrop-blur-sm border  rounded-2xl p-6 mb-6 shadow-xl">
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Uitbetalingen:</span>

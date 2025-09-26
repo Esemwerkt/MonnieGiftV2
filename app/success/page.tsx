@@ -126,7 +126,7 @@ export default function SuccessPage() {
 
           {/* Gift Details */}
           {giftData && (
-            <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-8 mb-8">
+            <div className="bg-card/50 backdrop-blur-sm border  rounded-2xl p-8 mb-8">
               <div className="flex items-center justify-center gap-3 mb-6">
                 <div className="p-3 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl">
                   <Gift className="h-8 w-8 text-primary" />

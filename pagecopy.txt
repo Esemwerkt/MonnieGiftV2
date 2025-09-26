@@ -149,7 +149,7 @@ function PaymentForm({
             €{(platformFee / 100).toFixed(2)}
           </span>
         </div>
-        <div className="border-t border-border/50 pt-2 mt-2">
+        <div className="border-t  pt-2 mt-2">
           <div className="flex justify-between items-center">
             <span className="text-base font-bold text-foreground">Totaal:</span>
             <span className="text-base font-bold text-primary">
@@ -367,7 +367,7 @@ export default function HomePage() {
       {/* Mobile-first container */}
       <div className="w-full mx-auto min-h-screen max-w-4xl flex flex-col">
         {/* Mobile Header - Fixed at top */}
-        <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border/50 px-4 py-3">
+        <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b  px-4 py-3">
           <div className="flex items-center justify-between">
             <button
               onClick={() => router.push("/landing")}
@@ -626,7 +626,7 @@ export default function HomePage() {
 
               {/* Payment Form - Show when form is complete */}
               {isFormComplete && (
-                <div className="border-t border-border/50 pt-5">
+                <div className="border-t  pt-5">
                   <div className="text-center mb-4">
                     <h3 className="text-lg font-semibold text-foreground mb-2">
                       Betaling Voltooien
