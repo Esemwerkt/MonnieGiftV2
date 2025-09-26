@@ -309,6 +309,10 @@ export default function HomePage() {
       if (formData.animationPreset === 'confettiRealistic') {
         console.warn('WARNING: animationPreset is still confettiRealistic! This might be the issue.');
       }
+      
+      if (!formData.animationPreset || formData.animationPreset.trim() === '') {
+        console.error('ERROR: animationPreset is empty or undefined!', formData.animationPreset);
+      }
 
       const response = await fetch("/api/gifts/create", {
         method: "POST",
