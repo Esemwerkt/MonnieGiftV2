@@ -236,57 +236,10 @@ export default function SuccessPage() {
                 console.log('Gift retrieved successfully on retry');
               } else {
                 console.error('Still no gift found after retry');
-                // Webhook failed, create gift as fallback
-                console.log('Webhook failed to create gift, creating fallback gift');
-                try {
-                  const fallbackResponse = await fetch('/api/gifts/create', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                      amount: amount - 99, // Subtract platform fee to get gift amount
-                      currency,
-                      message: message || '',
-                      animationPreset: animationPreset || 'confettiRealistic',
-                      paymentIntentId, // Pass the payment intent ID for idempotency
-                    }),
-                  });
-
-                  const fallbackData = await fallbackResponse.json();
-                  console.log('Fallback gift creation response:', fallbackData);
-
-                  if (fallbackData.success) {
-                    const newGiftData = {
-                      id: fallbackData.giftId,
-                      amount: amount - 99, // Use calculated gift amount (total - platform fee)
-                      currency,
-                      message: message || undefined,
-                      authenticationCode: fallbackData.authenticationCode,
-                    };
-                    
-                    setGiftData(newGiftData);
-                    
-                    const baseUrl = window.location.origin;
-                    const claimLink = `${baseUrl}/claim/${fallbackData.giftId}`;
-                    setClaimUrl(claimLink);
-                    
-                    setShowConfetti(true);
-                    sessionStorage.setItem(processingKey, 'true');
-                    setProcessingComplete(true);
-                    console.log('Gift created successfully as fallback');
-                  } else {
-                    console.error('Fallback gift creation failed:', fallbackData.error);
-                    setProcessingError(true);
-                    setProcessingComplete(true);
-                    sessionStorage.setItem(processingKey, 'true');
-                  }
-                } catch (fallbackError) {
-                  console.error('Fallback gift creation error:', fallbackError);
-                  setProcessingError(true);
-                  setProcessingComplete(true);
-                  sessionStorage.setItem(processingKey, 'true');
-                }
+                console.log('Webhook failed to create gift - please contact support');
+                setProcessingError(true);
+                setProcessingComplete(true);
+                sessionStorage.setItem(processingKey, 'true');
               }
             } catch (retryError) {
               console.error('Retry error:', retryError);
