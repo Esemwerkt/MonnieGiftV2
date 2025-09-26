@@ -9,6 +9,7 @@ export async function GET(
 ) {
   try {
     const { paymentIntentId } = params;
+    console.log('Looking for gift with payment intent ID:', paymentIntentId);
 
     if (!paymentIntentId) {
       return NextResponse.json(
@@ -22,6 +23,8 @@ export async function GET(
         stripePaymentIntentId: paymentIntentId,
       },
     });
+
+    console.log('Found gift:', gift ? 'Yes' : 'No');
 
     if (!gift) {
       return NextResponse.json(

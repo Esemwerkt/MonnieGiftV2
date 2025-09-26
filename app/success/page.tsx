@@ -72,11 +72,14 @@ export default function SuccessPage() {
       const checkAndCreateGift = async () => {
         try {
           // First, check if a gift already exists for this payment intent
+          console.log('Checking for existing gift with payment intent:', paymentIntentId);
           const checkResponse = await fetch(`/api/gifts/by-payment-intent/${paymentIntentId}`);
+          console.log('Check response status:', checkResponse.status);
           
           if (checkResponse.ok) {
             // Gift already exists, use it
             const existingGift = await checkResponse.json();
+            console.log('Found existing gift:', existingGift);
             const newGiftData = {
               id: existingGift.id,
               amount: parseInt(amount),
@@ -94,10 +97,14 @@ export default function SuccessPage() {
             
             setShowConfetti(true);
             setEmailSent(true); // Assume email was already sent
+            console.log('Using existing gift, not creating new one');
             return;
+          } else {
+            console.log('No existing gift found, will create new one');
           }
 
           // Gift doesn't exist, create it
+          console.log('Creating new gift for payment intent:', paymentIntentId);
           const response = await fetch('/api/gifts/create', {
             method: 'POST',
             headers: {
@@ -115,6 +122,7 @@ export default function SuccessPage() {
           });
 
           const data = await response.json();
+          console.log('Gift creation response:', data);
 
           if (data.success) {
             const newGiftData = {
