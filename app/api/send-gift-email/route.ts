@@ -29,9 +29,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const gift = await prisma.gift.findUnique({
-      where: { id: giftId },
-    });
+    const { data: gift } = await supabase
+      .from('gifts')
+      .select('*')
+      .eq('id', giftId)
+      .single();
 
     if (!gift) {
       return NextResponse.json(

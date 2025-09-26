@@ -48,24 +48,21 @@ export async function POST(request: NextRequest) {
     });
 
     // Mark user as verified since we collected the minimal info
-    await (prisma as any).user.update({
-      where: { stripeConnectAccountId: accountId },
-      data: { 
+    await supabase
+      .from('users')
+      .update({ 
         isVerified: true,
-        identityVerifiedAt: new Date(),
-      },
-    });
+        identityVerifiedAt: new Date().toISOString(),
+      })
+      .eq('stripeConnectAccountId', accountId);
 
     // Process any pending gifts for this user
-    const pendingGifts = await prisma.gift.findMany({
-      where: {
-        recipientEmail: email,
-        stripeTransferId: {
-          startsWith: 'pending_',
-        },
-        isClaimed: false,
-      },
-    });
+    const { data: pendingGifts } = await supabase
+      .from('gifts')
+      .select('*')
+      .eq('recipientEmail', email)
+      .like('stripeTransferId', 'pending_%')
+      .eq('isClaimed', false);
 
     // Process each pending gift
     for (const gift of pendingGifts) {
@@ -81,14 +78,14 @@ export async function POST(request: NextRequest) {
           },
         });
         
-        await prisma.gift.update({
-          where: { id: gift.id },
-          data: {
+        await supabase
+          .from('gifts')
+          .update({
             isClaimed: true,
-            claimedAt: new Date(),
+            claimedAt: new Date().toISOString(),
             stripeTransferId: transfer.id,
-          },
-        });
+          })
+          .eq('id', gift.id);
         
       } catch (transferError) {
         console.error(`Failed to transfer gift ${gift.id}:`, transferError);
