@@ -183,29 +183,40 @@ export default function ClaimGiftPage() {
 
   const completeClaimAfterOnboarding = async (email: string) => {
     try {
+      // Get account ID from the user record in the database
+      const response = await fetch('/api/connect/get-account', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
       
-      const accountId = searchParams.get('account_id');
-      
-      if (!accountId) {
-        setError('Account ID not found');
+      if (!response.ok || !data.accountId) {
+        setError('Account not found. Please complete the onboarding process first.');
         return;
       }
 
-      const response = await fetch('/api/gifts/complete-claim', {
+      const accountId = data.accountId;
+
+      const claimResponse = await fetch('/api/gifts/complete-claim', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          accountId,
+          giftId,
           email,
+          accountId,
         }),
       });
 
-      const data = await response.json();
+      const claimData = await claimResponse.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to complete claim');
+      if (!claimResponse.ok) {
+        throw new Error(claimData.error || 'Failed to complete claim');
       }
 
       setClaimSuccess(true);
