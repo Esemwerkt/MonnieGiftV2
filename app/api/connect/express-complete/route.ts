@@ -43,6 +43,24 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Check if account is ready for transfers
+    const account = await stripe.accounts.retrieve(accountId);
+    
+    if (!account.charges_enabled || !account.payouts_enabled) {
+      return NextResponse.json(
+        { 
+          error: 'Account not ready for transfers',
+          message: 'Je account is nog niet volledig ingesteld. Voltooi eerst de verificatie.',
+          accountStatus: {
+            charges_enabled: account.charges_enabled,
+            payouts_enabled: account.payouts_enabled,
+            details_submitted: account.details_submitted,
+          }
+        },
+        { status: 400 }
+      );
+    }
+
     // Process each pending gift
     for (const gift of pendingGifts) {
       try {
@@ -66,8 +84,21 @@ export async function POST(request: NextRequest) {
           },
         });
         
-      } catch (transferError) {
+      } catch (transferError: any) {
         console.error(`Failed to transfer gift ${gift.id}:`, transferError);
+        
+        // Handle specific transfer errors
+        if (transferError.type === 'invalid_request_error') {
+          return NextResponse.json(
+            { 
+              error: 'Transfer failed',
+              code: transferError.code,
+              message: 'Er is een probleem opgetreden bij het overmaken van je cadeau. Probeer het opnieuw.',
+              details: transferError.message
+            },
+            { status: 400 }
+          );
+        }
       }
     }
 

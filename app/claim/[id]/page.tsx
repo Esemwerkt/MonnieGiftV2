@@ -147,6 +147,8 @@ export default function ClaimGiftPage() {
         if (onboardData.onboardingUrl) {
           window.location.href = onboardData.onboardingUrl;
           return;
+        } else if (onboardData.error) {
+          throw new Error(onboardData.message || onboardData.error);
         }
       }
 

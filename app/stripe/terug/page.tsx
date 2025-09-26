@@ -93,7 +93,11 @@ export default function StripeReturnPage() {
             }, 3000);
           } else {
             setStatus('error');
-            setMessage(data.error || 'Er is een fout opgetreden bij het verwerken van je cadeau.');
+            if (data.code && data.message) {
+              setMessage(data.message);
+            } else {
+              setMessage(data.error || 'Er is een fout opgetreden bij het verwerken van je cadeau.');
+            }
           }
         } else {
           setStatus('error');

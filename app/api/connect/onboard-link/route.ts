@@ -24,6 +24,15 @@ export async function POST(request: NextRequest) {
         card_payments: { requested: true },
         transfers: { requested: true },
       },
+      business_profile: {
+        product_description: 'Money gift platform - secure money transfers',
+        url: process.env.NEXT_PUBLIC_BASE_URL || 'https://monnie-gift-v222.vercel.app',
+      },
+      settings: {
+        payouts: {
+          statement_descriptor: 'MonnieGift',
+        },
+      },
     });
 
     // Create account link for Express onboarding
@@ -40,8 +49,48 @@ export async function POST(request: NextRequest) {
       success: true,
       onboardingUrl: link,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating onboarding link:', error);
+    
+    // Handle Stripe verification errors
+    if (error.type === 'invalid_request_error' && error.code) {
+      const verificationErrors = [
+        'invalid_product_description_length',
+        'invalid_product_description_url_match',
+        'invalid_statement_descriptor_length',
+        'invalid_statement_descriptor_business_mismatch',
+        'invalid_statement_descriptor_denylisted',
+        'invalid_statement_descriptor_prefix_mismatch',
+        'invalid_statement_descriptor_prefix_denylisted',
+        'invalid_company_name_denylisted',
+        'invalid_business_profile_name_denylisted',
+        'invalid_business_profile_name',
+        'invalid_dob_age_under_minimum',
+        'invalid_dob_age_over_maximum',
+        'invalid_phone_number',
+        'invalid_tax_id_format',
+        'invalid_url_format',
+        'invalid_url_denylisted',
+        'invalid_url_website_inaccessible',
+        'invalid_url_website_business_information_mismatch',
+        'invalid_url_website_incomplete',
+        'invalid_url_website_other',
+        'missing_url_web_presence_detected'
+      ];
+      
+      if (verificationErrors.includes(error.code)) {
+        return NextResponse.json(
+          { 
+            error: 'Account verification failed',
+            code: error.code,
+            message: 'Er is een probleem met de account verificatie. Probeer het opnieuw of neem contact op met de ondersteuning.',
+            details: error.message
+          },
+          { status: 400 }
+        );
+      }
+    }
+    
     return NextResponse.json(
       { 
         error: 'Failed to create onboarding link',
