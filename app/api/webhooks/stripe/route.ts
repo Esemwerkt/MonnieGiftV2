@@ -47,6 +47,7 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object;
+        console.log('Webhook received payment_intent.succeeded:', paymentIntent.id, paymentIntent.status);
         
         if (paymentIntent.status === 'succeeded') {
           // Check if gift already exists for this payment intent
@@ -61,6 +62,7 @@ export async function POST(request: NextRequest) {
           }
 
           if (existingGift) {
+            console.log('Gift already exists:', existingGift.id);
             // Gift already exists, just send email
             try {
               await sendGiftEmail({
@@ -71,10 +73,12 @@ export async function POST(request: NextRequest) {
                 message: existingGift.message || undefined,
                 senderEmail: existingGift.senderEmail,
               });
+              console.log('Email sent for existing gift');
             } catch (emailError) {
               console.error('Email sending error:', emailError);
             }
           } else {
+            console.log('No existing gift found, creating new one');
             // Create new gift
             const recipientEmail = paymentIntent.metadata?.recipientEmail;
             const senderEmail = paymentIntent.metadata?.senderEmail;
@@ -84,6 +88,15 @@ export async function POST(request: NextRequest) {
             
             if (recipientEmail && senderEmail && giftAmount) {
               try {
+                console.log('Creating gift with metadata:', {
+                  recipientEmail,
+                  senderEmail,
+                  giftAmount,
+                  message,
+                  animationPreset,
+                  paymentIntentId: paymentIntent.id
+                });
+                
                 // Generate authentication code
                 const authenticationCode = crypto.randomBytes(3).toString('hex').toUpperCase();
                 
@@ -100,6 +113,8 @@ export async function POST(request: NextRequest) {
                   },
                 });
 
+                console.log('Gift created successfully:', gift.id);
+
                 // Send email
                 await sendGiftEmail({
                   recipientEmail,
@@ -109,9 +124,17 @@ export async function POST(request: NextRequest) {
                   message: gift.message || undefined,
                   senderEmail,
                 });
+                
+                console.log('Email sent for new gift');
               } catch (error) {
                 console.error('Error creating gift or sending email:', error);
               }
+            } else {
+              console.log('Missing required metadata for gift creation:', {
+                recipientEmail: !!recipientEmail,
+                senderEmail: !!senderEmail,
+                giftAmount: !!giftAmount
+              });
             }
           }
         }

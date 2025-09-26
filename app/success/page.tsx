@@ -107,7 +107,42 @@ export default function SuccessPage() {
             console.log('Gift retrieved successfully');
           } else {
             console.error('Failed to retrieve gift:', response.status);
-            setProcessingComplete(true);
+            // Webhook might not have fired yet, wait and try again
+            console.log('Webhook might not have fired yet, waiting 3 seconds...');
+            setTimeout(async () => {
+              try {
+                const retryResponse = await fetch(`/api/gifts/by-payment-intent/${paymentIntentId}`);
+                if (retryResponse.ok) {
+                  const gift = await retryResponse.json();
+                  console.log('Found gift on retry:', gift);
+                  
+                  const newGiftData = {
+                    id: gift.id,
+                    amount: parseInt(amount),
+                    currency,
+                    recipientEmail,
+                    message: message || undefined,
+                  };
+                  
+                  setGiftData(newGiftData);
+                  
+                  const baseUrl = window.location.origin;
+                  const claimLink = `${baseUrl}/claim/${gift.id}`;
+                  setClaimUrl(claimLink);
+                  
+                  setShowConfetti(true);
+                  setEmailSent(true);
+                  setProcessingComplete(true);
+                  console.log('Gift retrieved successfully on retry');
+                } else {
+                  console.error('Still no gift found after retry');
+                  setProcessingComplete(true);
+                }
+              } catch (retryError) {
+                console.error('Retry failed:', retryError);
+                setProcessingComplete(true);
+              }
+            }, 3000);
           }
         } catch (error) {
           console.error('Error retrieving gift:', error);
