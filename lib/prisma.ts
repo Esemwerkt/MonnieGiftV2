@@ -7,6 +7,10 @@ const globalForPrisma = globalThis as unknown as {
 const createPrismaClient = () => {
   try {
     let databaseUrl = process.env.DATABASE_URL;
+    
+    // Log the database URL for debugging (without password)
+    console.log('Database URL:', databaseUrl?.replace(/:[^:@]+@/, ':***@'));
+    
     if (databaseUrl?.includes('pooler.supabase.com')) {
       const url = new URL(databaseUrl);
       url.searchParams.set('pgbouncer', 'true');
@@ -14,6 +18,7 @@ const createPrismaClient = () => {
       url.searchParams.set('pool_timeout', '0');
       url.searchParams.set('statement_timeout', '0');
       databaseUrl = url.toString();
+      console.log('Modified database URL for pooler');
     }
 
     return new PrismaClient({
