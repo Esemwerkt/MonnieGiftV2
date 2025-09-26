@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { prisma } from '@/lib/prisma';
+import { createClient } from '@supabase/supabase-js';
 import { generateVerificationCode } from '@/lib/auth';
 import { sendGiftEmail } from '@/lib/email';
 import { checkUserLimits, LIMITS } from '@/lib/limits';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export const dynamic = 'force-dynamic';
 
@@ -41,11 +46,11 @@ export async function POST(request: NextRequest) {
     // Check if gift already exists for this payment intent (prevent duplicates)
     if (paymentIntentId) {
       try {
-        const existingGift = await prisma.gift.findFirst({
-          where: {
-            stripePaymentIntentId: paymentIntentId,
-          },
-        });
+        const { data: existingGift } = await supabase
+          .from('gifts')
+          .select('*')
+          .eq('stripePaymentIntentId', paymentIntentId)
+          .single();
 
         if (existingGift) {
           return NextResponse.json({
@@ -62,22 +67,30 @@ export async function POST(request: NextRequest) {
     const authenticationCode = generateVerificationCode();
 
     let gift;
+    const giftData = {
+      amount,
+      currency,
+      message,
+      authenticationCode,
+      animationPreset: finalAnimationPreset,
+      stripePaymentIntentId: paymentIntentId || null,
+      stripeConnectAccountId: null, // No Stripe Connect in simplified flow
+      platformFeeAmount: 99, // €0.99 in cents
+      applicationFeeAmount: 0, 
+    };
+    
     try {
-      const giftData = {
-        amount,
-        currency,
-        message,
-        authenticationCode,
-        animationPreset: finalAnimationPreset,
-        stripePaymentIntentId: paymentIntentId || null,
-        stripeConnectAccountId: null, // No Stripe Connect in simplified flow
-        platformFeeAmount: 99, // €0.99 in cents
-        applicationFeeAmount: 0, // No application fee in simplified flow
-      };
-      
-      gift = await prisma.gift.create({
-        data: giftData,
-      });
+      const { data: newGift, error } = await supabase
+        .from('gifts')
+        .insert([giftData])
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      gift = newGift;
     } catch (dbError) {
       console.error('Gift creation error:', dbError);
       return NextResponse.json(
@@ -111,12 +124,10 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      await prisma.gift.update({
-        where: { id: gift.id },
-        data: { 
-          stripePaymentIntentId: paymentIntent.id,
-        },
-      });
+      await supabase
+        .from('gifts')
+        .update({ stripePaymentIntentId: paymentIntent.id })
+        .eq('id', gift.id);
     }
 
 
