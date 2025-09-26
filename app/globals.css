@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Swiper Styles */
+@import "swiper/css";
+@import "swiper/css/navigation";
+@import "swiper/css/pagination";
+
 @layer base {
   .theme {
     --font-sans: Poppins;
@@ -116,138 +121,61 @@
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-  
-  /* Fix preloader color flash */
-  #__next {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-  }
-  
-  /* Ensure smooth theme transitions */
-  html {
-    background-color: hsl(var(--background));
-  }
-  
-  /* Fix for Next.js loading spinner */
-  [data-nextjs-scroll-focus-boundary] {
-    background-color: hsl(var(--background));
-  }
-  
-  /* Fix Next.js loading indicator color flash */
-  .nextjs-loading-bar {
-    background-color: hsl(var(--primary)) !important;
-  }
-  
-  /* Ensure loading states use theme colors */
-  [data-nextjs-loading] {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-  }
-  
-  /* Fix for any loading spinners */
-  .loading-spinner,
-  .spinner,
-  [class*="loading"] {
-    border-color: hsl(var(--primary)) !important;
-  }
-  
-  /* Prevent color flash during page transitions */
-  * {
-    transition: background-color 0s, color 0s, border-color 0s !important;
-  }
-  
-  /* Ensure immediate theme application */
-  html[data-theme] {
-    background-color: hsl(var(--background)) !important;
-    color: hsl(var(--foreground)) !important;
-  }
-  
-  /* Fix for Next.js page transitions */
-  [data-nextjs-router] {
-    background-color: hsl(var(--background)) !important;
-  }
-  
-  /* Ensure loading states inherit theme immediately */
-  .loading,
-  .loading * {
-    background-color: hsl(var(--background)) !important;
-    color: hsl(var(--foreground)) !important;
-  }
+/* Custom Swiper Styles */
+.animation-swiper {
+  padding: 0 20px 40px 20px;
 }
 
-@layer utilities {
-  /* Remove focus rings and borders from chart components */
-  .recharts-wrapper,
-  .recharts-wrapper *,
-  .recharts-cartesian-axis,
-  .recharts-cartesian-axis *,
-  .recharts-line,
-  .recharts-line *,
-  .recharts-area,
-  .recharts-area *,
-  .recharts-bar,
-  .recharts-bar *,
-  .recharts-pie,
-  .recharts-pie *,
-  .recharts-cell,
-  .recharts-cell *,
-  .recharts-dot,
-  .recharts-dot *,
-  .recharts-tooltip-wrapper,
-  .recharts-tooltip-wrapper *,
-  .recharts-legend-wrapper,
-  .recharts-legend-wrapper * {
-    outline: none !important;
-    border: none !important;
-    box-shadow: none !important;
-  }
-  
-  /* Remove focus states from chart containers */
-  .recharts-wrapper:focus,
-  .recharts-wrapper:focus-visible,
-  .recharts-wrapper:focus-within {
-    outline: none !important;
-    border: none !important;
-    box-shadow: none !important;
-  }
-  
-  /* Remove any click/focus indicators */
-  .recharts-wrapper:active,
-  .recharts-wrapper:hover {
-    outline: none !important;
-    border: none !important;
-    box-shadow: none !important;
-  }
-  
-  /* Additional chart element styling */
-  .recharts-surface,
-  .recharts-surface *,
-  .recharts-curve,
-  .recharts-curve *,
-  .recharts-sector,
-  .recharts-sector *,
-  .recharts-rectangle,
-  .recharts-rectangle * {
-    outline: none !important;
-    border: none !important;
-    box-shadow: none !important;
-  }
-  
-  /* Remove any SVG focus indicators */
-  svg:focus,
-  svg:focus-visible,
-  svg:active {
-    outline: none !important;
-    border: none !important;
-    box-shadow: none !important;
-  }
+.animation-swiper .swiper-slide {
+  height: auto;
+  display: flex;
 }
 
+.animation-swiper .swiper-slide > div {
+  width: 100%;
+  height: 100%;
+}
 
+/* Navigation arrows */
+.animation-swiper .swiper-button-next,
+.animation-swiper .swiper-button-prev {
+  width: 30px;
+  height: 30px;
+  background: #d4b483;
+  padding: 3px;
+  border: 2px solid #d4b483;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  color: #0a2d27;
+}
+
+.animation-swiper .swiper-button-next:hover,
+.animation-swiper .swiper-button-prev:hover {
+  width: 30px;
+  height: 30px;
+  background: #d4b483;
+  padding: 3px;
+  border: 2px solid #d4b483;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  color: #0a2d27;
+}
+
+.animation-swiper .swiper-button-next:after,
+.animation-swiper .swiper-button-prev:after {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* Pagination dots */
+.animation-swiper .swiper-pagination-bullet {
+  background: #556b68;
+  opacity: 0.5;
+  width: 8px;
+  height: 8px;
+}
+
+.animation-swiper .swiper-pagination-bullet-active {
+  background: #d4b483;
+  opacity: 1;
+}
