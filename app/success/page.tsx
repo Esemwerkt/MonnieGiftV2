@@ -75,20 +75,19 @@ export default function SuccessPage() {
     const animationPreset = searchParams.get('animation_preset');
 
     if (paymentIntentId && amount && currency && recipientEmail && senderEmail) {
-      // Check if gift already exists for this payment intent
-      const checkAndCreateGift = async () => {
+      // Simply retrieve the existing gift (created by webhook)
+      const retrieveGift = async () => {
         try {
-          // First, check if a gift already exists for this payment intent
-          console.log('Checking for existing gift with payment intent:', paymentIntentId);
-          const checkResponse = await fetch(`/api/gifts/by-payment-intent/${paymentIntentId}`);
-          console.log('Check response status:', checkResponse.status);
+          console.log('Retrieving gift for payment intent:', paymentIntentId);
+          const response = await fetch(`/api/gifts/by-payment-intent/${paymentIntentId}`);
+          console.log('Retrieve response status:', response.status);
           
-          if (checkResponse.ok) {
-            // Gift already exists, use it
-            const existingGift = await checkResponse.json();
-            console.log('Found existing gift:', existingGift);
+          if (response.ok) {
+            const gift = await response.json();
+            console.log('Found gift:', gift);
+            
             const newGiftData = {
-              id: existingGift.id,
+              id: gift.id,
               amount: parseInt(amount),
               currency,
               recipientEmail,
@@ -99,94 +98,24 @@ export default function SuccessPage() {
             
             // Generate claim URL
             const baseUrl = window.location.origin;
-            const claimLink = `${baseUrl}/claim/${existingGift.id}`;
+            const claimLink = `${baseUrl}/claim/${gift.id}`;
             setClaimUrl(claimLink);
             
             setShowConfetti(true);
-            setEmailSent(true); // Assume email was already sent
+            setEmailSent(true); // Webhook handles email sending
             setProcessingComplete(true);
-            console.log('Using existing gift, not creating new one');
-            return;
+            console.log('Gift retrieved successfully');
           } else {
-            console.log('No existing gift found, will create new one');
-          }
-
-          // Gift doesn't exist, create it
-          console.log('Creating new gift for payment intent:', paymentIntentId);
-          const response = await fetch('/api/gifts/create', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              amount: parseInt(amount),
-              currency,
-              senderEmail,
-              recipientEmail,
-              message: message || '',
-              animationPreset: animationPreset || 'confettiRealistic',
-              paymentIntentId, // Pass the payment intent ID
-            }),
-          });
-
-          const data = await response.json();
-          console.log('Gift creation response:', data);
-
-          if (data.success) {
-            const newGiftData = {
-              id: data.giftId,
-              amount: parseInt(amount),
-              currency,
-              recipientEmail,
-              message: message || undefined,
-            };
-            
-            setGiftData(newGiftData);
-            
-            // Generate claim URL
-            const baseUrl = window.location.origin;
-            const claimLink = `${baseUrl}/claim/${data.giftId}`;
-            setClaimUrl(claimLink);
-            
-            setShowConfetti(true);
-            setProcessingComplete(true); // Set this immediately after gift creation
-
-            // Send email
-            setTimeout(async () => {
-              setSendingEmail(true);
-              try {
-                const emailResponse = await fetch('/api/send-gift-email', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({ giftId: data.giftId }),
-                });
-
-                if (emailResponse.ok) {
-                  setEmailSent(true);
-                  console.log('Email sent successfully');
-                } else {
-                  const errorData = await emailResponse.json();
-                  console.error('Email sending failed:', errorData);
-                }
-              } catch (error) {
-                console.error('Email sending error:', error);
-              } finally {
-                setSendingEmail(false);
-              }
-            }, 1000);
-          } else {
-            console.error('Failed to create gift:', data.error);
+            console.error('Failed to retrieve gift:', response.status);
             setProcessingComplete(true);
           }
         } catch (error) {
-          console.error('Error checking/creating gift:', error);
+          console.error('Error retrieving gift:', error);
           setProcessingComplete(true);
         }
       };
 
-      checkAndCreateGift();
+      retrieveGift();
     }
   }, [searchParams, processingComplete]);
 
