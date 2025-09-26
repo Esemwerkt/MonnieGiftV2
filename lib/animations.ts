@@ -13,12 +13,12 @@ export interface AnimationConfig {
 export const ANIMATION_PRESETS: Record<AnimationPreset, AnimationConfig> = {
   confetti: {
     variant: 'celebration',
-    type: 'mixed',
+    type: 'confetti',
     emojiSize: 60,
-    confettiNumber: 80,
-    confettiRadius: 8,
-    confettiColors: ['#0a2d27', '#d4b483', '#1a584e', '#e4c59a', '#fdfbf7'],
-    emojis: ['🎉', '🎊', '✨', '🌟', '⭐']
+    confettiNumber: 120,
+    confettiRadius: 6,
+    confettiColors: ['#0a2d27', '#d4b483', '#1a584e', '#e4c59a', '#fdfbf7', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57'],
+    emojis: []
   },
   hearts: {
     variant: 'hearts',
