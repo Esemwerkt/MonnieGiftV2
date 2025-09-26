@@ -8,8 +8,11 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   return NextResponse.json({ 
-    message: 'This endpoint only accepts POST requests',
-    method: 'POST'
+    message: 'Webhook endpoint is working',
+    method: 'GET',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV,
+    webhookSecretPresent: !!process.env.STRIPE_WEBHOOK_SECRET
   });
 }
 
@@ -22,6 +25,8 @@ export async function POST(request: NextRequest) {
   console.log('Webhook secret present:', !!process.env.STRIPE_WEBHOOK_SECRET);
   console.log('Body length:', body.length);
   console.log('Raw body preview:', body.substring(0, 200));
+  console.log('Headers:', Object.fromEntries(request.headers.entries()));
+  console.log('Environment:', process.env.NODE_ENV);
 
   if (!signature || !process.env.STRIPE_WEBHOOK_SECRET) {
     console.error('Missing signature or webhook secret');
