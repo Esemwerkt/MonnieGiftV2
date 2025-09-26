@@ -30,14 +30,13 @@ export async function sendGiftEmail({
 
   const fromEmail = 'MonnieGift <hello@resend.dev>';
   
-  const verifiedEmails = ['enes@semwerkt.nl, netnuonline@gmail.com']; 
+  // In development, we can send to any email
+  // In production, you might want to add email validation here
+  const isDevelopment = process.env.NODE_ENV === 'development';
   
-  if (!verifiedEmails.includes(recipientEmail)) {
-    
-    return {
-      id: `mock-${Date.now()}`,
-      message: `Email would be sent to ${recipientEmail} in production`
-    };
+  if (!isDevelopment) {
+    // In production, you can add additional email validation if needed
+    // For now, we'll send to any valid email address
   }
 
   try {

@@ -121,6 +121,10 @@ export default function SuccessPage() {
 
                 if (emailResponse.ok) {
                   setEmailSent(true);
+                  console.log('Email sent successfully');
+                } else {
+                  const errorData = await emailResponse.json();
+                  console.error('Email sending failed:', errorData);
                 }
               } catch (error) {
                 console.error('Email sending error:', error);
