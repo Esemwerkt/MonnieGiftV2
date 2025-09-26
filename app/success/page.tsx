@@ -18,6 +18,7 @@ export default function SuccessPage() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [claimUrl, setClaimUrl] = useState('');
+  const [processingComplete, setProcessingComplete] = useState(false);
 
   const handleSendEmail = async () => {
     if (!giftData) return;
@@ -59,6 +60,12 @@ export default function SuccessPage() {
   };
 
   useEffect(() => {
+    // Prevent multiple executions
+    if (processingComplete) {
+      console.log('Processing already complete, skipping...');
+      return;
+    }
+
     const paymentIntentId = searchParams.get('payment_intent_id');
     const amount = searchParams.get('amount');
     const currency = searchParams.get('currency');
@@ -97,6 +104,7 @@ export default function SuccessPage() {
             
             setShowConfetti(true);
             setEmailSent(true); // Assume email was already sent
+            setProcessingComplete(true);
             console.log('Using existing gift, not creating new one');
             return;
           } else {
@@ -167,17 +175,21 @@ export default function SuccessPage() {
                 setSendingEmail(false);
               }
             }, 1000);
+            
+            setProcessingComplete(true);
           } else {
             console.error('Failed to create gift:', data.error);
+            setProcessingComplete(true);
           }
         } catch (error) {
           console.error('Error checking/creating gift:', error);
+          setProcessingComplete(true);
         }
       };
 
       checkAndCreateGift();
     }
-  }, [searchParams]);
+  }, [searchParams, processingComplete]);
 
   const formatAmount = (amount: number, currency: string) => {
     const symbol = currency === 'eur' ? '€' : currency === 'usd' ? '$' : '£';
