@@ -8,7 +8,6 @@ import {
   Mail,
   MessageSquare,
   ArrowRight,
-  X,
   Send,
   Home,
 } from "lucide-react";
@@ -20,7 +19,7 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import BeautifulConfetti from "@/components/BeautifulConfetti";
-import { ANIMATION_PRESETS, AnimationPreset } from "@/lib/animations";
+import { ANIMATION_PRESETS, executeAnimation, AnimationPreset } from "@/lib/animations";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
@@ -214,7 +213,7 @@ export default function HomePage() {
     message: "",
     senderEmail: "",
     recipientEmail: "",
-    animationPreset: "confetti",
+        animationPreset: "confettiRealistic",
   });
   const [showCustomAmount, setShowCustomAmount] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -300,17 +299,11 @@ export default function HomePage() {
     
     const JSConfetti = (await import('js-confetti')).default;
     const jsConfetti = new JSConfetti();
-    const config = ANIMATION_PRESETS[preset];
     
     setPreviewAnimation(preset);
     
     setTimeout(() => {
-      jsConfetti.addConfetti({
-        confettiColors: config.confettiColors,
-        confettiNumber: Math.floor(config.confettiNumber * 0.6),
-        confettiRadius: config.confettiRadius,
-        emojis: config.emojis,
-      });
+      executeAnimation(jsConfetti, preset);
     }, 100);
     
     setTimeout(() => {
@@ -535,51 +528,47 @@ export default function HomePage() {
               </div>
 
               {/* Animation Preset Selection */}
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-foreground">
-                  🎨 Kies een animatie voor de ontvanger
-                </label>
-                <div className="grid grid-cols-3 gap-3">
-                  {[
-                    { value: 'confetti', label: '🎉 Confetti', description: 'Explosie van confetti' },
-                    { value: 'hearts', label: '❤️ Hearts', description: 'Harten en liefde' },
-                    { value: 'money', label: '💰 Money', description: 'Geld regen' }
-                  ].map((preset) => (
-                    <div
-                      key={preset.value}
-                      className={`p-3 rounded-xl border-2 transition-all duration-200 ${
-                        formData.animationPreset === preset.value
-                          ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-border hover:border-primary/50 hover:bg-accent/50'
-                      }`}
-                    >
-                      <div className="text-lg mb-1">{preset.label}</div>
-                      <div className="text-xs text-muted-foreground mb-2">{preset.description}</div>
-                      <div className="flex gap-1">
-                        <button
-                          type="button"
-                          onClick={() => setFormData(prev => ({ ...prev, animationPreset: preset.value }))}
-                          className={`flex-1 px-2 py-1 text-xs rounded-md transition-colors ${
-                            formData.animationPreset === preset.value
-                              ? 'bg-primary text-primary-foreground'
-                              : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                          }`}
-                        >
-                          Selecteer
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => previewAnimationPreset(preset.value as AnimationPreset)}
-                          disabled={previewAnimation === preset.value}
-                          className="px-2 py-1 text-xs rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                          {previewAnimation === preset.value ? '🎆' : '👁️'}
-                        </button>
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-foreground">
+                    🎨 Kies een animatie voor de ontvanger
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {Object.entries(ANIMATION_PRESETS).map(([key, preset]) => (
+                      <div
+                        key={key}
+                        className={`p-3 rounded-xl border-2 transition-all duration-200 ${
+                          formData.animationPreset === key
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-border hover:border-primary/50 hover:bg-accent/50'
+                        }`}
+                      >
+                        <div className="text-lg mb-1">{preset.emoji} {preset.name}</div>
+                        <div className="text-xs text-muted-foreground mb-2">{preset.description}</div>
+                        <div className="flex gap-1">
+                          <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, animationPreset: key }))}
+                            className={`flex-1 px-2 py-1 text-xs rounded-md transition-colors ${
+                              formData.animationPreset === key
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                            }`}
+                          >
+                            Selecteer
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => previewAnimationPreset(key as AnimationPreset)}
+                            disabled={previewAnimation === key}
+                            className="px-2 py-1 text-xs rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            {previewAnimation === key ? '🎆' : '👁️'}
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
 
               {/* Payment Form - Show when form is complete */}
               {isFormComplete && (

@@ -5,7 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Gift, ArrowRight, Mail, CheckCircle, Home } from 'lucide-react';
 import MoneyLoader from '@/components/MoneyLoader';
 import JSConfetti from 'js-confetti';
-import { ANIMATION_PRESETS, AnimationPreset } from '@/lib/animations';
+import { executeAnimation, AnimationPreset } from '@/lib/animations';
 
 interface GiftData {
   id: string;
@@ -27,7 +27,6 @@ export default function ClaimGiftPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const giftId = params.id as string;
-  
   const [gift, setGift] = useState<GiftData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -49,35 +48,9 @@ export default function ClaimGiftPage() {
   useEffect(() => {
     if (showConfetti && jsConfetti && gift) {
       const animationPreset = (gift.animationPreset as AnimationPreset) || 'confetti';
-      const config = ANIMATION_PRESETS[animationPreset];
       
       setTimeout(() => {
-        const createExplosion = (delay: number, explosionConfig: any) => {
-          setTimeout(() => {
-            jsConfetti.addConfetti(explosionConfig);
-          }, delay);
-        };
-
-        createExplosion(0, {
-          confettiColors: config.confettiColors,
-          confettiNumber: config.confettiNumber,
-          confettiRadius: config.confettiRadius,
-          emojis: config.emojis,
-        });
-
-        createExplosion(150, {
-          confettiColors: config.confettiColors,
-          confettiNumber: Math.floor(config.confettiNumber * 0.3),
-          confettiRadius: config.confettiRadius + 2,
-          emojis: config.emojis,
-        });
-
-        createExplosion(300, {
-          confettiColors: config.confettiColors,
-          confettiNumber: Math.floor(config.confettiNumber * 0.2),
-          confettiRadius: config.confettiRadius + 1,
-          emojis: config.emojis,
-        });
+        executeAnimation(jsConfetti, animationPreset);
       }, 300); 
     }
   }, [showConfetti, jsConfetti, gift]);

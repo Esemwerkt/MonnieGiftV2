@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       message, 
       senderEmail, 
       recipientEmail,
-      animationPreset = 'confetti'
+          animationPreset = 'confettiRealistic'
     } = body;
 
     if (!amount || !senderEmail || !recipientEmail) {
