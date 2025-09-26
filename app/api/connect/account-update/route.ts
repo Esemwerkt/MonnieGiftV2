@@ -42,8 +42,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.log(`Creating account update link for ${accountId}`);
-    console.log(`Requirements currently due:`, requirements.currently_due);
 
     // Create account update link for additional verification
     const returnUrl = giftId && email 
@@ -70,7 +68,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error creating account update link:', error);
     return NextResponse.json(
       { 
         error: 'Failed to create account update link',
@@ -117,7 +114,6 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error checking account status:', error);
     return NextResponse.json(
       { error: 'Failed to check account status' },
       { status: 500 }

@@ -14,11 +14,9 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("=== SEND GIFT EMAIL API CALLED ===");
     const body = await request.json();
     const { giftId } = body;
     
-    console.log("Gift ID:", giftId);
 
     if (!giftId) {
       return NextResponse.json(
@@ -33,20 +31,11 @@ export async function POST(request: NextRequest) {
     });
 
     if (!gift) {
-      console.error('Gift not found:', giftId);
       return NextResponse.json(
         { error: 'Gift not found' },
         { status: 404 }
       );
     }
-
-    console.log('Found gift:', {
-      id: gift.id,
-      recipientEmail: gift.recipientEmail,
-      amount: gift.amount,
-      authenticationCode: gift.authenticationCode,
-      senderEmail: gift.senderEmail
-    });
 
     // Send email
     await sendGiftEmail({
@@ -58,7 +47,6 @@ export async function POST(request: NextRequest) {
       senderEmail: gift.senderEmail,
     });
 
-    console.log('✅ Email sent successfully for gift:', giftId);
 
     return NextResponse.json({
       success: true,
@@ -67,7 +55,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error sending gift email:', error);
     return NextResponse.json(
       { error: 'Failed to send email' },
       { status: 500 }

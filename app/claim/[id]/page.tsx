@@ -26,8 +26,6 @@ export default function ClaimGiftPage() {
   const searchParams = useSearchParams();
   const giftId = params.id as string;
   
-  // console.log('Component rendered with params:', params);
-  // console.log('giftId:', giftId);
   const [gift, setGift] = useState<GiftData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -43,7 +41,6 @@ export default function ClaimGiftPage() {
   // Initialize js-confetti only on client side
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      console.log('Initializing jsConfetti...');
       setJsConfetti(new JSConfetti());
     }
   }, []);
@@ -51,7 +48,6 @@ export default function ClaimGiftPage() {
   // Trigger confetti when showConfetti state changes
   useEffect(() => {
     if (showConfetti && jsConfetti) {
-      console.log('Triggering confetti from useEffect...');
       // Add a small delay for smoother animation
       setTimeout(() => {
         // Create multiple explosion bursts for dramatic effect
@@ -86,12 +82,9 @@ export default function ClaimGiftPage() {
   }, [showConfetti, jsConfetti]);
 
   useEffect(() => {
-    // console.log('useEffect triggered with giftId:', giftId);
     if (giftId) {
-      // console.log('Calling fetchGift...');
       fetchGift();
     } else {
-      // console.log('No giftId, not fetching');
     }
   }, [giftId]);
 
@@ -127,24 +120,18 @@ export default function ClaimGiftPage() {
 
   const fetchGift = async () => {
     try {
-      // console.log('Fetching gift with ID:', giftId);
       const response = await fetch(`/api/gifts/${giftId}`);
-      // console.log('Response status:', response.status);
       const data = await response.json();
-      // console.log('Response data:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to fetch gift');
       }
 
       setGift(data);
-      // console.log('Gift set successfully');
     } catch (err) {
-      console.error('Error fetching gift:', err);
       setError(err instanceof Error ? err.message : 'Failed to load gift');
     } finally {
       setLoading(false);
-      // console.log('Loading set to false');
     }
   };
 
@@ -196,7 +183,6 @@ export default function ClaimGiftPage() {
       const data = await response.json();
       
       if (response.ok && data.needsUpdate) {
-        console.log('Account needs additional verification:', data.requirements);
         return {
           needsUpdate: true,
           requirements: data.requirements,
@@ -206,22 +192,17 @@ export default function ClaimGiftPage() {
       
       return { needsUpdate: false };
     } catch (error) {
-      console.error('Error checking account requirements:', error);
       return { needsUpdate: false };
     }
   };
 
   const completeClaimAfterOnboarding = async (email: string) => {
     try {
-      console.log('Completing claim after onboarding for email:', email);
-      console.log('All URL parameters:', Object.fromEntries(searchParams.entries()));
       
       // Get the user's account ID from the URL or from the user data
       const accountId = searchParams.get('account_id');
-      console.log('Account ID from URL:', accountId);
       
       if (!accountId) {
-        console.error('No account ID found in URL');
         setError('Account ID not found');
         return;
       }
@@ -243,14 +224,12 @@ export default function ClaimGiftPage() {
         throw new Error(data.error || 'Failed to complete claim');
       }
 
-      console.log('Claim completed successfully:', data);
       setClaimSuccess(true);
       setShowConfetti(true);
       
       // Confetti will be triggered by the useEffect when showConfetti changes
       // Note: No need to refresh gift data as we're setting claimSuccess to true
     } catch (err) {
-      console.error('Error completing claim after onboarding:', err);
       setError(err instanceof Error ? err.message : 'Failed to complete claim');
     }
   };

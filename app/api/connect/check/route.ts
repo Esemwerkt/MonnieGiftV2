@@ -79,7 +79,6 @@ export async function GET(request: NextRequest) {
       });
     }
   } catch (error) {
-    console.error('Error checking account status:', error);
     return NextResponse.json(
       { error: 'Failed to check account status' },
       { status: 500 }

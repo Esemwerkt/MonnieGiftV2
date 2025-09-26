@@ -34,7 +34,6 @@ export async function GET(
 
     return NextResponse.json(gift);
   } catch (error) {
-    console.error('Error fetching gift:', error);
     return NextResponse.json(
       { error: 'Failed to fetch gift' },
       { status: 500 }

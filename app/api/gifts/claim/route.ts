@@ -53,12 +53,6 @@ export async function POST(request: NextRequest) {
 
     // For testing purposes, allow claiming even without payment
     // In production, this should check if payment was successful
-    console.log('Gift details:', {
-      id: gift.id,
-      amount: gift.amount,
-      stripePaymentIntentId: gift.stripePaymentIntentId,
-      isClaimed: gift.isClaimed
-    });
 
     // Check if user already exists
     let user = await (prisma as any).user.findUnique({
@@ -204,25 +198,13 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log('Gift claimed successfully:', {
-      giftId: gift.id,
-      amount: gift.amount,
-      recipientEmail: email,
-      transferId: transfer.id,
-    });
-
     return NextResponse.json({
       success: true,
       message: 'Cadeau succesvol opgehaald!',
       transferId: transfer.id,
     });
-  } catch (error) {
-    console.error('Error claiming gift:', error);
-    console.error('Error details:', {
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined
-    });
-    return NextResponse.json(
+      } catch (error) {
+        return NextResponse.json(
       { 
         error: 'Er is een fout opgetreden bij het ophalen van het cadeau',
         details: error instanceof Error ? error.message : String(error)

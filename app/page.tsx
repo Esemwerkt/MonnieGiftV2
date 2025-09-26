@@ -60,19 +60,14 @@ function PaymentForm({
 
     const paymentElement = elements.getElement('payment');
     if (paymentElement) {
-      console.log("PaymentElement found, setting up ready listener");
       paymentElement.on('ready', () => {
-        console.log("PaymentElement is ready!");
         setIsPaymentElementReady(true);
       });
       
       paymentElement.on('change', (event) => {
-        console.log("PaymentElement changed:", event);
         if (event.complete) {
-          console.log("PaymentElement is complete");
         }
         if (event.empty) {
-          console.log("PaymentElement is empty");
         }
       });
     }
@@ -82,25 +77,16 @@ function PaymentForm({
     event.preventDefault();
     event.stopPropagation(); // Prevent event from bubbling up to parent form
 
-    console.log("=== PAYMENT FORM SUBMISSION START ===");
-    console.log("Payment form submitted");
-    console.log("Stripe available:", !!stripe);
-    console.log("Elements available:", !!elements);
-    console.log("Client secret:", clientSecret);
-    console.log("Is processing:", isProcessing);
 
     if (!stripe || !elements) {
-      console.error("Stripe or Elements not available");
       setError("Payment system not ready. Please try again.");
       return;
     }
 
     // Check if PaymentElement is ready
     const paymentElement = elements.getElement('payment');
-    console.log("PaymentElement available:", !!paymentElement);
     
     if (!paymentElement) {
-      console.error("PaymentElement not found");
       setError("Payment form not ready. Please try again.");
       return;
     }
@@ -109,10 +95,6 @@ function PaymentForm({
     setError("");
 
     try {
-      console.log("=== CONFIRMING PAYMENT ===");
-      console.log("Confirming payment...");
-      console.log("Elements:", elements);
-      console.log("Return URL:", `${window.location.origin}/success`);
       
       
       const { error, paymentIntent } = await stripe.confirmPayment({
@@ -123,37 +105,25 @@ function PaymentForm({
         redirect: "if_required",
       });
 
-      console.log("=== PAYMENT RESULT ===");
-      console.log("Payment result:", { error, paymentIntent });
-      console.log("Error details:", error);
-      console.log("PaymentIntent details:", paymentIntent);
 
       if (error) {
-        console.error("Payment error:", error);
         setError(error.message || "Payment failed");
       } else if (paymentIntent) {
-        console.log("PaymentIntent status:", paymentIntent.status);
         if (paymentIntent.status === "succeeded") {
-          console.log("Payment succeeded!");
           onSuccess();
         } else if (paymentIntent.status === "requires_action") {
-          console.log("Payment requires additional action");
           setError(
             "Payment requires additional verification. Please try again."
           );
         } else if (paymentIntent.status === "processing") {
-          console.log("Payment is processing...");
           setError("Payment is being processed. Please wait...");
         } else {
-          console.log("Payment status:", paymentIntent.status);
           setError(`Payment status: ${paymentIntent.status}`);
         }
       } else {
-        console.log("No payment intent returned");
         setError("No payment response received");
       }
     } catch (err) {
-      console.error("Payment exception:", err);
       setError("An unexpected error occurred");
     } finally {
       setIsProcessing(false);
@@ -271,25 +241,11 @@ export default function HomePage() {
   const createPaymentIntent = async () => {
     if (!isFormComplete || paymentData || isCreatingPayment) return;
 
-    console.log("=== CREATING PAYMENT INTENT ===");
-    console.log("Creating payment intent...");
-    console.log("Form data:", formData);
-    console.log("Is form complete:", isFormComplete);
-    console.log("Payment data exists:", !!paymentData);
-    console.log("Is creating payment:", isCreatingPayment);
 
     setIsCreatingPayment(true);
     try {
       const amount = parseFloat(formData.amount);
       const amountInCents = Math.round(amount * 100);
-
-      console.log("Amount in cents:", amountInCents);
-
-      console.log("=== SENDING API REQUEST ===");
-      console.log("Request body:", {
-        ...formData,
-        amount: amountInCents,
-      });
 
       const response = await fetch("/api/gifts/create", {
         method: "POST",
@@ -302,15 +258,10 @@ export default function HomePage() {
         }),
       });
 
-      console.log("=== API RESPONSE ===");
-      console.log("Response status:", response.status);
-      console.log("Response ok:", response.ok);
       
       const data = await response.json();
-      console.log("API response data:", data);
 
       if (response.ok && data.clientSecret) {
-        console.log("Payment intent created successfully");
         setPaymentData({
           clientSecret: data.clientSecret,
           giftId: data.giftId,
@@ -320,11 +271,9 @@ export default function HomePage() {
         });
         setShowPaymentForm(true);
       } else {
-        console.error("Failed to create payment intent:", data);
         setError(data.error || "Failed to create payment intent");
       }
     } catch (err) {
-      console.error("Error creating payment intent:", err);
       setError(
         "Er is een fout opgetreden bij het voorbereiden van de betaling"
       );
@@ -615,7 +564,6 @@ export default function HomePage() {
                       recipientEmail={formData.recipientEmail}
                       message={formData.message}
                       onSuccess={async () => {
-                        console.log("Payment success callback triggered!");
                         setSuccess(
                           "Betaling succesvol! Cadeau wordt verzonden..."
                         );
@@ -624,7 +572,6 @@ export default function HomePage() {
                         
                         // Send email immediately since webhook might not work in development
                         try {
-                          console.log("Sending email immediately after payment success...");
                           const emailResponse = await fetch("/api/send-gift-email", {
                             method: "POST",
                             headers: {
@@ -636,16 +583,12 @@ export default function HomePage() {
                           });
                           
                           if (emailResponse.ok) {
-                            console.log("Email sent successfully!");
                           } else {
-                            console.error("Failed to send email:", await emailResponse.text());
                           }
                         } catch (emailError) {
-                          console.error("Error sending email:", emailError);
                         }
                         
                         setTimeout(() => {
-                          console.log("Redirecting to success page...");
                           router.push(
                             `/success?gift_id=${paymentData.giftId}&amount=${
                               paymentData.giftAmount

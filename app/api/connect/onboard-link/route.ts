@@ -52,7 +52,6 @@ export async function POST(request: NextRequest) {
       message: 'Express onboarding link created successfully',
     });
   } catch (error) {
-    console.error('Error creating onboarding link:', error);
     return NextResponse.json(
       { error: 'Failed to create onboarding link' },
       { status: 500 }

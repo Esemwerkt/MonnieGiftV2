@@ -38,7 +38,6 @@ export default function OnboardSuccessPage() {
         setShowConfetti(true);
       }
     } catch (error) {
-      console.error('Error fetching gift data:', error);
     }
   };
 
@@ -56,7 +55,6 @@ export default function OnboardSuccessPage() {
         }
       }
     } catch (error) {
-      console.error('Error checking account status:', error);
     } finally {
       setIsLoading(false);
     }
@@ -85,7 +83,6 @@ export default function OnboardSuccessPage() {
         setShowConfetti(true);
       }
     } catch (error) {
-      console.error('Error completing claims:', error);
     } finally {
       setCompletingClaims(false);
     }

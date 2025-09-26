@@ -40,7 +40,6 @@ export async function POST(request: NextRequest) {
       message: 'User verified successfully'
     });
   } catch (error) {
-    console.error('Error verifying user:', error);
     return NextResponse.json(
       { error: 'Failed to verify user' },
       { status: 500 }

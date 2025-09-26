@@ -34,12 +34,9 @@ export default function SuccessPage() {
 
       if (response.ok) {
         setEmailSent(true);
-        console.log('✅ Email sent successfully!');
       } else {
-        console.error('Failed to send email');
       }
     } catch (error) {
-      console.error('Error sending email:', error);
     } finally {
       setSendingEmail(false);
     }
@@ -85,12 +82,9 @@ export default function SuccessPage() {
 
           if (response.ok) {
             setEmailSent(true);
-            console.log('✅ Email sent successfully!');
           } else {
-            console.error('Failed to send email');
           }
         } catch (error) {
-          console.error('Error sending email:', error);
         } finally {
           setSendingEmail(false);
         }

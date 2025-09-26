@@ -10,8 +10,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { accountId, giftId, email } = body;
 
-    console.log('=== CUSTOM ONBOARD API CALLED ===');
-    console.log('Request body:', body);
 
     if (!accountId || !giftId || !email) {
       return NextResponse.json(
@@ -28,7 +26,6 @@ export async function POST(request: NextRequest) {
       type: 'account_onboarding',
     });
 
-    console.log('Account link created:', accountLink.url);
 
     return NextResponse.json({
       success: true,
@@ -36,7 +33,6 @@ export async function POST(request: NextRequest) {
       message: 'Onboarding link created successfully',
     });
   } catch (error) {
-    console.error('Error creating custom onboard link:', error);
     return NextResponse.json(
       { 
         error: 'Failed to create onboarding link',

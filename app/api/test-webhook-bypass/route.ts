@@ -6,10 +6,8 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('=== TEST WEBHOOK BYPASS CALLED ===');
     
     const body = await request.json();
-    console.log('Test webhook body:', body);
     
     // Simulate payment_intent.succeeded event
     const mockEvent = {
@@ -30,15 +28,11 @@ export async function POST(request: NextRequest) {
       }
     };
     
-    console.log('Processing mock event:', mockEvent.type);
     
     // Process the mock event (same logic as webhook)
     const paymentIntent = mockEvent.data.object;
     const giftId = paymentIntent.metadata?.giftId;
     
-    console.log('PaymentIntent succeeded for gift:', giftId);
-    console.log('Payment status:', paymentIntent.status);
-    console.log('Amount:', paymentIntent.amount);
     
     if (giftId && paymentIntent.status === 'succeeded') {
       // Get gift details for email
@@ -48,18 +42,10 @@ export async function POST(request: NextRequest) {
           where: { id: giftId },
         });
       } catch (dbError) {
-        console.error('❌ Database error:', dbError);
         return NextResponse.json({ error: 'Database error', details: dbError }, { status: 500 });
       }
       
       if (gift) {
-        console.log('Found gift for email sending:', {
-          giftId: gift.id,
-          recipientEmail: gift.recipientEmail,
-          amount: gift.amount,
-          authenticationCode: gift.authenticationCode
-        });
-        
         // Send email to recipient
         try {
           const emailResult = await sendGiftEmail({
@@ -70,7 +56,6 @@ export async function POST(request: NextRequest) {
             message: gift.message || undefined,
             senderEmail: gift.senderEmail,
           });
-          console.log('✅ Email sent successfully!', emailResult);
           
           return NextResponse.json({
             success: true,
@@ -80,14 +65,12 @@ export async function POST(request: NextRequest) {
             emailResult
           });
         } catch (emailError) {
-          console.error('❌ Failed to send email:', emailError);
           return NextResponse.json({ 
             error: 'Email sending failed', 
             details: emailError 
           }, { status: 500 });
         }
       } else {
-        console.error('❌ Gift not found for ID:', giftId);
         return NextResponse.json({ 
           error: 'Gift not found', 
           giftId 
@@ -102,7 +85,6 @@ export async function POST(request: NextRequest) {
     }
     
   } catch (error) {
-    console.error('❌ Test webhook failed:', error);
     return NextResponse.json({ 
       error: 'Test webhook failed', 
       details: error 

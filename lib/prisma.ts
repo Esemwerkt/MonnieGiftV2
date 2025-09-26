@@ -28,7 +28,6 @@ const createPrismaClient = () => {
       },
     });
   } catch (error) {
-    console.error('Failed to create Prisma client:', error);
     // Return a mock client that throws errors for database operations
     return {
       $connect: () => Promise.reject(new Error('Database connection failed')),

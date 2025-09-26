@@ -38,9 +38,6 @@ export async function sendGiftEmail({
   const verifiedEmails = ['enes@semwerkt.nl']; // Add more verified emails as needed
   
   if (!verifiedEmails.includes(recipientEmail)) {
-    console.log(`⚠️ Skipping email to ${recipientEmail} - not in verified list`);
-    console.log(`📧 Verified emails: ${verifiedEmails.join(', ')}`);
-    console.log(`💡 To send to any email, verify a domain at resend.com/domains`);
     
     // Return a mock success response for development
     return {
@@ -50,9 +47,6 @@ export async function sendGiftEmail({
   }
 
   try {
-    console.log('Sending gift email to:', recipientEmail);
-    console.log('Gift URL:', giftUrl);
-    console.log('Authentication code:', authenticationCode);
     
     const emailData = {
       from: fromEmail,
@@ -126,44 +120,16 @@ Het MonnieGift Team`,
           </div>
         </div>
       `,
-    };
-
-    console.log('Sending email with data:', {
-      from: emailData.from,
-      to: emailData.to,
-      subject: emailData.subject,
-      hasText: !!emailData.text,
-      hasHtml: !!emailData.html
-    });
+        };
 
     const { data, error } = await resend.emails.send(emailData);
 
     if (error) {
-      console.error('Resend API error:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
       throw new Error(`Failed to send email: ${JSON.stringify(error)}`);
     }
 
-    console.log('Email sent successfully:', data);
-    console.log('Email ID:', data?.id);
     return data;
-  } catch (error) {
-    console.error('Error sending gift email:', error);
-    console.error('Error type:', typeof error);
-    console.error('Error message:', error instanceof Error ? error.message : String(error));
-    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-    
-    // Log email failure details for debugging
-    console.error('Email failure details:', {
-      recipientEmail,
-      giftId,
-      authenticationCode,
-      amount,
-      senderEmail,
-      fromEmail,
-      error: error instanceof Error ? error.message : String(error)
-    });
-    
-    throw new Error(`Failed to send email: ${error instanceof Error ? error.message : String(error)}`);
+      } catch (error) {
+        throw new Error(`Failed to send email: ${error instanceof Error ? error.message : String(error)}`);
   }
 }

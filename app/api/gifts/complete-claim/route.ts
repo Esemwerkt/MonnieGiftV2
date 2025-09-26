@@ -18,8 +18,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { accountId, email } = body;
 
-    console.log('=== COMPLETE CLAIM API CALLED ===');
-    console.log('Request body:', body);
 
     if (!accountId || !email) {
       return NextResponse.json(
@@ -89,20 +87,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log('=== COMPLETE CLAIM DEBUG ===');
-    console.log('accountId:', accountId);
-    console.log('accountIdForLookup:', accountIdForLookup);
-    console.log('email:', email);
-    console.log('Found pending gifts:', pendingGifts.length);
-    console.log('Pending gifts details:', pendingGifts.map((g: any) => ({
-      id: g.id,
-      amount: g.amount,
-      stripeTransferId: g.stripeTransferId,
-      isClaimed: g.isClaimed
-    })));
-
     if (pendingGifts.length === 0) {
-      console.log('No pending gifts found for account:', accountId);
       return NextResponse.json({
         success: true,
         message: 'No pending gifts to complete',
@@ -153,9 +138,6 @@ export async function POST(request: NextRequest) {
     }
     
     if (hasRequirements) {
-      console.log('Account has additional KYC requirements:', 
-        isV2AccountForRequirements ? (requirements as any).entries : requirements?.currently_due
-      );
       return NextResponse.json({
         success: false,
         needsAdditionalVerification: true,
@@ -203,16 +185,8 @@ export async function POST(request: NextRequest) {
           giftId: gift.id,
           amount: gift.amount,
           transferId: transfer.id,
-        });
-
-        console.log('Gift claim completed:', {
-          giftId: gift.id,
-          amount: gift.amount,
-          recipientEmail: email,
-          transferId: transfer.id,
-        });
+            });
       } catch (transferError) {
-        console.error('Error completing transfer for gift:', gift.id, transferError);
         // Continue with other gifts even if one fails
       }
     }
@@ -224,7 +198,6 @@ export async function POST(request: NextRequest) {
       gifts: completedGifts,
     });
   } catch (error) {
-    console.error('Error completing gift claims:', error);
     return NextResponse.json(
       { 
         error: 'Failed to complete gift claims',

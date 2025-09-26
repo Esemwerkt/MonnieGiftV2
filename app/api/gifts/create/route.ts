@@ -17,9 +17,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("=== GIFT CREATION API CALLED ===");
     const body = await request.json();
-    console.log("Request body:", body);
     
     const { 
       amount, 
@@ -45,7 +43,6 @@ export async function POST(request: NextRequest) {
         where: { email: recipientEmail },
       });
     } catch (dbError) {
-      console.warn('Database connection failed, continuing without user lookup:', dbError);
       // Continue without user lookup if database is unavailable
     }
 
@@ -90,7 +87,6 @@ export async function POST(request: NextRequest) {
         },
       });
     } catch (dbError) {
-      console.error('Database error creating gift:', dbError);
       return NextResponse.json(
         { 
           error: 'Database connection failed. Please check your environment variables.',
@@ -134,13 +130,7 @@ export async function POST(request: NextRequest) {
     // This ensures emails are only sent for paid gifts
 
     // Log gift creation
-    console.log('Gift created successfully!');
-    console.log('Gift ID:', gift.id);
-    console.log('Authentication Code:', authenticationCode);
-    console.log('Recipient Email:', recipientEmail);
-    console.log('Claim URL:', `${process.env.NEXTAUTH_URL}/claim/${gift.id}`);
     
-    console.log('Email will be sent after successful payment via webhook');
 
     return NextResponse.json({
       success: true,
@@ -153,12 +143,6 @@ export async function POST(request: NextRequest) {
       message: 'Gift created successfully. Please complete payment to send the gift.',
     });
   } catch (error) {
-    console.error('Error creating gift:', error);
-    console.error('Error details:', {
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-      name: error instanceof Error ? error.name : undefined
-    });
     return NextResponse.json(
       { 
         error: 'Cadeau aanmaken mislukt',
