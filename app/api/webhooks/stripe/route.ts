@@ -82,8 +82,6 @@ export async function POST(request: NextRequest) {
                     amount: parseInt(giftAmount),
                     currency: paymentIntent.currency,
                     message: message || '',
-                    senderEmail: 'noreply@monniegift.nl', // Placeholder for simplified flow
-                    recipientEmail: 'pending@monniegift.nl', // Placeholder - will be collected during claim
                     authenticationCode,
                     animationPreset: animationPreset || 'confettiRealistic',
                     stripePaymentIntentId: paymentIntent.id,
