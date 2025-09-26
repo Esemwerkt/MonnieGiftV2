@@ -299,6 +299,7 @@ export default function HomePage() {
       const amount = parseFloat(formData.amount);
       const amountInCents = Math.round(amount * 100);
 
+      console.log('Current formData state:', formData);
       console.log('Sending form data:', {
         ...formData,
         amount: amountInCents,
@@ -706,12 +707,17 @@ export default function HomePage() {
                         <div className="flex gap-2">
                           <button
                             type="button"
-                            onClick={() =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                animationPreset: key,
-                              }))
-                            }
+                            onClick={() => {
+                              console.log('Selecting animation preset:', key);
+                              setFormData((prev) => {
+                                const newData = {
+                                  ...prev,
+                                  animationPreset: key,
+                                };
+                                console.log('Updated formData:', newData);
+                                return newData;
+                              });
+                            }}
                             className={`flex-1 px-3 py-2 text-xs sm:text-sm rounded-md transition-colors ${
                               formData.animationPreset === key
                                 ? "bg-primary text-primary-foreground"
