@@ -181,9 +181,31 @@ export default function SuccessPage() {
             setClaimUrl(claimLink);
             
             setShowConfetti(true);
-            setEmailSent(true); // Assume email was already sent
             setProcessingComplete(true);
             console.log('Existing gift data loaded successfully');
+            
+            // Ensure email is sent
+            if (!emailSent) {
+              console.log('Sending email for existing gift...');
+              try {
+                const emailResponse = await fetch('/api/send-gift-email', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({ giftId: gift.id }),
+                });
+                
+                if (emailResponse.ok) {
+                  setEmailSent(true);
+                  console.log('Email sent successfully for existing gift');
+                } else {
+                  console.error('Failed to send email for existing gift');
+                }
+              } catch (error) {
+                console.error('Error sending email for existing gift:', error);
+              }
+            }
           } else {
             console.error('Failed to fetch existing gift:', response.status);
             // Clear sessionStorage if gift doesn't exist (previous processing failed)
@@ -239,10 +261,32 @@ export default function SuccessPage() {
           setClaimUrl(claimLink);
           
           setShowConfetti(true);
-          setEmailSent(true); // Webhook handles email sending
           setProcessingComplete(true);
           sessionStorage.setItem(processingKey, 'true');
           console.log('Gift retrieved successfully');
+          
+          // Ensure email is sent
+          if (!emailSent) {
+            console.log('Sending email for retrieved gift...');
+            try {
+              const emailResponse = await fetch('/api/send-gift-email', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ giftId: gift.id }),
+              });
+              
+              if (emailResponse.ok) {
+                setEmailSent(true);
+                console.log('Email sent successfully for retrieved gift');
+              } else {
+                console.error('Failed to send email for retrieved gift');
+              }
+            } catch (error) {
+              console.error('Error sending email for retrieved gift:', error);
+            }
+          }
         } else {
           console.error('Failed to retrieve gift:', response.status);
           // Webhook might not have fired yet, wait and try again
@@ -269,10 +313,32 @@ export default function SuccessPage() {
                 setClaimUrl(claimLink);
                 
                 setShowConfetti(true);
-                setEmailSent(true);
                 setProcessingComplete(true);
                 sessionStorage.setItem(processingKey, 'true');
                 console.log('Gift retrieved successfully on retry');
+                
+                // Ensure email is sent
+                if (!emailSent) {
+                  console.log('Sending email for retry gift...');
+                  try {
+                    const emailResponse = await fetch('/api/send-gift-email', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({ giftId: gift.id }),
+                    });
+                    
+                    if (emailResponse.ok) {
+                      setEmailSent(true);
+                      console.log('Email sent successfully for retry gift');
+                    } else {
+                      console.error('Failed to send email for retry gift');
+                    }
+                  } catch (error) {
+                    console.error('Error sending email for retry gift:', error);
+                  }
+                }
               } else {
                 console.error('Still no gift found after retry');
                 // Webhook failed, create gift as fallback
