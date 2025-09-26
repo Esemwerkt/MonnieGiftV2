@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Gift,
@@ -223,6 +223,8 @@ export default function HomePage() {
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [showSuccessConfetti, setShowSuccessConfetti] = useState(false);
   const [previewAnimation, setPreviewAnimation] = useState<string | null>(null);
+  const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
+  const previewIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [paymentData, setPaymentData] = useState<{
     clientSecret: string;
     giftId: string;
@@ -284,6 +286,15 @@ export default function HomePage() {
     }
   }, [isFormComplete, paymentData]);
 
+  // Cleanup interval on unmount
+  useEffect(() => {
+    return () => {
+      if (previewIntervalRef.current) {
+        clearInterval(previewIntervalRef.current);
+      }
+    };
+  }, []);
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -299,15 +310,29 @@ export default function HomePage() {
     
     const confetti = (await import('canvas-confetti')).default;
     
-    setPreviewAnimation(preset);
-    
-    setTimeout(() => {
-      executeAnimation(confetti, preset);
-    }, 100);
-    
-    setTimeout(() => {
+    if (isPreviewPlaying && previewAnimation === preset) {
+      // Stop the animation
+      setIsPreviewPlaying(false);
       setPreviewAnimation(null);
-    }, 2000);
+      if (previewIntervalRef.current) {
+        clearInterval(previewIntervalRef.current);
+        previewIntervalRef.current = null;
+      }
+    } else {
+      // Start the animation
+      setIsPreviewPlaying(true);
+      setPreviewAnimation(preset);
+      
+      const playAnimation = () => {
+        executeAnimation(confetti, preset);
+      };
+      
+      // Play immediately
+      playAnimation();
+      
+      // Set up interval to loop every 2 seconds
+      previewIntervalRef.current = setInterval(playAnimation, 2000);
+    }
   };
 
 
@@ -558,10 +583,19 @@ export default function HomePage() {
                           <button
                             type="button"
                             onClick={() => previewAnimationPreset(key as AnimationPreset)}
-                            disabled={previewAnimation === key}
-                            className="px-2 py-1 text-xs rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="px-2 py-1 text-xs rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors flex items-center gap-1"
                           >
-                            {previewAnimation === key ? '🎆' : '👁️'}
+                            {isPreviewPlaying && previewAnimation === key ? (
+                              <>
+                                <span>⏹️</span>
+                                <span>Stop</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>▶️</span>
+                                <span>Play</span>
+                              </>
+                            )}
                           </button>
                         </div>
                       </div>
