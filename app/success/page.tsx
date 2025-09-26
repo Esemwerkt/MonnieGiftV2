@@ -69,15 +69,7 @@ export default function SuccessPage() {
     const senderEmail = searchParams.get('sender');
     const animationPreset = searchParams.get('animation_preset');
 
-    // Check if email was already sent for this payment intent
-    if (paymentIntentId) {
-      const emailSentKey = `email_sent_${paymentIntentId}`;
-      const wasEmailSent = sessionStorage.getItem(emailSentKey);
-      if (wasEmailSent) {
-        setEmailSent(true);
-        console.log('Email already sent for this payment intent (restored from sessionStorage)');
-      }
-    }
+    // Email will be sent manually via button
 
     if (paymentIntentId) {
       // First verify the payment with Stripe server-side
@@ -192,35 +184,7 @@ export default function SuccessPage() {
             setProcessingComplete(true);
             console.log('Existing gift data loaded successfully');
             
-            // Check if email was already sent for this payment intent
-            const emailSentKey = `email_sent_${paymentIntentId}`;
-            const wasEmailSent = sessionStorage.getItem(emailSentKey);
-            
-            if (!wasEmailSent) {
-              console.log('Sending email for existing gift...');
-              try {
-                const emailResponse = await fetch('/api/send-gift-email', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({ giftId: gift.id }),
-                });
-                
-                if (emailResponse.ok) {
-                  setEmailSent(true);
-                  sessionStorage.setItem(emailSentKey, 'true');
-                  console.log('Email sent successfully for existing gift');
-                } else {
-                  console.error('Failed to send email for existing gift');
-                }
-              } catch (error) {
-                console.error('Error sending email for existing gift:', error);
-              }
-            } else {
-              setEmailSent(true);
-              console.log('Email already sent for this payment intent');
-            }
+            // Email will be sent manually via button
           } else {
             console.error('Failed to fetch existing gift:', response.status);
             // Clear sessionStorage if gift doesn't exist (previous processing failed)
@@ -280,35 +244,7 @@ export default function SuccessPage() {
           sessionStorage.setItem(processingKey, 'true');
           console.log('Gift retrieved successfully');
           
-          // Check if email was already sent for this payment intent
-          const emailSentKey = `email_sent_${paymentIntentId}`;
-          const wasEmailSent = sessionStorage.getItem(emailSentKey);
-          
-          if (!wasEmailSent) {
-            console.log('Sending email for retrieved gift...');
-            try {
-              const emailResponse = await fetch('/api/send-gift-email', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ giftId: gift.id }),
-              });
-              
-              if (emailResponse.ok) {
-                setEmailSent(true);
-                sessionStorage.setItem(emailSentKey, 'true');
-                console.log('Email sent successfully for retrieved gift');
-              } else {
-                console.error('Failed to send email for retrieved gift');
-              }
-            } catch (error) {
-              console.error('Error sending email for retrieved gift:', error);
-            }
-          } else {
-            setEmailSent(true);
-            console.log('Email already sent for this payment intent');
-          }
+          // Email will be sent manually via button
         } else {
           console.error('Failed to retrieve gift:', response.status);
           // Webhook might not have fired yet, wait and try again
@@ -339,35 +275,7 @@ export default function SuccessPage() {
                 sessionStorage.setItem(processingKey, 'true');
                 console.log('Gift retrieved successfully on retry');
                 
-                // Check if email was already sent for this payment intent
-                const emailSentKey = `email_sent_${paymentIntentId}`;
-                const wasEmailSent = sessionStorage.getItem(emailSentKey);
-                
-                if (!wasEmailSent) {
-                  console.log('Sending email for retry gift...');
-                  try {
-                    const emailResponse = await fetch('/api/send-gift-email', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({ giftId: gift.id }),
-                    });
-                    
-                    if (emailResponse.ok) {
-                      setEmailSent(true);
-                      sessionStorage.setItem(emailSentKey, 'true');
-                      console.log('Email sent successfully for retry gift');
-                    } else {
-                      console.error('Failed to send email for retry gift');
-                    }
-                  } catch (error) {
-                    console.error('Error sending email for retry gift:', error);
-                  }
-                } else {
-                  setEmailSent(true);
-                  console.log('Email already sent for this payment intent');
-                }
+                // Email will be sent manually via button
               } else {
                 console.error('Still no gift found after retry');
                 // Webhook failed, create gift as fallback
@@ -408,9 +316,8 @@ export default function SuccessPage() {
                     setClaimUrl(claimLink);
                     
                     setShowConfetti(true);
-                    setEmailSent(true);
+                    setEmailSent(false); // Email will be sent manually
                     sessionStorage.setItem(processingKey, 'true');
-                    sessionStorage.setItem(`email_sent_${paymentIntentId}`, 'true');
                     setProcessingComplete(true);
                     console.log('Gift created successfully as fallback');
                   } else {
@@ -493,7 +400,7 @@ export default function SuccessPage() {
                 Cadeau Succesvol Verzonden!
               </h1>
               <p className="text-xl text-muted-foreground mb-8">
-                Je cadeau is veilig verzonden en de ontvanger heeft een e-mail ontvangen.
+                Je cadeau is veilig verzonden! Verstuur de e-mail om de ontvanger te informeren.
               </p>
             </>
           )}
@@ -533,31 +440,6 @@ export default function SuccessPage() {
                 </span>
               </div>
               
-              {/* Development mode: Manual email sending button */}
-              {process.env.NODE_ENV === 'development' && !emailSent && (
-                <div className="mt-4 text-center">
-                  <button
-                    onClick={handleSendEmail}
-                    disabled={sendingEmail}
-                    className="px-4 py-2 bg-chart-1 text-white rounded-lg text-sm font-medium hover:bg-chart-1/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 mx-auto"
-                  >
-                    {sendingEmail ? (
-                      <>
-                        <div className="w-4 h-4 border border-white/30 border-t-white rounded-full animate-spin" />
-                        E-mail Verzenden...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="h-4 w-4" />
-                        E-mail Handmatig Verzenden
-                      </>
-                    )}
-                  </button>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    (Development mode - webhooks werken niet op localhost)
-                  </p>
-                </div>
-              )}
             </div>
           )}
 
@@ -600,18 +482,50 @@ export default function SuccessPage() {
                 </div>
               </div>
 
-              {/* WhatsApp Share Button */}
-              <div className="text-center">
+              {/* Share Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                {/* Email Send Button */}
+                <button
+                  onClick={handleSendEmail}
+                  disabled={sendingEmail || emailSent}
+                  className="px-6 py-3 bg-chart-1 text-white rounded-xl font-medium hover:bg-chart-1/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 group"
+                >
+                  {sendingEmail ? (
+                    <>
+                      <div className="w-5 h-5 border border-white/30 border-t-white rounded-full animate-spin" />
+                      Verzenden...
+                    </>
+                  ) : emailSent ? (
+                    <>
+                      <Check className="h-5 w-5" />
+                      E-mail Verzonden
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="h-5 w-5" />
+                      Verstuur E-mail
+                      <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
+                    </>
+                  )}
+                </button>
+
+                {/* WhatsApp Share Button */}
                 <button
                   onClick={handleWhatsAppShare}
-                  className="px-6 py-3 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 transition-all duration-200 flex items-center justify-center gap-2 mx-auto group"
+                  className="px-6 py-3 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 transition-all duration-200 flex items-center justify-center gap-2 group"
                 >
                   <MessageCircle className="h-5 w-5" />
                   Deel via WhatsApp
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
                 </button>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Deel je cadeau direct via WhatsApp
+              </div>
+              
+              <div className="text-center mt-2">
+                <p className="text-xs text-muted-foreground">
+                  {emailSent 
+                    ? "E-mail succesvol verzonden naar de ontvanger" 
+                    : "Verstuur eerst de e-mail, dan kun je ook via WhatsApp delen"
+                  }
                 </p>
               </div>
             </div>
