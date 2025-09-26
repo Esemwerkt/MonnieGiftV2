@@ -21,12 +21,10 @@ import {
 } from "@stripe/react-stripe-js";
 import BeautifulConfetti from "@/components/BeautifulConfetti";
 
-// Initialize Stripe
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 );
 
-// Payment Form Component
 function PaymentForm({
   clientSecret,
   giftId,
@@ -54,7 +52,6 @@ function PaymentForm({
   const [error, setError] = useState("");
   const [isPaymentElementReady, setIsPaymentElementReady] = useState(false);
 
-  // Listen for PaymentElement ready state
   useEffect(() => {
     if (!elements) return;
 
@@ -83,7 +80,6 @@ function PaymentForm({
       return;
     }
 
-    // Check if PaymentElement is ready
     const paymentElement = elements.getElement('payment');
     
     if (!paymentElement) {
@@ -233,11 +229,9 @@ export default function HomePage() {
     totalAmount: number;
   } | null>(null);
 
-  // Check if all required fields are filled
   const isFormComplete =
     formData.amount && formData.senderEmail && formData.recipientEmail;
 
-  // Create payment intent when form is complete
   const createPaymentIntent = async () => {
     if (!isFormComplete || paymentData || isCreatingPayment) return;
 
@@ -282,7 +276,6 @@ export default function HomePage() {
     }
   };
 
-  // Create payment intent when form becomes complete
   useEffect(() => {
     if (isFormComplete && !paymentData) {
       createPaymentIntent();
@@ -570,7 +563,6 @@ export default function HomePage() {
                         setShowPaymentForm(false);
                         setShowSuccessConfetti(true);
                         
-                        // Send email immediately since webhook might not work in development
                         try {
                           const emailResponse = await fetch("/api/send-gift-email", {
                             method: "POST",

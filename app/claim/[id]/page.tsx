@@ -38,40 +38,33 @@ export default function ClaimGiftPage() {
   const [jsConfetti, setJsConfetti] = useState<JSConfetti | null>(null);
   const claimProcessedRef = useRef(false);
   
-  // Initialize js-confetti only on client side
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setJsConfetti(new JSConfetti());
     }
   }, []);
 
-  // Trigger confetti when showConfetti state changes
   useEffect(() => {
     if (showConfetti && jsConfetti) {
-      // Add a small delay for smoother animation
       setTimeout(() => {
-        // Create multiple explosion bursts for dramatic effect
         const createExplosion = (delay: number, config: any) => {
           setTimeout(() => {
             jsConfetti.addConfetti(config);
           }, delay);
         };
 
-        // Main explosion burst
         createExplosion(0, {
           confettiColors: ['#0a2d27', '#d4b483', '#1a584e', '#e4c59a', '#fdfbf7'],
           confettiNumber: 500,
           confettiRadius: 2,
         });
 
-        // Secondary burst for more explosion effect
         createExplosion(150, {
           confettiColors: ['#0a2d27', '#d4b483', '#1a584e', '#e4c59a', '#fdfbf7'],
           confettiNumber: 150,
           confettiRadius: 4,
         });
 
-        // Final smaller burst
         createExplosion(300, {
           confettiColors: ['#0a2d27', '#d4b483', '#1a584e', '#e4c59a', '#fdfbf7'],
           confettiNumber: 100,
@@ -88,33 +81,27 @@ export default function ClaimGiftPage() {
     }
   }, [giftId]);
 
-  // Check if returning from onboarding completion
   useEffect(() => {
     const onboardingComplete = searchParams.get('onboarding_complete');
     const autoClaim = searchParams.get('auto_claim');
     const emailParam = searchParams.get('email');
     
     if (onboardingComplete === 'true' && emailParam && gift && !claimProcessedRef.current) {
-      // Pre-fill email and auth code
       setEmail(emailParam);
       setAuthCode(gift.authenticationCode || '');
       
-      // If auto_claim is true, complete the claim process
       if (autoClaim === 'true') {
         claimProcessedRef.current = true;
         completeClaimAfterOnboarding(emailParam);
         return;
       }
       
-      // Check if gift is already claimed
       if (gift.isClaimed) {
         claimProcessedRef.current = true;
         setClaimSuccess(true);
         return;
       }
       
-      // Don't auto-complete the claim - let the user do it manually
-      // This prevents the loop
     }
   }, [searchParams, gift]);
 
@@ -159,9 +146,7 @@ export default function ClaimGiftPage() {
         throw new Error(data.error || 'Failed to claim gift');
       }
 
-      // Check if onboarding is needed
       if (data.needsOnboarding) {
-        // Redirect to custom onboarding with account ID, gift ID, and email
         router.push(`/onboard/custom?account_id=${data.accountId}&gift_id=${giftId}&email=${encodeURIComponent(email)}`);
         return;
       }
@@ -169,7 +154,6 @@ export default function ClaimGiftPage() {
       setClaimSuccess(true);
       setShowConfetti(true);
       
-      // Confetti will be triggered by the useEffect when showConfetti changes
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to claim gift');
     } finally {
@@ -199,7 +183,6 @@ export default function ClaimGiftPage() {
   const completeClaimAfterOnboarding = async (email: string) => {
     try {
       
-      // Get the user's account ID from the URL or from the user data
       const accountId = searchParams.get('account_id');
       
       if (!accountId) {
@@ -227,8 +210,6 @@ export default function ClaimGiftPage() {
       setClaimSuccess(true);
       setShowConfetti(true);
       
-      // Confetti will be triggered by the useEffect when showConfetti changes
-      // Note: No need to refresh gift data as we're setting claimSuccess to true
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to complete claim');
     }

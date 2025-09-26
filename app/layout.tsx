@@ -30,7 +30,6 @@ export default function RootLayout({
                   document.documentElement.className = 'theme ' + (isDark ? 'dark' : 'light');
                   document.body.className = document.body.className + ' ' + (isDark ? 'dark' : 'light');
                 } catch (e) {
-                  // Fallback to dark theme if localStorage is not available
                   document.documentElement.className = 'theme dark';
                   document.body.className = document.body.className + ' dark';
                 }

@@ -1,6 +1,5 @@
 import { prisma } from '@/lib/prisma';
 
-// Constants for limits
 export const LIMITS = {
   MIN_GIFT_AMOUNT: 100, // €1.00 in cents
   MAX_GIFT_AMOUNT: 10000, // €100.00 in cents
@@ -17,10 +16,6 @@ export interface LimitCheckResult {
   remainingGifts: number;
 }
 
-/**
- * Check if a user can receive a gift of the specified amount
- * Based on Stripe Connect account ID (requires KYC) instead of email
- */
 export async function checkUserLimits(
   stripeAccountId: string,
   giftAmount: number
@@ -29,7 +24,6 @@ export async function checkUserLimits(
   const currentMonth = now.getMonth() + 1; // 1-12
   const currentYear = now.getFullYear();
 
-  // Find user by Stripe Connect account ID (handle both formats)
   let user = await (prisma as any).user.findFirst({
     where: {
       OR: [
@@ -40,7 +34,6 @@ export async function checkUserLimits(
   });
 
   if (!user) {
-    // User doesn't exist yet, they can receive the gift
     return {
       allowed: true,
       currentAmount: 0,
@@ -50,7 +43,6 @@ export async function checkUserLimits(
     };
   }
 
-  // Get current month's limits
   let userLimits = await (prisma as any).userLimits.findUnique({
     where: {
       userId_month_year: {
@@ -61,7 +53,6 @@ export async function checkUserLimits(
     },
   });
 
-  // Create limits record if it doesn't exist
   if (!userLimits) {
     userLimits = await (prisma as any).userLimits.create({
       data: {
@@ -77,7 +68,6 @@ export async function checkUserLimits(
   const newTotalAmount = userLimits.totalAmount + giftAmount;
   const newGiftCount = userLimits.giftCount + 1;
 
-  // Check limits
   if (giftAmount < LIMITS.MIN_GIFT_AMOUNT) {
     return {
       allowed: false,
@@ -141,10 +131,6 @@ export async function checkUserLimits(
   };
 }
 
-/**
- * Update user limits after a gift is claimed
- * Based on Stripe Connect account ID (requires KYC) instead of email
- */
 export async function updateUserLimits(
   stripeAccountId: string,
   giftAmount: number
@@ -153,7 +139,6 @@ export async function updateUserLimits(
   const currentMonth = now.getMonth() + 1; // 1-12
   const currentYear = now.getFullYear();
 
-  // Find user by Stripe Connect account ID
   const user = await (prisma as any).user.findUnique({
     where: { stripeConnectAccountId: stripeAccountId },
   });
@@ -162,7 +147,6 @@ export async function updateUserLimits(
     throw new Error(`User not found for Stripe account: ${stripeAccountId}`);
   }
 
-  // Update or create limits record
   await (prisma as any).userLimits.upsert({
     where: {
       userId_month_year: {
@@ -189,10 +173,6 @@ export async function updateUserLimits(
   });
 }
 
-/**
- * Get current user limits for display
- * Based on Stripe Connect account ID (requires KYC) instead of email
- */
 export async function getUserLimits(stripeAccountId: string) {
   const now = new Date();
   const currentMonth = now.getMonth() + 1; // 1-12

@@ -16,7 +16,6 @@ export default function OnboardPage() {
 
   useEffect(() => {
     if (accountId) {
-      // Create onboarding link for existing account
       createOnboardingLink(accountId);
     }
   }, [accountId]);

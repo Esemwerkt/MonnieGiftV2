@@ -3,7 +3,6 @@ import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 import { updateUserLimits, checkUserLimits, LIMITS } from '@/lib/limits';
 
-// Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
@@ -26,7 +25,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find user by email and account ID (handle both formats)
     const user = await (prisma as any).user.findFirst({
       where: {
         email: email,
@@ -44,23 +42,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if account is ready for transfers (works for both v1 and v2)
-    // Handle account ID format (with or without acct_ prefix)
     const stripeAccountId = accountId.startsWith('acct_') ? accountId : `acct_${accountId}`;
     const account = await stripe.accounts.retrieve(stripeAccountId);
     
-    // Handle both v1 and v2 account formats
     const isV2Account = (account as any).configurations !== undefined;
     let chargesEnabled = false;
     let payoutsEnabled = false;
     
     if (isV2Account) {
-      // Accounts v2 format
       const merchantConfig = (account as any).configurations?.merchant;
       chargesEnabled = merchantConfig?.charges_enabled || false;
       payoutsEnabled = merchantConfig?.payouts_enabled || false;
     } else {
-      // Accounts v1 format
       chargesEnabled = account.charges_enabled || false;
       payoutsEnabled = account.payouts_enabled || false;
     }
@@ -72,9 +65,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find pending gifts for this user
-    // Handle both formats: pending_${accountId} and pending_acct_${accountId}
-    // Handle account ID format for lookup
     const accountIdForLookup = accountId.startsWith('acct_') ? accountId.replace('acct_', '') : accountId;
     const pendingGifts = await prisma.gift.findMany({
       where: {
@@ -95,7 +85,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Check user limits before processing transfers (based on KYC-verified Stripe account)
     const totalPendingAmount = pendingGifts.reduce((sum: number, gift: any) => sum + gift.amount, 0);
     const limitCheck = await checkUserLimits(stripeAccountId, totalPendingAmount);
     
@@ -116,23 +105,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if account has additional KYC requirements before processing transfers
     const stripeAccount = await stripe.accounts.retrieve(accountId);
     
-    // Handle both v1 and v2 requirements format
     const isV2AccountForRequirements = (stripeAccount as any).configurations !== undefined;
     let hasRequirements = false;
     let requirements = null;
     
     if (isV2AccountForRequirements) {
-      // Accounts v2 format - requirements are in a different structure
       requirements = stripeAccount.requirements;
       hasRequirements = requirements && (requirements as any).entries && 
         (requirements as any).entries.some((entry: any) => 
           entry.minimum_deadline?.status === 'currently_due'
         );
     } else {
-      // Accounts v1 format
       requirements = stripeAccount.requirements;
       hasRequirements = !!(requirements && requirements.currently_due && requirements.currently_due.length > 0);
     }
@@ -155,11 +140,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Complete transfers for all pending gifts
     const completedGifts = [];
     for (const gift of pendingGifts) {
       try {
-        // Create transfer to user's Stripe account
         const transfer = await stripe.transfers.create({
           amount: gift.amount,
           currency: gift.currency,
@@ -187,7 +170,6 @@ export async function POST(request: NextRequest) {
           transferId: transfer.id,
             });
       } catch (transferError) {
-        // Continue with other gifts even if one fails
       }
     }
 

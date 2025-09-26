@@ -19,7 +19,6 @@ export default function BeautifulConfetti({
   const jsConfettiRef = useRef<JSConfetti | null>(null);
 
   useEffect(() => {
-    // Initialize js-confetti
     if (typeof window !== 'undefined') {
       jsConfettiRef.current = new JSConfetti();
     }
@@ -70,24 +69,20 @@ export default function BeautifulConfetti({
 
     const config = getConfettiConfig(variant, type);
 
-    // Create bursts based on type
     const createBursts = () => {
       if (type === 'emojis') {
-        // Emoji-only burst
         jsConfetti.addConfetti({
           ...config,
           confettiNumber: 0,
           emojis: config.emojis,
         });
       } else if (type === 'confetti') {
-        // Confetti-only burst
         jsConfetti.addConfetti({
           ...config,
           emojis: [],
           confettiNumber: config.confettiNumber,
         });
         
-        // Additional confetti burst
         setTimeout(() => {
           jsConfetti.addConfetti({
             ...config,
@@ -96,14 +91,12 @@ export default function BeautifulConfetti({
           });
         }, 300);
       } else {
-        // Mixed burst - always mix emojis with confetti
         jsConfetti.addConfetti({
           ...config,
           confettiNumber: Math.floor(config.confettiNumber * 0.7),
           emojis: config.emojis,
         });
 
-        // Secondary mixed burst
         setTimeout(() => {
           jsConfetti.addConfetti({
             ...config,
@@ -116,7 +109,6 @@ export default function BeautifulConfetti({
 
     createBursts();
 
-    // Call onComplete after animation
     setTimeout(() => {
       onComplete?.();
     }, 2000);
@@ -126,7 +118,6 @@ export default function BeautifulConfetti({
   return null; // This component doesn't render anything
 }
 
-// Hook for easy beautiful confetti triggering
 export function useBeautifulConfetti() {
   const triggerConfetti = (variant: 'celebration' | 'hearts' | 'money' | 'mixed' = 'celebration', type: 'emojis' | 'confetti' | 'mixed' = 'mixed') => {
     if (typeof window === 'undefined') return;
@@ -173,7 +164,6 @@ export function useBeautifulConfetti() {
 
     const config = getConfettiConfig(variant, type);
 
-    // Create bursts based on type
     if (type === 'emojis') {
       jsConfetti.addConfetti({
         ...config,
@@ -187,7 +177,6 @@ export function useBeautifulConfetti() {
         confettiNumber: config.confettiNumber,
       });
       
-      // Additional confetti burst
       setTimeout(() => {
         jsConfetti.addConfetti({
           ...config,
@@ -196,14 +185,12 @@ export function useBeautifulConfetti() {
         });
       }, 400);
     } else {
-      // Mixed burst - always mix emojis with confetti
       jsConfetti.addConfetti({
         ...config,
         confettiNumber: Math.floor(config.confettiNumber * 0.8),
         emojis: config.emojis,
       });
 
-      // Additional mixed burst
       setTimeout(() => {
         jsConfetti.addConfetti({
           ...config,
@@ -259,7 +246,6 @@ export function useBeautifulConfetti() {
 
     const config = getFullScreenConfig(variant, type);
 
-    // Full-screen explosion
     if (type === 'emojis') {
       jsConfetti.addConfetti({
         ...config,
@@ -273,7 +259,6 @@ export function useBeautifulConfetti() {
         confettiNumber: config.confettiNumber,
       });
       
-      // Additional confetti bursts
       setTimeout(() => {
         jsConfetti.addConfetti({
           ...config,
@@ -290,14 +275,12 @@ export function useBeautifulConfetti() {
         });
       }, 600);
     } else {
-      // Mixed full-screen - always mix emojis with confetti
       jsConfetti.addConfetti({
         ...config,
         confettiNumber: Math.floor(config.confettiNumber * 0.8),
         emojis: config.emojis,
       });
 
-      // Additional mixed bursts
       setTimeout(() => {
         jsConfetti.addConfetti({
           ...config,

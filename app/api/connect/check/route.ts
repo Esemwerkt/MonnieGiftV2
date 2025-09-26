@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 
-// Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
@@ -16,14 +15,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Retrieve account details (works for both v1 and v2)
     const account = await stripe.accounts.retrieve(accountId);
 
-    // Handle both v1 and v2 account formats
     const isV2Account = (account as any).configurations !== undefined;
     
     if (isV2Account) {
-      // Accounts v2 format
       const merchantConfig = (account as any).configurations?.merchant;
       const customerConfig = (account as any).configurations?.customer;
       
@@ -46,15 +42,12 @@ export async function GET(request: NextRequest) {
           },
           customer: {
             enabled: !!customerConfig,
-            // Add customer-specific status if needed
           },
         },
-        // v2 specific properties
         requirements: account.requirements,
         identity: (account as any).identity,
       });
     } else {
-      // Accounts v1 format (fallback)
       return NextResponse.json({
         id: account.id,
         type: account.type || 'express',

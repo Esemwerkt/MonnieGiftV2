@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 
-// Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
@@ -17,7 +16,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { giftId, email, authenticationCode } = body;
 
-    // Validate input
     if (!giftId || !email || !authenticationCode) {
       return NextResponse.json(
         { error: 'Cadeau ID, e-mail en authenticatiecode zijn vereist' },
@@ -25,7 +23,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find gift and verify authentication code
     const gift = await prisma.gift.findUnique({
       where: { id: giftId },
     });
@@ -51,10 +48,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // For testing purposes, allow claiming even without payment
-    // In production, this should check if payment was successful
 
-    // Check if user already exists
     let user = await (prisma as any).user.findUnique({
       where: { email },
     });
@@ -62,30 +56,24 @@ export async function POST(request: NextRequest) {
     let stripeAccountId = null;
 
     if (user) {
-      // User exists, check if their Stripe account is ready
       stripeAccountId = user.stripeConnectAccountId;
       
-      // Check if account is ready for transfers (works for both v1 and v2)
       const account = await stripe.accounts.retrieve(stripeAccountId);
       
-      // Handle both v1 and v2 account formats
       const isV2Account = (account as any).configurations !== undefined;
       let chargesEnabled = false;
       let payoutsEnabled = false;
       
       if (isV2Account) {
-        // Accounts v2 format
         const merchantConfig = (account as any).configurations?.merchant;
         chargesEnabled = merchantConfig?.charges_enabled || false;
         payoutsEnabled = merchantConfig?.payouts_enabled || false;
       } else {
-        // Accounts v1 format
         chargesEnabled = account.charges_enabled || false;
         payoutsEnabled = account.payouts_enabled || false;
       }
       
       if (!chargesEnabled || !payoutsEnabled) {
-        // Account not ready, redirect to onboarding
         return NextResponse.json({
           needsOnboarding: true,
           accountId: stripeAccountId,
@@ -95,8 +83,6 @@ export async function POST(request: NextRequest) {
         });
       }
     } else {
-      // Create new user with Stripe Express account for ultra-minimal gift transfers
-      // Following Stripe Connect Express troubleshooting guide
       const account = await stripe.accounts.create({
         type: 'express',
         country: 'NL',
@@ -105,13 +91,10 @@ export async function POST(request: NextRequest) {
           transfers: { requested: true } // ONLY transfers - no card_payments
         },
         business_type: 'individual', // Required for individual accounts
-        // tos_acceptance: { service_agreement: 'recipient' }, // Not supported for NL platforms creating NL accounts
-        // Prefill individual information to minimize user input
         individual: {
           email: email,
           first_name: email.split('@')[0],
           last_name: 'User',
-          // Prefill with default values to minimize user input
           dob: {
             day: 1,
             month: 1,
@@ -131,7 +114,6 @@ export async function POST(request: NextRequest) {
             },
           },
         },
-        // Provide a default business profile to minimize user input
         business_profile: {
           url: 'https://monniegift.com', // Default platform URL
           mcc: '5999', // Miscellaneous retail - appropriate for gift platform
@@ -144,7 +126,6 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Create user record
       user = await (prisma as any).user.create({
         data: {
           email,
@@ -156,8 +137,6 @@ export async function POST(request: NextRequest) {
 
       stripeAccountId = account.id;
       
-      // Store the pending claim for after onboarding
-      // We'll use a special transfer ID to mark it as pending
       await prisma.gift.update({
         where: { id: giftId },
         data: {
@@ -166,7 +145,6 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // New accounts need onboarding before transfers
       return NextResponse.json({
         needsOnboarding: true,
         accountId: stripeAccountId,
@@ -176,7 +154,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Create transfer to user's Stripe account
     const transfer = await stripe.transfers.create({
       amount: gift.amount,
       currency: gift.currency,
@@ -187,7 +164,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Update gift as claimed
     await prisma.gift.update({
       where: { id: giftId },
       data: {

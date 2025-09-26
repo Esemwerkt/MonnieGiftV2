@@ -5,7 +5,6 @@ import { generateVerificationCode } from '@/lib/auth';
 import { sendGiftEmail } from '@/lib/email';
 import { checkUserLimits, LIMITS } from '@/lib/limits';
 
-// Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
@@ -27,7 +26,6 @@ export async function POST(request: NextRequest) {
       recipientEmail
     } = body;
 
-    // Validate input
     if (!amount || !senderEmail || !recipientEmail) {
       return NextResponse.json(
         { error: 'Bedrag, verzender e-mail en ontvanger e-mail zijn vereist' },
@@ -35,19 +33,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if recipient already has a Stripe account (existing user)
-    // If they do, enforce limits immediately to prevent money loss
     let existingUser = null;
     try {
       existingUser = await (prisma as any).user.findUnique({
         where: { email: recipientEmail },
       });
     } catch (dbError) {
-      // Continue without user lookup if database is unavailable
     }
 
     if (existingUser && existingUser.stripeConnectAccountId) {
-      // User has completed KYC and has Stripe account - check limits
       const limitCheck = await checkUserLimits(existingUser.stripeConnectAccountId, amount);
       
       if (!limitCheck.allowed) {
@@ -67,13 +61,9 @@ export async function POST(request: NextRequest) {
         );
       }
     }
-    // If user doesn't exist or has no Stripe account, allow gift creation
-    // Limits will be checked during claiming when they complete KYC
 
-    // Generate authentication code
     const authenticationCode = generateVerificationCode();
 
-    // Create gift record in database
     let gift;
     try {
       gift = await prisma.gift.create({
@@ -96,12 +86,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calculate amounts according to SCT model
     const giftAmount = amount; // Gift amount in cents
     const platformFee = 99; // €0.99 platform fee in cents
     const totalAmount = giftAmount + platformFee; // Total amount to charge
 
-    // Create PaymentIntent for SCT model (giver pays total, we transfer only gift amount)
     const paymentIntent = await stripe.paymentIntents.create({
       amount: totalAmount,
       currency: currency.toLowerCase(),
@@ -117,19 +105,14 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Update gift with payment intent ID and fee information
     await prisma.gift.update({
       where: { id: gift.id },
       data: { 
         stripePaymentIntentId: paymentIntent.id,
-        // Note: We'll add feeCents and totalCents fields to the schema later
       },
     });
 
-    // Note: Email will be sent after successful payment via webhook
-    // This ensures emails are only sent for paid gifts
 
-    // Log gift creation
     
 
     return NextResponse.json({

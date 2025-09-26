@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 
-// Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
@@ -18,7 +17,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create Stripe account link for onboarding
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
       refresh_url: `${process.env.NEXTAUTH_URL}/onboard/custom?account_id=${accountId}&gift_id=${giftId}&email=${encodeURIComponent(email)}`,

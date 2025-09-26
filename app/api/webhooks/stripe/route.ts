@@ -3,7 +3,6 @@ import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 import { sendGiftEmail } from '@/lib/email';
 
-// Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
@@ -50,22 +49,18 @@ export async function POST(request: NextRequest) {
         const giftId = paymentIntent.metadata?.giftId;
 
         
-        // Only send email if payment was successful
         if (giftId && paymentIntent.status === 'succeeded') {
-          // Get gift details for email
           let gift;
           try {
             gift = await prisma.gift.findUnique({
               where: { id: giftId },
             });
           } catch (dbError) {
-            // Continue without sending email if database is unavailable
             gift = null;
           }
 
           if (gift) {
             
-            // Send email to recipient
             try {
               await sendGiftEmail({
                 recipientEmail: gift.recipientEmail,
@@ -76,11 +71,9 @@ export async function POST(request: NextRequest) {
                 senderEmail: gift.senderEmail,
               });
                 } catch (emailError) {
-                  // Email sending failed, continue
                 }
           } else {
             
-            // Fallback: Try to send email using payment intent metadata if database is unavailable
             const recipientEmail = paymentIntent.metadata?.recipientEmail;
             const senderEmail = paymentIntent.metadata?.senderEmail;
             const giftAmount = paymentIntent.metadata?.giftAmount;
@@ -96,7 +89,6 @@ export async function POST(request: NextRequest) {
                   senderEmail,
                 });
               } catch (fallbackError) {
-                // Fallback email sending failed
               }
             }
           }
@@ -121,7 +113,6 @@ export async function POST(request: NextRequest) {
       case 'transfer.reversed': {
         const transfer = event.data.object;
         
-        // Update gift status if transfer was reversed
         if (transfer.metadata?.giftId) {
           try {
             await prisma.gift.update({
@@ -146,40 +137,30 @@ export async function POST(request: NextRequest) {
       case 'account.updated': {
         const account = event.data.object;
         
-        // Handle both v1 and v2 account formats
         const isV2Account = (account as any).configurations !== undefined;
         
         if (isV2Account) {
-          // Accounts v2 format
           const merchantConfig = (account as any).configurations?.merchant;
         } else {
-          // Accounts v1 format
         }
         
-        // Check for additional KYC requirements (KYC-light monitoring)
         if (account.requirements && account.requirements.currently_due && account.requirements.currently_due.length > 0) {
           
-          // Find user and notify about additional verification needed
           const user = await (prisma as any).user.findFirst({
             where: { stripeConnectAccountId: account.id },
           });
           
           if (user) {
-            // TODO: Send notification email to user about additional verification
-            // This could trigger an account update flow
           }
         }
         
-        // Check if onboarding is complete (no requirements currently due)
         if (account.details_submitted && (!account.requirements || !account.requirements.currently_due || account.requirements.currently_due.length === 0)) {
           
-          // Find user with this account ID
           const user = await (prisma as any).user.findFirst({
             where: { stripeConnectAccountId: account.id },
           });
           
           if (user) {
-            // Find pending gifts for this user
             const pendingGifts = await prisma.gift.findMany({
               where: {
                 recipientEmail: user.email,
@@ -191,10 +172,8 @@ export async function POST(request: NextRequest) {
             });
             
             
-            // Process each pending gift
             for (const gift of pendingGifts) {
               try {
-                // Create transfer for gift amount only (not total)
                 const transfer = await stripe.transfers.create({
                   amount: gift.amount, // Only gift amount, not total
                   currency: gift.currency,
@@ -206,7 +185,6 @@ export async function POST(request: NextRequest) {
                   },
                 });
                 
-                // Update gift as claimed
                 await prisma.gift.update({
                   where: { id: gift.id },
                   data: {
@@ -227,11 +205,9 @@ export async function POST(request: NextRequest) {
       case 'identity.verification_session.verified': {
         const verificationSession = event.data.object;
         
-        // Find the associated account and update user status
         const accountId = verificationSession.metadata?.account_id;
         if (accountId) {
           try {
-            // Update user verification status
             await (prisma as any).user.update({
               where: { stripeConnectAccountId: accountId },
               data: {
@@ -255,7 +231,6 @@ export async function POST(request: NextRequest) {
         break;
       }
 
-      // ===== ACCOUNTS V2 EVENTS =====
       
       case 'account.created' as any: {
         const account = (event as any).data.object;
@@ -264,17 +239,14 @@ export async function POST(request: NextRequest) {
 
       case 'account.deleted' as any: {
         const account = (event as any).data.object;
-        // Handle account deletion if needed
         break;
       }
 
       case 'account_link.completed' as any: {
         const accountLink = (event as any).data.object;
-        // Handle successful onboarding completion
         break;
       }
 
-      // ===== IDENTITY VERIFICATION EVENTS =====
       
       case 'identity.verification_session.created': {
         const session = event.data.object;
@@ -284,7 +256,6 @@ export async function POST(request: NextRequest) {
       case 'identity.verification_session.verified': {
         const session = event.data.object;
         
-        // Update user verification status in database
         if (session.metadata?.account_id) {
           try {
             await (prisma as any).user.update({
@@ -315,7 +286,6 @@ export async function POST(request: NextRequest) {
         break;
       }
 
-      // ===== OUTBOUND TRANSFER V2 EVENTS =====
       
       case 'outbound_transfer.created' as any: {
         const transfer = (event as any).data.object;
@@ -332,7 +302,6 @@ export async function POST(request: NextRequest) {
         break;
       }
 
-      // ===== TRANSACTION V2 EVENTS =====
       
       case 'transaction.created' as any: {
         const transaction = (event as any).data.object;
@@ -344,7 +313,6 @@ export async function POST(request: NextRequest) {
         break;
       }
 
-      // ===== ACCOUNTS V2 CONFIGURATION EVENTS =====
       
       case 'account.merchant_configuration.updated' as any: {
         const account = (event as any).data.object;
@@ -366,7 +334,6 @@ export async function POST(request: NextRequest) {
         break;
       }
 
-      // ===== SUBSCRIPTION EVENTS (Future Features) =====
       
       case 'invoice.created': {
         const invoice = event.data.object;

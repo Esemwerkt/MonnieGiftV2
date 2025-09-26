@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 
-// Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
@@ -23,8 +22,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // For Express accounts, we need to use the Express onboarding URL directly
-    // First, let's verify this is an Express account
     const account = await stripe.accounts.retrieve(accountId);
     
     if (account.type !== 'express') {
@@ -34,8 +31,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // For Express accounts, we need to create an account link that will use Express onboarding
-    // The key is to ensure the account is properly configured for Express
     const returnUrl = giftId && email 
       ? `${process.env.NEXTAUTH_URL}/claim/${giftId}?email=${encodeURIComponent(email)}&onboarding_complete=true&auto_claim=true&account_id=${accountId}`
       : `${process.env.NEXTAUTH_URL}/onboard/success?account_id=${accountId}`;

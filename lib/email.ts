@@ -23,23 +23,17 @@ export async function sendGiftEmail({
   message,
   senderEmail,
 }: SendGiftEmailParams) {
-  // Create a redirect URL that goes to dashboard first, then to the gift
   const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
   const giftUrl = `${baseUrl}/claim/${giftId}`;
   const dashboardUrl = `${baseUrl}/dashboard?gift=${giftId}`;
   const formattedAmount = (amount / 100).toFixed(2);
 
-  // Use Resend development domain for testing
-  // TODO: Change to your domain email when you have a custom domain verified in Resend
   const fromEmail = 'MonnieGift <hello@resend.dev>';
   
-  // For development/testing: Only send to verified email addresses
-  // In production with domain verification, this restriction can be removed
   const verifiedEmails = ['enes@semwerkt.nl']; // Add more verified emails as needed
   
   if (!verifiedEmails.includes(recipientEmail)) {
     
-    // Return a mock success response for development
     return {
       id: `mock-${Date.now()}`,
       message: `Email would be sent to ${recipientEmail} in production`

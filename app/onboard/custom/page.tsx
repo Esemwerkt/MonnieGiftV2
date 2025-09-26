@@ -60,7 +60,6 @@ export default function CustomOnboardPage() {
         throw new Error(data.error || 'Failed to complete onboarding');
       }
 
-      // If onboarding URL is provided, redirect to Stripe's onboarding
       if (data.onboardingUrl) {
         window.location.href = data.onboardingUrl;
         return;
@@ -68,7 +67,6 @@ export default function CustomOnboardPage() {
 
       setSuccess(true);
       
-      // Redirect to success page after 2 seconds
       setTimeout(() => {
         if (giftId && formData.email) {
           router.push(`/claim/${giftId}?email=${encodeURIComponent(formData.email)}&onboarding_complete=true&auto_claim=true`);

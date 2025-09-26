@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-// Force dynamic rendering
 export const dynamic = 'force-dynamic';
 import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
@@ -16,7 +15,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify this is an Express account
     const account = await stripe.accounts.retrieve(accountId);
     
     if (account.type !== 'express') {
@@ -26,7 +24,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check current requirements
     const requirements = account.requirements;
     const hasRequirements = requirements && requirements.currently_due && requirements.currently_due.length > 0;
     
@@ -43,7 +40,6 @@ export async function POST(request: NextRequest) {
     }
 
 
-    // Create account update link for additional verification
     const returnUrl = giftId && email 
       ? `${process.env.NEXTAUTH_URL}/claim/${giftId}?email=${encodeURIComponent(email)}&verification_complete=true&account_id=${accountId}`
       : `${process.env.NEXTAUTH_URL}/onboard/success?account_id=${accountId}&verification_complete=true`;
@@ -78,7 +74,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET endpoint to check account status and requirements
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -91,7 +86,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Retrieve account details
     const account = await stripe.accounts.retrieve(accountId);
     
     const requirements = account.requirements;

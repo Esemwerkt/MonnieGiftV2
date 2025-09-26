@@ -1,4 +1,3 @@
-// Stripe Connect payout calculation utilities
 
 export interface PayoutEstimate {
   grossAmount: number;
@@ -11,13 +10,9 @@ export interface PayoutEstimate {
 }
 
 export function calculatePayoutEstimate(amount: number, currency: string = 'eur', subscriptionPlan: string = 'free'): PayoutEstimate {
-  // Stripe Connect fees (as of 2024)
-  // Standard pricing: 2.9% + €0.30 for European cards
-  // This matches Stripe's actual pricing structure
   
   const stripeFeePercentage = 0.029; // 2.9%
   
-  // Platform fee based on subscription plan
   let platformFeePercentage = 0.005; // Default 0.5% for free plan
   switch (subscriptionPlan) {
     case 'pro':

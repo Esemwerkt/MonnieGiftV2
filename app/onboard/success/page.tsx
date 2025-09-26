@@ -34,7 +34,6 @@ export default function OnboardSuccessPage() {
       
       if (response.ok) {
         setGiftData(data);
-        // Trigger confetti immediately when gift data is loaded
         setShowConfetti(true);
       }
     } catch (error) {
@@ -49,7 +48,6 @@ export default function OnboardSuccessPage() {
       if (response.ok) {
         setAccountStatus(data);
         
-        // If account is ready, complete any pending gift claims
         if (data.chargesEnabled && data.payoutsEnabled) {
           await completePendingClaims(accountId);
         }

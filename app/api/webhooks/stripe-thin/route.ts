@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 
-// Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
@@ -42,17 +41,13 @@ export async function POST(request: NextRequest) {
   try {
 
     switch (event.type) {
-      // ===== THIN PAYLOAD SPECIFIC EVENTS =====
       
       case 'account.requirements.updated' as any: {
-        // For thin payloads, we need to fetch the full account data
         const accountId = (event as any).data.object.id;
         
         try {
           const account = await stripe.accounts.retrieve(accountId);
           
-          // Handle requirements update logic here
-          // This is where you'd implement specific business logic
           
         } catch (error) {
         }
@@ -65,7 +60,6 @@ export async function POST(request: NextRequest) {
         try {
           const account = await stripe.accounts.retrieve(accountId);
           
-          // Handle identity update logic here
           
         } catch (error) {
         }
@@ -79,7 +73,6 @@ export async function POST(request: NextRequest) {
           const account = await stripe.accounts.retrieve(accountId);
           const merchantConfig = (account as any).configurations?.merchant;
           
-          // Handle merchant configuration update logic here
           
         } catch (error) {
         }
@@ -93,14 +86,12 @@ export async function POST(request: NextRequest) {
           const account = await stripe.accounts.retrieve(accountId);
           const customerConfig = (account as any).configurations?.customer;
           
-          // Handle customer configuration update logic here
           
         } catch (error) {
         }
         break;
       }
 
-      // ===== SUBSCRIPTION EVENTS (Thin Payload) =====
       
       case 'invoice.created' as any: {
         const invoiceId = (event as any).data.object.id;
@@ -108,7 +99,6 @@ export async function POST(request: NextRequest) {
         try {
           const invoice = await stripe.invoices.retrieve(invoiceId);
           
-          // Handle invoice creation logic here
           
         } catch (error) {
         }
@@ -121,7 +111,6 @@ export async function POST(request: NextRequest) {
             try {
               const invoice = await stripe.invoices.retrieve(invoiceId);
           
-          // Handle successful payment logic here
           
         } catch (error) {
         }
@@ -134,7 +123,6 @@ export async function POST(request: NextRequest) {
         try {
           const customer = await stripe.customers.retrieve(customerId);
           
-          // Handle entitlements update logic here
           
         } catch (error) {
         }

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { sendGiftEmail } from '@/lib/email';
 
-// Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
@@ -25,7 +24,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get gift details from database
     const gift = await prisma.gift.findUnique({
       where: { id: giftId },
     });
@@ -37,7 +35,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Send email
     await sendGiftEmail({
       recipientEmail: gift.recipientEmail,
       giftId: gift.id,

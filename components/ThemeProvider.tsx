@@ -37,7 +37,6 @@ export function ThemeProvider({
     if (storedTheme) {
       setTheme(storedTheme);
     } else {
-      // Set default theme if none is stored
       setTheme(defaultTheme);
     }
   }, [storageKey, defaultTheme]);
@@ -48,7 +47,6 @@ export function ThemeProvider({
     const root = window.document.documentElement;
     const body = window.document.body;
 
-    // Remove existing theme classes from both html and body
     root.classList.remove('light', 'dark');
     body.classList.remove('light', 'dark');
 
@@ -63,7 +61,6 @@ export function ThemeProvider({
       return;
     }
 
-    // Apply theme to both html and body for better CSS specificity
     root.classList.add(theme);
     body.classList.add(theme);
   }, [theme, mounted]);
@@ -78,7 +75,6 @@ export function ThemeProvider({
     },
   };
 
-  // Prevent hydration mismatch by not rendering until mounted
   if (!mounted) {
     return <ThemeProviderContext.Provider {...props} value={initialState}>{children}</ThemeProviderContext.Provider>;
   }

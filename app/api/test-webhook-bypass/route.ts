@@ -9,7 +9,6 @@ export async function POST(request: NextRequest) {
     
     const body = await request.json();
     
-    // Simulate payment_intent.succeeded event
     const mockEvent = {
       type: 'payment_intent.succeeded',
       data: {
@@ -29,13 +28,11 @@ export async function POST(request: NextRequest) {
     };
     
     
-    // Process the mock event (same logic as webhook)
     const paymentIntent = mockEvent.data.object;
     const giftId = paymentIntent.metadata?.giftId;
     
     
     if (giftId && paymentIntent.status === 'succeeded') {
-      // Get gift details for email
       let gift;
       try {
         gift = await prisma.gift.findUnique({
@@ -46,7 +43,6 @@ export async function POST(request: NextRequest) {
       }
       
       if (gift) {
-        // Send email to recipient
         try {
           const emailResult = await sendGiftEmail({
             recipientEmail: gift.recipientEmail,

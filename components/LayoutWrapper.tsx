@@ -27,7 +27,6 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
   const [isLoading, setIsLoading] = useState(true);
   const pathname = usePathname();
 
-  // Get page title based on current route
   const getPageTitle = (path: string) => {
     switch (path) {
       case '/dashboard': return 'Dashboard';
@@ -40,7 +39,6 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
     }
   };
 
-  // Load user data from localStorage and fetch from API
   useEffect(() => {
     const loadUserData = () => {
       const email = localStorage.getItem('userEmail') || '';
@@ -48,22 +46,17 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
       setUserEmail(email);
       setUserProfilePicture(profilePicture);
 
-      // Fetch user data if we have an email
       if (email) {
         fetchUserData(email);
       } else {
-        // Clear user data if no email
         setUserData(null);
       }
       
-      // Mark loading as complete
       setIsLoading(false);
     };
 
-    // Load initial data
     loadUserData();
 
-    // Listen for storage changes (when user signs in/out in another tab)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'userEmail' || e.key === 'profilePicture') {
         loadUserData();
@@ -72,7 +65,6 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
 
     window.addEventListener('storage', handleStorageChange);
 
-    // Also listen for custom events (when user signs in/out in same tab)
     const handleAuthChange = () => {
       loadUserData();
     };
@@ -86,15 +78,12 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
   }, []);
 
   const fetchUserData = async (email: string) => {
-    // Simplified user data loading - just set basic info from localStorage
-    // No need for dashboard API call since dashboard page was removed
     setUserData({
       email,
       profilePicture: userProfilePicture,
     });
   };
 
-  // Check if current page should hide sidebar and header
   const hideLayout = pathname === '/' || pathname === '/success' || pathname.startsWith('/claim/') || pathname === '/onboard' || pathname.startsWith('/onboard/');
 
   if (hideLayout) {

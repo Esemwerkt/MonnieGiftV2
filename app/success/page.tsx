@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Gift, CheckCircle, Mail, ArrowRight, Home, Send } from 'lucide-react';
-// import BeautifulConfetti, { useBeautifulConfetti } from '@/components/BeautifulConfetti';
 
 export default function SuccessPage() {
   const searchParams = useSearchParams();
@@ -17,7 +16,6 @@ export default function SuccessPage() {
   const [emailSent, setEmailSent] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  // const { triggerFullScreenExplosion } = useBeautifulConfetti();
 
   const handleSendEmail = async () => {
     if (!giftData) return;
@@ -43,7 +41,6 @@ export default function SuccessPage() {
   };
 
   useEffect(() => {
-    // Get gift data from URL params
     const giftId = searchParams.get('gift_id');
     const amount = searchParams.get('amount');
     const currency = searchParams.get('currency');
@@ -61,14 +58,8 @@ export default function SuccessPage() {
       
       setGiftData(newGiftData);
       
-      // Trigger confetti celebration
       setShowConfetti(true);
-      // Also trigger full-screen explosion for maximum impact
-      // setTimeout(() => {
-      //   triggerFullScreenExplosion('mixed');
-      // }, 500);
 
-      // Automatically send email when page loads
       setTimeout(async () => {
         setSendingEmail(true);
         try {
