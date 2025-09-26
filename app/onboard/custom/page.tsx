@@ -13,10 +13,7 @@ export default function CustomOnboardPage() {
   
   const [formData, setFormData] = useState({
     email: '',
-    firstName: '',
-    lastName: '',
-    iban: '',
-    dateOfBirth: '',
+    tosAccepted: false,
   });
 
   const accountId = searchParams.get('account_id');
@@ -28,16 +25,15 @@ export default function CustomOnboardPage() {
       setFormData(prev => ({
         ...prev,
         email: email,
-        firstName: email.split('@')[0],
       }));
     }
   }, [email]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
@@ -47,8 +43,8 @@ export default function CustomOnboardPage() {
     setError('');
 
     try {
-      // Submit minimal onboarding data directly
-      const response = await fetch('/api/connect/custom-onboard', {
+      // Create onboarding link for Express account
+      const response = await fetch('/api/connect/onboard-link', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -56,25 +52,23 @@ export default function CustomOnboardPage() {
         body: JSON.stringify({
           accountId,
           giftId,
-          ...formData,
+          email: formData.email,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to complete onboarding');
+        throw new Error(data.error || 'Failed to create onboarding link');
       }
 
-      setSuccess(true);
-      
-      setTimeout(() => {
-        if (giftId && formData.email) {
-          router.push(`/claim/${giftId}?email=${encodeURIComponent(formData.email)}&onboarding_complete=true&auto_claim=true`);
-        } else {
-          router.push('/');
-        }
-      }, 2000);
+      if (data.onboardingUrl) {
+        // Redirect to Stripe's Express onboarding
+        window.location.href = data.onboardingUrl;
+        return;
+      }
+
+      setError('No onboarding URL received');
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -138,67 +132,27 @@ export default function CustomOnboardPage() {
               />
             </div>
 
-            {/* First Name */}
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Voornaam
-              </label>
+            {/* ToS Acceptance */}
+            <div className="flex items-start gap-3">
               <input
-                type="text"
-                name="firstName"
-                value={formData.firstName}
+                type="checkbox"
+                name="tosAccepted"
+                checked={formData.tosAccepted}
                 onChange={handleInputChange}
                 required
-                className="w-full px-3 py-2 border border-input bg-background rounded-lg text-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                placeholder="Jan"
+                className="mt-1 h-4 w-4 text-primary border-input rounded focus:ring-2 focus:ring-ring"
               />
-            </div>
-
-            {/* Last Name */}
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Achternaam
+              <label className="text-sm text-foreground">
+                Ik accepteer de{' '}
+                <a href="/terms" target="_blank" className="text-primary hover:underline">
+                  Algemene Voorwaarden
+                </a>{' '}
+                en{' '}
+                <a href="/privacy" target="_blank" className="text-primary hover:underline">
+                  Privacybeleid
+                </a>
+                . Dit is vereist om geld te kunnen ontvangen.
               </label>
-              <input
-                type="text"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleInputChange}
-                required
-                className="w-full px-3 py-2 border border-input bg-background rounded-lg text-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                placeholder="Jansen"
-              />
-            </div>
-
-            {/* IBAN */}
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                IBAN
-              </label>
-              <input
-                type="text"
-                name="iban"
-                value={formData.iban}
-                onChange={handleInputChange}
-                required
-                className="w-full px-3 py-2 border border-input bg-background rounded-lg text-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                placeholder="NL91ABNA0417164300"
-              />
-            </div>
-
-            {/* Date of Birth */}
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Geboortedatum
-              </label>
-              <input
-                type="date"
-                name="dateOfBirth"
-                value={formData.dateOfBirth}
-                onChange={handleInputChange}
-                required
-                className="w-full px-3 py-2 border border-input bg-background rounded-lg text-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-              />
             </div>
 
             {error && (
@@ -210,7 +164,7 @@ export default function CustomOnboardPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !formData.tosAccepted}
               className="w-full px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
             >
               {loading ? (
