@@ -25,7 +25,7 @@ export function calculatePayoutEstimate(amount: number, currency: string = 'eur'
       platformFeePercentage = 0.005; // 0.5%
   }
   
-  const fixedFee = currency === 'eur' ? 30 : currency === 'usd' ? 30 : 20; // in cents
+  const fixedFee = currency === 'eur' ? 30 : currency === 'usd' ? 30 : 20; 
   
   const grossAmount = amount;
   const stripeFee = Math.round(grossAmount * stripeFeePercentage + fixedFee);
