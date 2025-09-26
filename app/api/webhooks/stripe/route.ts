@@ -6,26 +6,13 @@ import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
-  return NextResponse.json({ 
-    message: 'Webhook endpoint is working',
-    method: 'GET',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV,
-    webhookSecretPresent: !!process.env.STRIPE_WEBHOOK_SECRET
-  });
-}
-
 export async function POST(request: NextRequest) {
   const body = await request.text();
   const signature = request.headers.get('stripe-signature');
 
-
-  if (!signature || !process.env.STRIPE_WEBHOOK_SECRET) {
-    return NextResponse.json(
-      { error: 'Missing signature or webhook secret' },
-      { status: 400 }
-    );
+  if (!signature) {
+    console.error('No Stripe signature found');
+    return NextResponse.json({ error: 'No signature' }, { status: 400 });
   }
 
   let event;
@@ -34,14 +21,14 @@ export async function POST(request: NextRequest) {
     event = stripe.webhooks.constructEvent(
       body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET
+      process.env.STRIPE_WEBHOOK_SECRET!
     );
   } catch (err) {
-    return NextResponse.json(
-      { error: 'Invalid signature' },
-      { status: 400 }
-    );
+    console.error('Webhook signature verification failed:', err);
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
+
+  console.log('Webhook received event:', event.type);
 
   try {
     switch (event.type) {
@@ -51,7 +38,6 @@ export async function POST(request: NextRequest) {
         console.log('Payment intent metadata:', paymentIntent.metadata);
         
         if (paymentIntent.status === 'succeeded') {
-          // Check if gift already exists for this payment intent
           let existingGift;
           try {
             existingGift = await prisma.gift.findFirst({
@@ -64,57 +50,28 @@ export async function POST(request: NextRequest) {
 
           if (existingGift) {
             console.log('Gift already exists:', existingGift.id);
-            // Gift already exists, just send email if not already sent
-            try {
-              await sendGiftEmail({
-                recipientEmail: existingGift.recipientEmail,
-                giftId: existingGift.id,
-                authenticationCode: existingGift.authenticationCode,
-                amount: existingGift.amount,
-                message: existingGift.message || undefined,
-                senderEmail: existingGift.senderEmail,
-              });
-              console.log('Email sent for existing gift');
-            } catch (emailError) {
-              console.error('Email sending error:', emailError);
-            }
             return NextResponse.json({ received: true, message: 'Gift already exists' });
           } else {
             console.log('No existing gift found, creating new one');
-            // Create new gift
-            const recipientEmail = paymentIntent.metadata?.recipientEmail;
-            const senderEmail = paymentIntent.metadata?.senderEmail;
+            // Create new gift without email requirements
             const giftAmount = paymentIntent.metadata?.giftAmount;
             const message = paymentIntent.metadata?.message;
             const animationPreset = paymentIntent.metadata?.animationPreset;
-            const recipientAccountId = paymentIntent.metadata?.recipientAccountId;
             
             // Log fee distribution
             console.log('Payment fee distribution:', {
               totalAmount: paymentIntent.amount,
               giftAmount: giftAmount,
               platformFee: paymentIntent.metadata?.platformFee,
-              recipientAccountId: recipientAccountId,
-              hasStripeConnect: !!recipientAccountId,
-              applicationFeeAmount: paymentIntent.application_fee_amount,
-              transferData: paymentIntent.transfer_data,
+              hasStripeConnect: false, // Simplified flow - no Stripe Connect
             });
             
-            if (recipientAccountId) {
-              console.log('✅ Using Stripe Connect application fees - automatic fee splitting enabled');
-            } else {
-              console.log('⚠️ No Stripe Connect account - platform keeps full amount until manual payout');
-            }
-            
-            if (recipientEmail && senderEmail && giftAmount) {
+            if (giftAmount) {
               try {
                 console.log('Creating gift with metadata:', {
-                  recipientEmail,
-                  senderEmail,
                   giftAmount,
                   message,
-                  animationPreset,
-                  paymentIntentId: paymentIntent.id
+                  animationPreset
                 });
                 
                 // Generate authentication code
@@ -125,33 +82,23 @@ export async function POST(request: NextRequest) {
                     amount: parseInt(giftAmount),
                     currency: paymentIntent.currency,
                     message: message || '',
-                    senderEmail,
-                    recipientEmail,
+                    senderEmail: 'noreply@monniegift.nl', // Placeholder for simplified flow
+                    recipientEmail: 'pending@monniegift.nl', // Placeholder - will be collected during claim
                     authenticationCode,
                     animationPreset: animationPreset || 'confettiRealistic',
                     stripePaymentIntentId: paymentIntent.id,
                     // Store Stripe Connect information for payout tracking
-                    stripeConnectAccountId: recipientAccountId || null,
+                    stripeConnectAccountId: null, // No Stripe Connect in simplified flow
                     platformFeeAmount: parseInt(paymentIntent.metadata?.platformFee || '0'),
-                    applicationFeeAmount: paymentIntent.application_fee_amount || 0,
+                    applicationFeeAmount: 0, // No application fee in simplified flow
                   },
                 });
 
                 console.log('Gift created successfully:', gift.id);
-
-                // Send email
-                await sendGiftEmail({
-                  recipientEmail,
-                  giftId: gift.id,
-                  authenticationCode: gift.authenticationCode,
-                  amount: gift.amount,
-                  message: gift.message || undefined,
-                  senderEmail,
-                });
+                console.log('Authentication code:', gift.authenticationCode);
                 
-                console.log('Email sent for new gift');
               } catch (error) {
-                console.error('Error creating gift or sending email:', error);
+                console.error('Error creating gift:', error);
                 console.error('Error details:', {
                   message: error instanceof Error ? error.message : String(error),
                   stack: error instanceof Error ? error.stack : undefined
@@ -159,21 +106,10 @@ export async function POST(request: NextRequest) {
               }
             } else {
               console.log('Missing required metadata for gift creation:', {
-                recipientEmail: !!recipientEmail,
-                senderEmail: !!senderEmail,
                 giftAmount: !!giftAmount
               });
             }
           }
-        }
-        break;
-      }
-
-      case 'checkout.session.expired': {
-        const session = event.data.object;
-        const giftId = session.metadata?.giftId;
-
-        if (giftId) {
         }
         break;
       }
@@ -200,6 +136,7 @@ export async function POST(request: NextRequest) {
               },
             });
           } catch (dbError) {
+            console.error('Error updating gift after transfer reversal:', dbError);
           }
         }
         break;
@@ -212,19 +149,19 @@ export async function POST(request: NextRequest) {
 
       case 'account.updated': {
         const account = event.data.object;
+        console.log('Account updated:', account.id);
         
-        // Check if account has requirements that need to be fulfilled
-        if (account.requirements && account.requirements.currently_due && account.requirements.currently_due.length > 0) {
-          console.log(`Account ${account.id} has pending requirements:`, account.requirements.currently_due);
-          
-          // Find user and log requirements
-          const user = await (prisma as any).user.findFirst({
+        // Check if this is a user account
+        try {
+          const user = await prisma.user.findFirst({
             where: { stripeConnectAccountId: account.id },
           });
           
           if (user) {
-            console.log(`User ${user.email} needs to complete:`, account.requirements.currently_due);
+            console.log(`User ${user.email} needs to complete:`, account.requirements?.currently_due || []);
           }
+        } catch (dbError) {
+          console.error('Error finding user for account update:', dbError);
         }
         
         // Check if account is fully onboarded and ready for transfers
@@ -233,33 +170,18 @@ export async function POST(request: NextRequest) {
           
           console.log(`Account ${account.id} is fully onboarded, processing pending gifts`);
           
-          const user = await (prisma as any).user.findFirst({
-            where: { stripeConnectAccountId: account.id },
-          });
-          
-          if (user) {
-            // Mark user as verified
-            await (prisma as any).user.update({
-              where: { id: user.id },
-              data: { 
-                isVerified: true,
-                identityVerifiedAt: new Date(),
+          try {
+            // Find all pending gifts for this account
+            const pendingGifts = await prisma.gift.findMany({
+              where: {
+                stripeConnectAccountId: account.id,
+                isClaimed: false,
+                claimedAt: null,
               },
             });
 
-            // Find pending gifts for this user
-            const pendingGifts = await prisma.gift.findMany({
-              where: {
-                recipientEmail: user.email,
-                stripeTransferId: {
-                  startsWith: 'pending_',
-                },
-                isClaimed: false,
-              },
-            });
-            
-            console.log(`Found ${pendingGifts.length} pending gifts for ${user.email}`);
-            
+            console.log(`Found ${pendingGifts.length} pending gifts for account ${account.id}`);
+
             // Process each pending gift
             for (const gift of pendingGifts) {
               try {
@@ -272,10 +194,10 @@ export async function POST(request: NextRequest) {
                   description: 'MonnieGift uitbetaling',
                   metadata: {
                     giftId: gift.id,
-                    recipientEmail: user.email,
+                    type: 'gift_payout',
                   },
                 });
-                
+
                 await prisma.gift.update({
                   where: { id: gift.id },
                   data: {
@@ -291,186 +213,51 @@ export async function POST(request: NextRequest) {
                 console.error(`Failed to transfer gift ${gift.id}:`, transferError);
               }
             }
-          }
-        }
-        break;
-      }
-
-      case 'identity.verification_session.verified': {
-        const verificationSession = event.data.object;
-        
-        const accountId = verificationSession.metadata?.account_id;
-        if (accountId) {
-          try {
-            await (prisma as any).user.update({
-              where: { stripeConnectAccountId: accountId },
-              data: {
-                isVerified: true,
-                identityVerifiedAt: new Date(),
-              },
-            });
           } catch (dbError) {
+            console.error('Error processing pending gifts:', dbError);
           }
         }
         break;
       }
 
-      case 'identity.verification_session.requires_input': {
-        const verificationSession = event.data.object;
-        break;
-      }
-
-      case 'identity.verification_session.canceled': {
-        const verificationSession = event.data.object;
-        break;
-      }
-
-      
-      case 'account.created' as any: {
-        const account = (event as any).data.object;
-        break;
-      }
-
-      case 'account.deleted' as any: {
-        const account = (event as any).data.object;
-        break;
-      }
-
-      case 'account_link.completed' as any: {
-        const accountLink = (event as any).data.object;
-        break;
-      }
-
-      
-      case 'identity.verification_session.created': {
-        const session = event.data.object;
-        break;
-      }
-
-      case 'identity.verification_session.verified': {
-        const session = event.data.object;
-        
-        if (session.metadata?.account_id) {
-          try {
-            await (prisma as any).user.update({
-              where: { stripeConnectAccountId: session.metadata.account_id },
-              data: { 
-                isVerified: true,
-                identityVerifiedAt: new Date()
-              }
-            });
-          } catch (error) {
-          }
-        }
-        break;
-      }
-
-      case 'identity.verification_session.requires_input': {
-        const session = event.data.object;
-        break;
-      }
-
-      case 'identity.verification_session.canceled': {
-        const session = event.data.object;
-        break;
-      }
-
-      case 'identity.verification_session.expired' as any: {
+      case 'checkout.session.completed': {
         const session = (event as any).data.object;
         break;
       }
 
-      
       case 'outbound_transfer.created' as any: {
         const transfer = (event as any).data.object;
+        console.log('Outbound transfer created:', transfer.id);
         break;
       }
 
       case 'outbound_transfer.succeeded' as any: {
         const transfer = (event as any).data.object;
+        console.log('Outbound transfer succeeded:', transfer.id);
         break;
       }
 
       case 'outbound_transfer.failed' as any: {
         const transfer = (event as any).data.object;
+        console.log('Outbound transfer failed:', transfer.id);
         break;
       }
 
-      
       case 'transaction.created' as any: {
         const transaction = (event as any).data.object;
-        break;
-      }
-
-      case 'transaction.updated' as any: {
-        const transaction = (event as any).data.object;
-        break;
-      }
-
-      
-      case 'account.merchant_configuration.updated' as any: {
-        const account = (event as any).data.object;
-        break;
-      }
-
-      case 'account.customer_configuration.updated' as any: {
-        const account = (event as any).data.object;
-        break;
-      }
-
-      case 'account.requirements.updated' as any: {
-        const account = (event as any).data.object;
-        break;
-      }
-
-      case 'account.identity.updated' as any: {
-        const account = (event as any).data.object;
-        break;
-      }
-
-      
-      case 'invoice.created': {
-        const invoice = event.data.object;
-        break;
-      }
-
-      case 'invoice.payment_succeeded': {
-        const invoice = event.data.object;
-        break;
-      }
-
-      case 'invoice.payment_failed': {
-        const invoice = event.data.object;
-        break;
-      }
-
-      case 'customer.entitlements.updated' as any: {
-        const customer = (event as any).data.object;
-        break;
-      }
-
-      case 'subscription_schedule.created': {
-        const schedule = event.data.object;
-        break;
-      }
-
-      case 'subscription_schedule.completed': {
-        const schedule = event.data.object;
-        break;
-      }
-
-      case 'subscription_schedule.canceled': {
-        const schedule = event.data.object;
+        console.log('Transaction created:', transaction.id);
         break;
       }
 
       default:
+        console.log(`Unhandled event type: ${event.type}`);
     }
 
     return NextResponse.json({ received: true });
   } catch (error) {
+    console.error('Webhook error:', error);
     return NextResponse.json(
-      { error: 'Webhook processing failed' },
+      { error: 'Webhook handler failed' },
       { status: 500 }
     );
   }

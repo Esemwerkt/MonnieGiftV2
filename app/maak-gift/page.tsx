@@ -54,8 +54,6 @@ export default function HomePage() {
     amount: "",
     currency: "eur",
     message: "",
-    senderEmail: "",
-    recipientEmail: "",
     animationPreset: "confettiRealistic",
   });
   const [showCustomAmount, setShowCustomAmount] = useState(false);
@@ -67,33 +65,7 @@ export default function HomePage() {
   const [previewAnimation, setPreviewAnimation] = useState<string | null>(null);
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
   const previewIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const [emailErrors, setEmailErrors] = useState<{
-    senderEmail: string;
-    recipientEmail: string;
-  }>({
-    senderEmail: "",
-    recipientEmail: "",
-  });
-  const [touchedEmails, setTouchedEmails] = useState<{
-    senderEmail: boolean;
-    recipientEmail: boolean;
-  }>({
-    senderEmail: false,
-    recipientEmail: false,
-  });
-
-  // Email validation function
-  const isValidEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const isFormComplete =
-    formData.amount &&
-    formData.senderEmail &&
-    formData.recipientEmail &&
-    isValidEmail(formData.senderEmail) &&
-    isValidEmail(formData.recipientEmail);
+  const isFormComplete = formData.amount && formData.amount !== "";
 
   const createPaymentIntent = async () => {
     if (!isFormComplete || isCreatingPayment) return;
@@ -103,12 +75,10 @@ export default function HomePage() {
       const amount = parseFloat(formData.amount);
       const amountInCents = Math.round(amount * 100);
 
-      // Redirect to payment page with form data
+      // Redirect to payment page with form data (no emails needed)
       const params = new URLSearchParams({
         amount: amountInCents.toString(),
         currency: formData.currency,
-        sender: formData.senderEmail,
-        recipient: formData.recipientEmail,
         message: formData.message,
         animation_preset: formData.animationPreset,
       });
@@ -143,39 +113,8 @@ export default function HomePage() {
       [name]: value,
     }));
 
-    // Clear errors immediately when user starts typing valid email
-    if (name === "senderEmail" || name === "recipientEmail") {
-      if (value && isValidEmail(value)) {
-        setEmailErrors((prev) => ({
-          ...prev,
-          [name]: "",
-        }));
-      }
-    }
   };
 
-  const handleEmailBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-
-    // Mark the field as touched
-    setTouchedEmails((prev) => ({
-      ...prev,
-      [name]: true,
-    }));
-
-    // Validate email only if it's not empty
-    if (value && !isValidEmail(value)) {
-      setEmailErrors((prev) => ({
-        ...prev,
-        [name]: "Voer een geldig e-mailadres in",
-      }));
-    } else {
-      setEmailErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
-    }
-  };
 
   const previewAnimationPreset = async (preset: AnimationPreset) => {
     if (typeof window === "undefined") return;
@@ -369,160 +308,72 @@ export default function HomePage() {
                 )}
               </div>
 
-              <div className=" px-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Recipient Email */}
-                <div>
-                  <label
-                    htmlFor="recipientEmail"
-                    className="block text-sm font-medium text-foreground mb-3"
-                  >
-                    Ontvanger E-mailadres
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <input
-                      type="email"
-                      id="recipientEmail"
-                      name="recipientEmail"
-                      value={formData.recipientEmail}
-                      onChange={handleInputChange}
-                      onBlur={handleEmailBlur}
-                      placeholder="ontvanger@email.nl"
-                      required
-                      className={`block w-full pl-12 pr-4 py-3 border bg-background rounded-xl text-base placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent ${
-                        formData.recipientEmail &&
-                        isValidEmail(formData.recipientEmail)
-                          ? "border-emerald-500 focus:ring-emerald-500"
-                          : touchedEmails.recipientEmail &&
-                            emailErrors.recipientEmail
-                          ? "border-red-400 focus:ring-red-400"
-                          : "border-input"
-                      }`}
-                    />
-                  </div>
-                  {touchedEmails.recipientEmail &&
-                    emailErrors.recipientEmail && (
-                      <p className="text-xs text-red-400 mt-2">
-                        {emailErrors.recipientEmail}
-                      </p>
-                    )}
-                </div>
-
-                {/* Sender Email */}
-                <div>
-                  <label
-                    htmlFor="senderEmail"
-                    className="block text-sm font-medium text-foreground mb-3"
-                  >
-                    Jouw E-mailadres
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <input
-                      type="email"
-                      id="senderEmail"
-                      name="senderEmail"
-                      value={formData.senderEmail}
-                      onChange={handleInputChange}
-                      onBlur={handleEmailBlur}
-                      placeholder="jouw@email.nl"
-                      required
-                      className={`block w-full pl-12 pr-4 py-3 border bg-background rounded-xl text-base placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent ${
-                        formData.senderEmail &&
-                        isValidEmail(formData.senderEmail)
-                          ? "border-emerald-500 focus:ring-emerald-500"
-                          : touchedEmails.senderEmail && emailErrors.senderEmail
-                          ? "border-red-400 focus:ring-red-400"
-                          : "border-input"
-                      }`}
-                    />
-                  </div>
-                  {touchedEmails.senderEmail && emailErrors.senderEmail && (
-                    <p className="text-xs text-red-400 mt-2">
-                      {emailErrors.senderEmail}
-                    </p>
-                  )}
-                </div>
-              </div>
+              <div className=" px-4">
 
               {/* Animation Preset Selection */}
-              <div className="">
-                <label className="px-4 block text-sm font-medium text-foreground mb-3">
-                  Kies een animatie voor de ontvanger
-                </label>
-                <Swiper
-                  modules={[Navigation, Pagination]}
-                  spaceBetween={16}
-                  slidesPerView={1.5}
-                  navigation={true}
-                  pagination={{ clickable: true }}
-                  breakpoints={{
-                    640: {
-                      slidesPerView: 1.5,
-                      spaceBetween: 16,
-                    },
-                    768: {
-                      slidesPerView: 2,
-                      spaceBetween: 16,
-                    },
-                    1024: {
-                      slidesPerView: 3,
-                      spaceBetween: 16,
-                    },
-                  }}
-                  className="animation-swiper px-4"
-                >
-                  {Object.entries(ANIMATION_PRESETS).map(([key, preset]) => (
-                    <SwiperSlide key={key}>
-                      <div
-                        className={`p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 h-full ${
+              <label className=" block text-sm font-medium text-foreground mb-3">
+                Kies een animatie voor de ontvanger
+              </label>
+
+              <div
+                className="
+                  grid 
+                  gap-4 
+                  grid-cols-1
+                  sm:grid-cols-2
+                  md:grid-cols-3
+                  "
+              >
+
+                {Object.entries(ANIMATION_PRESETS).map(([key, preset]) => (
+                  <div
+                    key={key}
+                    className={`p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 h-full ${
+                      formData.animationPreset === key
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border hover:border-primary/50 hover:bg-accent/50"
+                    }`}
+                  >
+                    <div className="text-base sm:text-lg mb-3">
+                      {preset.name}
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            animationPreset: key,
+                          }))
+                        }
+                        className={`flex-1 px-3 py-2 text-xs sm:text-sm rounded-md transition-colors ${
                           formData.animationPreset === key
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border hover:border-primary/50 hover:bg-accent/50"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground hover:bg-muted"
                         }`}
                       >
-                        <div className="text-base sm:text-lg mb-3">
-                          {preset.name}
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                animationPreset: key,
-                              }))
-                            }
-                            className={`flex-1 px-3 py-2 text-xs sm:text-sm rounded-md transition-colors ${
-                              formData.animationPreset === key
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-muted text-muted-foreground hover:bg-muted"
-                            }`}
-                          >
-                            {formData.animationPreset === key
-                              ? "Geselecteerd"
-                              : "Selecteer"}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              previewAnimationPreset(key as AnimationPreset)
-                            }
-                            className="px-3 py-2 text-xs sm:text-sm rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors flex items-center justify-center min-w-[40px]"
-                          >
-                            {isPreviewPlaying && previewAnimation === key ? (
-                              <Square className="h-4 w-4" />
-                            ) : (
-                              <Play className="h-4 w-4" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                    </SwiperSlide>
-                  ))}
-                </Swiper>
+                        {formData.animationPreset === key
+                          ? "Geselecteerd"
+                          : "Selecteer"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          previewAnimationPreset(key as AnimationPreset)
+                        }
+                        className="px-3 py-2 text-xs sm:text-sm rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors flex items-center justify-center min-w-[40px]"
+                      >
+                        {isPreviewPlaying && previewAnimation === key ? (
+                          <Square className="h-4 w-4" />
+                        ) : (
+                          <Play className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-
+            </div>
               {/* Message */}
               <div className=" px-4">
                 <label
@@ -612,9 +463,7 @@ export default function HomePage() {
                   disabled={
                     isLoading ||
                     isCreatingPayment ||
-                    !formData.amount ||
-                    !formData.senderEmail ||
-                    !formData.recipientEmail
+                    !formData.amount
                   }
                   className="w-full bg-primary text-primary-foreground py-4 px-6 rounded-xl font-semibold hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 group"
                 >

@@ -13,17 +13,15 @@ export async function POST(request: NextRequest) {
       amount, 
       currency = 'eur', 
       message, 
-      senderEmail, 
-      recipientEmail,
       animationPreset
     } = body;
     
     // Ensure animationPreset is not undefined, null, or empty string
     const finalAnimationPreset = animationPreset && animationPreset.trim() !== '' ? animationPreset : 'confettiRealistic';
 
-    if (!amount || !senderEmail || !recipientEmail) {
+    if (!amount) {
       return NextResponse.json(
-        { error: 'Bedrag, verzender e-mail en ontvanger e-mail zijn vereist' },
+        { error: 'Bedrag is vereist' },
         { status: 400 }
       );
     }
@@ -43,70 +41,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if recipient exists and has Stripe Connect account
-    let existingUser = null;
-    try {
-      existingUser = await (prisma as any).user.findUnique({
-        where: { email: recipientEmail },
-      });
-    } catch (dbError) {
-      // Continue without user check if database error
-    }
-
     const platformFee = 99; // €0.99 in cents
     const totalAmount = amount + platformFee;
 
-    // Create payment intent with Stripe Connect application fee
-    let paymentIntent;
-    
-    if (existingUser && existingUser.stripeConnectAccountId) {
-      // Recipient has Stripe Connect account - use application fee
-      const limitCheck = await checkUserLimits(existingUser.stripeConnectAccountId, amount);
-      
-      if (!limitCheck.allowed) {
-        return NextResponse.json(
-          { error: limitCheck.reason || 'Ontvanger heeft de limiet bereikt.' },
-          { status: 400 }
-        );
-      }
-
-      paymentIntent = await stripe.paymentIntents.create({
-        amount: totalAmount,
-        currency: currency.toLowerCase(),
-        payment_method_types: ['ideal'],
-        application_fee_amount: platformFee, // Platform keeps €0.99
-        transfer_data: {
-          destination: existingUser.stripeConnectAccountId, // Recipient gets €8.00
-        },
-        metadata: {
-          type: 'gift',
-          senderEmail,
-          recipientEmail,
-          message: message || '',
-          animationPreset: finalAnimationPreset,
-          giftAmount: amount.toString(),
-          platformFee: platformFee.toString(),
-          recipientAccountId: existingUser.stripeConnectAccountId,
-        },
-      });
-    } else {
-      // Recipient doesn't have Stripe Connect account - platform keeps all
-      paymentIntent = await stripe.paymentIntents.create({
-        amount: totalAmount,
-        currency: currency.toLowerCase(),
-        payment_method_types: ['ideal'],
-        metadata: {
-          type: 'gift',
-          senderEmail,
-          recipientEmail,
-          message: message || '',
-          animationPreset: finalAnimationPreset,
-          giftAmount: amount.toString(),
-          platformFee: platformFee.toString(),
-          recipientAccountId: null, // No Stripe Connect account
-        },
-      });
-    }
+    // Create payment intent without Stripe Connect (platform keeps all until manual distribution)
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: totalAmount,
+      currency: currency.toLowerCase(),
+      payment_method_types: ['ideal'],
+      metadata: {
+        type: 'gift',
+        message: message || '',
+        animationPreset: finalAnimationPreset,
+        giftAmount: amount.toString(),
+        platformFee: platformFee.toString(),
+        recipientAccountId: null, // No recipient email - will be collected during claim
+      },
+    });
 
     return NextResponse.json({
       success: true,
@@ -115,8 +66,8 @@ export async function POST(request: NextRequest) {
       giftAmount: amount,
       platformFee: platformFee,
       totalAmount: totalAmount,
-      hasStripeConnect: !!(existingUser && existingUser.stripeConnectAccountId),
-      recipientAccountId: existingUser?.stripeConnectAccountId || null,
+      hasStripeConnect: false, // No Stripe Connect in simplified flow
+      recipientAccountId: null,
     });
 
   } catch (error) {

@@ -223,53 +223,7 @@ export default function HomePage() {
           </div>
           </div>
 
-          {/* Preview Section - Claim Success Page */}
-          <div id="preview-section" className="text-center mt-20 relative overflow-hidden px-4">
-            <h2 className="text-3xl font-bold text-foreground mb-8">
-              Zo ziet het eruit
-            </h2>
-            <p className="text-lg text-muted-foreground mb-8 max-w-3xl mx-auto">
-              Dit is hoe de ontvanger je MonnieGift ziet wanneer ze deze claimen. 
-              Met een prachtige animatie en persoonlijk bericht!
-            </p>
-            
-            {/* Mock Claim Success Page */}
-            <div className="max-w-lg mx-auto">
-              <div className="bg-card mx-4 rounded-md p-6 text-center relative overflow-hidden">
-                {/* Success Header */}
-                <div className="mb-6">
-                  <div className="w-16 h-16 bg-primary rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <Gift className="h-8 w-8 text-primary-foreground" />
-                  </div>
-                  <h3 className="text-xl font-bold text-foreground mb-2">
-                    🎉 Gefeliciteerd!
-                  </h3>
-                  <p className="text-muted-foreground">
-                    Je hebt een MonnieGift ontvangen van <strong>Sarah</strong>
-                  </p>
-                </div>
-
-                {/* Gift Amount */}
-                <div className="bg-accent rounded-xl p-6 mb-6">
-                  <div className="text-3xl font-bold text-foreground mb-3">€25,00</div>
-                  <div className="text-muted-foreground">
-                    "Gefeliciteerd met je verjaardag! Geniet ervan! 🎂"
-                  </div>
-                </div>
-
-                {/* Claim Button */}
-                <button className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-colors mb-4">
-                  Claim je MonnieGift
-                </button>
-
-                {/* Security Note */}
-                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                  <Shield className="h-4 w-4" />
-                  <span>Veilig overgemaakt via Stripe</span>
-                </div>
-              </div>
-            </div>
-          </div>
+      
         </main>
 
         {/* Footer */}

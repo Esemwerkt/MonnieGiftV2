@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,24 +11,12 @@ datasource db {
 }
 
 model User {
-  id                     String   @id @default(cuid())
-  email                  String   @unique
-  name                   String?
-  profilePicture         String?  // Path to character image (e.g., "male/1.png")
+  id                    String    @id @default(cuid())
+  email                 String    @unique
+  name                  String?
   stripeConnectAccountId String?  @unique
-  isVerified             Boolean  @default(false)
-  identityVerifiedAt     DateTime?
-  subscriptionPlan       String   @default("free")
-  subscriptionStatus     String   @default("active")
-  subscriptionEndsAt     DateTime?
-  stripeCustomerId       String?  @unique
-  stripeSubscriptionId   String?  @unique
-  subscriptionCurrentPeriodStart DateTime?
-  subscriptionCurrentPeriodEnd   DateTime?
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
-
-  notifications          Notification[]
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
   userLimits            UserLimits[]
 
   @@map("users")
@@ -36,70 +27,33 @@ model Gift {
   amount                Int
   currency              String    @default("eur")
   message               String?
-  senderEmail           String
-  recipientEmail        String
   authenticationCode    String    @unique
   isClaimed             Boolean   @default(false)
   claimedAt             DateTime?
-  stripePaymentIntentId String? @unique
+  stripePaymentIntentId String?   @unique
   stripeTransferId      String?
-  platformFee           Int?      
-  animationPreset       String 
-  stripeConnectAccountId String? // Stripe Connect account ID for recipient
-  platformFeeAmount     Int?     // Platform fee amount in cents
-  applicationFeeAmount  Int?     // Stripe application fee amount in cents
+  animationPreset       String    @default("confettiRealistic")
+  stripeConnectAccountId String?  // Stripe Connect account ID for recipient
+  platformFeeAmount     Int?      // Platform fee amount in cents
+  applicationFeeAmount  Int?      // Stripe application fee amount in cents
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
-
-  platformFees          PlatformFee[]
 
   @@map("gifts")
 }
 
-model PlatformFee {
-  id          String   @id @default(cuid())
-  giftId      String?  @unique
-  amount      Int      
-  currency    String   @default("eur")
-  isProcessed Boolean  @default(false)
-  processedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  gift        Gift?    @relation(fields: [giftId], references: [id])
-
-  @@map("platform_fees")
-}
-
-model Notification {
-  id        String   @id @default(cuid())
-  userId    String
-  type      String  
-  title     String
-  message   String
-  isRead    Boolean  @default(false)
-  readAt    DateTime?
-  data      String?  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user      User     @relation(fields: [userId], references: [id])
-
-  @@map("notifications")
-}
-
 model UserLimits {
-  id          String   @id @default(cuid())
-  userId      String
-  month       Int      
-  year        Int     
-  totalAmount Int      @default(0) 
-  giftCount   Int      @default(0) 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                    String   @id @default(cuid())
+  stripeConnectAccountId String
+  currentAmount         Int      @default(0)
+  currentGiftCount      Int      @default(0)
+  month                 Int
+  year                  Int
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                  User     @relation(fields: [stripeConnectAccountId], references: [stripeConnectAccountId], onDelete: Cascade)
 
-  @@unique([userId, month, year])
+  @@unique([stripeConnectAccountId, month, year])
   @@map("user_limits")
 }

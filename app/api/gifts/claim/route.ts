@@ -14,15 +14,16 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { giftId, email, authenticationCode } = body;
+    const { giftId, userId, email } = body;
 
-    if (!giftId || !email || !authenticationCode) {
+    if (!giftId || !userId || !email) {
       return NextResponse.json(
-        { error: 'Cadeau ID, e-mail en authenticatiecode zijn vereist' },
+        { error: 'Cadeau ID, gebruiker ID en e-mail zijn vereist' },
         { status: 400 }
       );
     }
 
+    // Get the gift
     const gift = await prisma.gift.findUnique({
       where: { id: giftId },
     });
@@ -36,145 +37,102 @@ export async function POST(request: NextRequest) {
 
     if (gift.isClaimed) {
       return NextResponse.json(
-        { error: 'Cadeau is al opgehaald' },
+        { error: 'Dit cadeau is al opgehaald' },
         { status: 400 }
       );
     }
 
-    // Validate authentication code
-    if (gift.authenticationCode !== authenticationCode) {
+    // Get the user
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
       return NextResponse.json(
-        { error: 'Ongeldige authenticatiecode. Controleer of je de juiste code hebt ingevoerd.' },
-        { status: 400 }
+        { error: 'Gebruiker niet gevonden' },
+        { status: 404 }
       );
     }
 
-    // Validate email matches the gift's recipient email
-    if (gift.recipientEmail.toLowerCase() !== email.toLowerCase()) {
-      
+    if (!user.stripeConnectAccountId) {
       return NextResponse.json(
-        { error: 'E-mailadres komt niet overeen met het cadeau. Controleer of je het juiste e-mailadres hebt ingevoerd.' },
+        { error: 'Gebruiker heeft geen Stripe Connect account' },
         { status: 400 }
       );
     }
 
-    let user = await (prisma as any).user.findUnique({
-      where: { email },
-    });
+    // Check if user has charges and payouts enabled
+    let chargesEnabled = false;
+    let payoutsEnabled = false;
 
-    let stripeAccountId = null;
-
-    if (user) {
-      stripeAccountId = user.stripeConnectAccountId;
-      
-      const account = await stripe.accounts.retrieve(stripeAccountId);
-      
-      const isV2Account = (account as any).configurations !== undefined;
-      let chargesEnabled = false;
-      let payoutsEnabled = false;
-      
-      if (isV2Account) {
-        const merchantConfig = (account as any).configurations?.merchant;
-        chargesEnabled = merchantConfig?.charges_enabled || false;
-        payoutsEnabled = merchantConfig?.payouts_enabled || false;
-      } else {
-        chargesEnabled = account.charges_enabled || false;
-        payoutsEnabled = account.payouts_enabled || false;
-      }
-      
-      if (!chargesEnabled || !payoutsEnabled) {
-        return NextResponse.json({
-          needsOnboarding: true,
-          accountId: stripeAccountId,
-          giftId: giftId,
-          email: email,
-          message: 'Account setup required',
-        });
-      }
-    } else {
-      try {
-        // Create Express account with OAuth flow
-        const account = await stripe.accounts.create({
-          type: 'express',
-          country: 'NL',
-          email: email,
-          capabilities: {
-            transfers: { requested: true }
-          },
-        });
-
-        // Create user record
-        user = await (prisma as any).user.create({
-          data: {
-            email,
-            name: email.split('@')[0],
-            stripeConnectAccountId: account.id,
-            isVerified: false, // Will be verified after our custom onboarding
-          },
-        });
-
-        stripeAccountId = account.id;
-        
-        // Mark gift as pending transfer
-        await prisma.gift.update({
-          where: { id: giftId },
-          data: {
-            recipientEmail: email,
-            stripeTransferId: `pending_${stripeAccountId}`,
-          },
-        });
-
-        return NextResponse.json({
-          needsOnboarding: true,
-          accountId: stripeAccountId,
-          giftId: giftId,
-          email: email,
-          message: 'Account setup required',
-        });
-      } catch (accountError) {
-        console.error('Error creating Custom account:', accountError);
-        return NextResponse.json(
-          { 
-            error: 'Failed to create account for gift claiming',
-            details: accountError instanceof Error ? accountError.message : String(accountError)
-          },
-          { status: 500 }
-        );
-      }
+    try {
+      const account = await stripe.accounts.retrieve(user.stripeConnectAccountId);
+      chargesEnabled = account.charges_enabled || false;
+      payoutsEnabled = account.payouts_enabled || false;
+    } catch (stripeError) {
+      console.error('Error checking Stripe account:', stripeError);
+      return NextResponse.json(
+        { error: 'Er is een fout opgetreden bij het controleren van je Stripe account' },
+        { status: 500 }
+      );
     }
 
-    const transfer = await stripe.transfers.create({
-      amount: gift.amount,
-      currency: gift.currency,
-      destination: stripeAccountId,
-      metadata: {
-        giftId: gift.id,
-        recipientEmail: email,
-      },
-    });
+    if (!chargesEnabled || !payoutsEnabled) {
+      return NextResponse.json(
+        { 
+          error: 'Je Stripe account is nog niet volledig ingesteld',
+          chargesEnabled,
+          payoutsEnabled
+        },
+        { status: 400 }
+      );
+    }
 
-    await prisma.gift.update({
-      where: { id: giftId },
-      data: {
-        isClaimed: true,
-        claimedAt: new Date(),
-        stripeTransferId: transfer.id,
-        recipientEmail: email,
-      },
-    });
+    // Create transfer to user's Stripe account
+    try {
+      const transfer = await stripe.transfers.create({
+        amount: gift.amount,
+        currency: gift.currency,
+        destination: user.stripeConnectAccountId,
+        description: 'MonnieGift uitbetaling',
+        metadata: {
+          giftId: gift.id,
+          type: 'gift_payout',
+        },
+      });
 
-    return NextResponse.json({
-      success: true,
-      message: 'Cadeau succesvol opgehaald!',
-      transferId: transfer.id,
-    });
+      // Update gift as claimed
+      await prisma.gift.update({
+        where: { id: gift.id },
+        data: {
+          isClaimed: true,
+          claimedAt: new Date(),
+          stripeTransferId: transfer.id,
+        },
+      });
+
+      console.log(`Gift ${gift.id} successfully claimed by user ${user.id} with transfer ${transfer.id}`);
+
+      return NextResponse.json({
+        success: true,
+        message: 'Cadeau succesvol opgehaald',
+        transferId: transfer.id,
+        amount: gift.amount,
+        currency: gift.currency,
+      });
+
+    } catch (transferError) {
+      console.error('Error creating transfer:', transferError);
+      return NextResponse.json(
+        { error: 'Er is een fout opgetreden bij het overmaken van het geld' },
+        { status: 500 }
+      );
+    }
+
   } catch (error) {
-    console.error('Error in claim API:', error);
+    console.error('Gift claim error:', error);
     return NextResponse.json(
-      { 
-        error: 'Er is een fout opgetreden bij het ophalen van het cadeau',
-        details: error instanceof Error ? error.message : String(error)
-      },
+      { error: 'Er is een fout opgetreden bij het claimen van het cadeau' },
       { status: 500 }
     );
   }

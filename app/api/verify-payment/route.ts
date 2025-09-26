@@ -67,8 +67,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if payment has required metadata
-    if (!paymentIntent.metadata?.recipientEmail || !paymentIntent.metadata?.senderEmail) {
+    // Check if payment has required metadata (simplified flow - no email requirements)
+    if (!paymentIntent.metadata?.giftAmount) {
       return NextResponse.json(
         { 
           error: 'Invalid payment metadata',
