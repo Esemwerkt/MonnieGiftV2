@@ -21,6 +21,7 @@ export async function GET(
         claimedAt: true,
         createdAt: true,
         stripeTransferId: true,
+        animationPreset: true,
       },
     });
 
