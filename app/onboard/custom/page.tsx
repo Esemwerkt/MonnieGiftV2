@@ -13,6 +13,10 @@ export default function CustomOnboardPage() {
   
   const [formData, setFormData] = useState({
     email: '',
+    firstName: '',
+    lastName: '',
+    iban: '',
+    dateOfBirth: '',
   });
 
   const accountId = searchParams.get('account_id');
@@ -24,6 +28,7 @@ export default function CustomOnboardPage() {
       setFormData(prev => ({
         ...prev,
         email: email,
+        firstName: email.split('@')[0],
       }));
     }
   }, [email]);
@@ -42,8 +47,8 @@ export default function CustomOnboardPage() {
     setError('');
 
     try {
-      // Create onboarding link using the new Express flow
-      const response = await fetch('/api/connect/onboard-link', {
+      // Submit minimal onboarding data directly
+      const response = await fetch('/api/connect/custom-onboard', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -51,23 +56,25 @@ export default function CustomOnboardPage() {
         body: JSON.stringify({
           accountId,
           giftId,
-          email: formData.email,
+          ...formData,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create onboarding link');
+        throw new Error(data.error || 'Failed to complete onboarding');
       }
 
-      if (data.onboardingUrl) {
-        // Redirect to Stripe's Express onboarding
-        window.location.href = data.onboardingUrl;
-        return;
-      }
-
-      setError('No onboarding URL received');
+      setSuccess(true);
+      
+      setTimeout(() => {
+        if (giftId && formData.email) {
+          router.push(`/claim/${giftId}?email=${encodeURIComponent(formData.email)}&onboarding_complete=true&auto_claim=true`);
+        } else {
+          router.push('/');
+        }
+      }, 2000);
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -113,23 +120,86 @@ export default function CustomOnboardPage() {
         </div>
 
         {/* Form */}
-        <div className=" bg-card/50 backdrop-blur-sm border  rounded-2xl p-6 shadow-xl w-fit mx-auto">
-          <form onSubmit={handleSubmit} className="relative justify-center flex items-center gap-3">
+        <div className="bg-card/50 backdrop-blur-sm border rounded-2xl p-8 shadow-xl max-w-md mx-auto">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email */}
             <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                E-mailadres
+              </label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
                 required
-                className="block w-64 pl-10 pr-3 py-2 border border-input bg-background rounded-lg text-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent cursor-pointer"
+                className="w-full px-3 py-2 border border-input bg-background rounded-lg text-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
                 placeholder="je@email.com"
               />
             </div>
 
-      
+            {/* First Name */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Voornaam
+              </label>
+              <input
+                type="text"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleInputChange}
+                required
+                className="w-full px-3 py-2 border border-input bg-background rounded-lg text-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                placeholder="Jan"
+              />
+            </div>
 
+            {/* Last Name */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Achternaam
+              </label>
+              <input
+                type="text"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleInputChange}
+                required
+                className="w-full px-3 py-2 border border-input bg-background rounded-lg text-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                placeholder="Jansen"
+              />
+            </div>
+
+            {/* IBAN */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                IBAN
+              </label>
+              <input
+                type="text"
+                name="iban"
+                value={formData.iban}
+                onChange={handleInputChange}
+                required
+                className="w-full px-3 py-2 border border-input bg-background rounded-lg text-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                placeholder="NL91ABNA0417164300"
+              />
+            </div>
+
+            {/* Date of Birth */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Geboortedatum
+              </label>
+              <input
+                type="date"
+                name="dateOfBirth"
+                value={formData.dateOfBirth}
+                onChange={handleInputChange}
+                required
+                className="w-full px-3 py-2 border border-input bg-background rounded-lg text-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+              />
+            </div>
 
             {error && (
               <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
@@ -141,7 +211,7 @@ export default function CustomOnboardPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-fit px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+              className="w-full px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>

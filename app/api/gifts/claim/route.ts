@@ -83,11 +83,27 @@ export async function POST(request: NextRequest) {
       }
     } else {
       try {
-        // Create minimal Express account - let Stripe determine requirements
+        // Create Custom account for full control over onboarding
         const account = await stripe.accounts.create({
-          type: 'express',
+          type: 'custom',
           country: 'NL',
           email: email,
+          capabilities: {
+            transfers: { requested: true }
+          },
+          business_type: 'individual',
+          individual: {
+            email: email,
+            first_name: email.split('@')[0],
+            last_name: 'User',
+          },
+          settings: {
+            payouts: {
+              schedule: {
+                interval: 'daily',
+              },
+            },
+          },
         });
 
         // Create user record
@@ -96,7 +112,7 @@ export async function POST(request: NextRequest) {
             email,
             name: email.split('@')[0],
             stripeConnectAccountId: account.id,
-            isVerified: false, // Will be verified after onboarding
+            isVerified: false, // Will be verified after our custom onboarding
           },
         });
 
@@ -119,7 +135,7 @@ export async function POST(request: NextRequest) {
           message: 'Account setup required',
         });
       } catch (accountError) {
-        console.error('Error creating Express account:', accountError);
+        console.error('Error creating Custom account:', accountError);
         return NextResponse.json(
           { 
             error: 'Failed to create account for gift claiming',
