@@ -143,6 +143,7 @@ export async function POST(request: NextRequest) {
       giftAmount: giftAmount,
       platformFee: platformFee,
       totalAmount: totalAmount,
+      animationPreset: gift.animationPreset, // Return the saved animation preset
       message: 'Gift created successfully. Please complete payment to send the gift.',
     });
   } catch (error) {
