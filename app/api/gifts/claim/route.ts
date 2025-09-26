@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       }
     } else {
       try {
-        // Create Express account according to playbook
+        // Create Express account for NL platform
         const account = await stripe.accounts.create({
           type: 'express',
           country: 'NL',
@@ -91,9 +91,6 @@ export async function POST(request: NextRequest) {
           email: email,
           capabilities: { 
             transfers: { requested: true } 
-          },
-          tos_acceptance: { 
-            service_agreement: 'recipient' 
           },
         });
 
@@ -162,15 +159,14 @@ export async function POST(request: NextRequest) {
       message: 'Cadeau succesvol opgehaald!',
       transferId: transfer.id,
     });
-      } catch (error) {
-        console.error('Error in claim API:', error);
-        return NextResponse.json(
-          { 
-            error: 'Er is een fout opgetreden bij het ophalen van het cadeau',
-            details: error instanceof Error ? error.message : String(error)
-          },
-          { status: 500 }
-        );
-      }
-    }
+  } catch (error) {
+    console.error('Error in claim API:', error);
+    return NextResponse.json(
+      { 
+        error: 'Er is een fout opgetreden bij het ophalen van het cadeau',
+        details: error instanceof Error ? error.message : String(error)
+      },
+      { status: 500 }
+    );
+  }
 }
