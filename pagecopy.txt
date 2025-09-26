@@ -12,8 +12,6 @@ import {
   Home,
   Play,
   Square,
-  Pencil,
-  Check,
 } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
@@ -33,22 +31,6 @@ import {
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 );
-
-// Message templates based on animation presets
-const getMessageTemplates = (animationPreset: string): string[] => {
-  const templates: Record<string, string[]> = {
-    confettiRealistic: ["Gefeliciteerd!", "Veel geluk!", "Proost!"],
-    fireworks: ["Spectaculair!", "Wat een feest!", "Geniet ervan!"],
-    customShapes: ["Spooky!", "Boo!", "Trick or treat!"],
-    schoolPride: ["Go team!", "School spirit!", "We did it!"],
-    snow: ["Winter wonderland!", "Gezellig!", "Blijf warm!"],
-    stars: ["Je bent een ster!", "Schijn helder!", "Magisch!"],
-  };
-
-  return (
-    templates[animationPreset] || ["Gefeliciteerd!", "Veel geluk!", "Proost!"]
-  );
-};
 
 function PaymentForm({
   clientSecret,
@@ -154,7 +136,7 @@ function PaymentForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Payment Summary */}
-      <div className="py-4">
+      <div className="bg-background/50 rounded-xl p-4">
         <div className="flex justify-between items-center mb-2">
           <span className="text-sm text-foreground">Cadeau bedrag:</span>
           <span className="font-semibold text-sm">
@@ -178,22 +160,20 @@ function PaymentForm({
       </div>
 
       {/* Payment Element */}
-      <div className="py-4">
+      <div className="bg-background/50 rounded-xl p-4">
         <label className="block text-sm font-medium text-foreground mb-3">
           Betaalmethode
         </label>
-        <div className="[&_.StripeElement]:!bg-transparent [&_iframe]:!bg-transparent">
-          <PaymentElement
-            options={{
-              layout: {
-                type: "accordion",
-                defaultCollapsed: false,
-                radios: false,
-                spacedAccordionItems: true,
-              },
-            }}
-          />
-        </div>
+        <PaymentElement
+          options={{
+            layout: {
+              type: "accordion",
+              defaultCollapsed: false,
+              radios: false,
+              spacedAccordionItems: true,
+            },
+          }}
+        />
       </div>
 
       {error && (
@@ -259,33 +239,9 @@ export default function HomePage() {
     platformFee: number;
     totalAmount: number;
   } | null>(null);
-  const [emailErrors, setEmailErrors] = useState<{
-    senderEmail: string;
-    recipientEmail: string;
-  }>({
-    senderEmail: "",
-    recipientEmail: "",
-  });
-  const [touchedEmails, setTouchedEmails] = useState<{
-    senderEmail: boolean;
-    recipientEmail: boolean;
-  }>({
-    senderEmail: false,
-    recipientEmail: false,
-  });
-
-  // Email validation function
-  const isValidEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
 
   const isFormComplete =
-    formData.amount &&
-    formData.senderEmail &&
-    formData.recipientEmail &&
-    isValidEmail(formData.senderEmail) &&
-    isValidEmail(formData.recipientEmail);
+    formData.amount && formData.senderEmail && formData.recipientEmail;
 
   const createPaymentIntent = async () => {
     if (!isFormComplete || paymentData || isCreatingPayment) return;
@@ -352,39 +308,6 @@ export default function HomePage() {
       ...prev,
       [name]: value,
     }));
-
-    // Clear errors immediately when user starts typing valid email
-    if (name === "senderEmail" || name === "recipientEmail") {
-      if (value && isValidEmail(value)) {
-        setEmailErrors((prev) => ({
-          ...prev,
-          [name]: "",
-        }));
-      }
-    }
-  };
-
-  const handleEmailBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-
-    // Mark the field as touched
-    setTouchedEmails((prev) => ({
-      ...prev,
-      [name]: true,
-    }));
-
-    // Validate email only if it's not empty
-    if (value && !isValidEmail(value)) {
-      setEmailErrors((prev) => ({
-        ...prev,
-        [name]: "Voer een geldig e-mailadres in",
-      }));
-    } else {
-      setEmailErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
-    }
   };
 
   const previewAnimationPreset = async (preset: AnimationPreset) => {
@@ -446,6 +369,13 @@ export default function HomePage() {
         {/* Mobile Header - Fixed at top */}
         <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border/50 px-4 py-3">
           <div className="flex items-center justify-between">
+            <button
+              onClick={() => router.push("/landing")}
+              className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
+            >
+              <Home className="h-4 w-4" />
+              <span className="hidden sm:inline">Over MonnieGift</span>
+            </button>
             <div className="flex items-center gap-2">
               <Gift className="h-5 w-5 text-primary" />
               <span className="font-semibold text-foreground">MonnieGift</span>
@@ -456,200 +386,191 @@ export default function HomePage() {
         {/* Main Content - Scrollable */}
         <div className="flex-1 px-4 py-6 space-y-6">
           {/* Header */}
-          <div className="text-left flex items-center gap-2">
-            <div className="">
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-chart-1/20 to-chart-2/20 rounded-2xl mb-4">
               <Gift className="h-8 w-8 text-chart-1" />
             </div>
-            <p className="text-xs text-muted-foreground leading-relaxed ">
-              Maak iemand blij met een persoonlijk geldcadeau.
-              <br />
-              <span className="text-primary text-xs font-medium">
-                Veilig, snel en direct overgemaakt.
-              </span>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
+              Cadeau Maken
+            </h1>
+            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+              Maak iemand blij met een persoonlijk geld cadeau. Veilig, snel en
+              direct overgemaakt.
             </p>
           </div>
 
           {/* Gift Creation Form */}
           <div className="bg-card/50 backdrop-blur-sm rounded-2xl">
-            <div className="gap-y-12 flex flex-col">
+            <div className="space-y-5">
               {/* Amount Selection */}
               <div>
                 <label className="block text-sm font-medium text-foreground mb-3">
                   Bedrag
                 </label>
 
-                <div className="flex gap-3 items-center h-[60px]">
-                  {!showCustomAmount ? (
-                    <>
-                      {/* Predefined Amount Buttons - Mobile optimized */}
-                      <div className="grid grid-cols-3 gap-2 flex-1">
-                        {[5, 10, 25].map((amount) => (
-                          <button
-                            key={amount}
-                            type="button"
-                            onClick={() => {
-                              setFormData((prev) => ({
-                                ...prev,
-                                amount: amount.toString(),
-                              }));
-                              setShowCustomAmount(false);
-                            }}
-                            className={`h-[48px] px-3 rounded-xl border transition-all duration-200 ${
-                              formData.amount === amount.toString()
-                                ? "bg-primary text-primary-foreground border-primary "
-                                : "bg-background border-input hover:border-primary/50 hover:bg-primary/5"
-                            }`}
-                          >
-                            <div className="flex items-center justify-center gap-1">
-                              <Euro className="h-4 w-4" />
-                              <span className="font-semibold text-sm">
-                                {amount}
-                              </span>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* Custom Amount Button */}
+                <div className="flex gap-3 items-center">
+                  {/* Predefined Amount Buttons - Mobile optimized */}
+                  <div className="grid grid-cols-3 gap-2">
+                    {[5, 10, 25].map((amount) => (
                       <button
+                        key={amount}
                         type="button"
                         onClick={() => {
-                          setShowCustomAmount(true);
-                          setFormData((prev) => ({ ...prev, amount: "" }));
-                        }}
-                        className="h-[48px] px-4 rounded-xl border transition-all duration-200 bg-background border-input hover:border-primary/50 hover:bg-primary/5"
-                      >
-                        <div className="flex items-center justify-center gap-2">
-                          <Pencil className="h-4 w-4" />
-                          <span className="font-medium text-sm">Aangepast</span>
-                        </div>
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      {/* Custom Amount Input */}
-                      <div className="relative flex-1">
-                        <Euro className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        <input
-                          type="number"
-                          name="amount"
-                          value={formData.amount}
-                          onChange={handleInputChange}
-                          placeholder="0.00"
-                          min="1"
-                          max="100"
-                          step="0.01"
-                          required
-                          className="block w-full h-[48px] pl-12 pr-4 border border-input bg-background rounded-xl text-base placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                          autoFocus
-                        />
-                      </div>
-
-                      {/* Close Custom Amount Button */}
-                      <button
-                        type="button"
-                        onClick={() => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            amount: amount.toString(),
+                          }));
                           setShowCustomAmount(false);
-                          setFormData((prev) => ({ ...prev, amount: "" }));
                         }}
-                        className="h-[48px] px-4 rounded-xl border transition-all duration-200 bg-background border-input hover:border-primary/50 hover:bg-primary/5"
+                        className={`py-3 px-3 rounded-xl border transition-all duration-200 ${
+                          formData.amount === amount.toString()
+                            ? "bg-primary text-primary-foreground border-primary "
+                            : "bg-background border-input hover:border-primary/50 hover:bg-primary/5"
+                        }`}
                       >
-                        <div className="flex items-center justify-center gap-2">
-                          <Square className="h-4 w-4" />
-                          <span className="font-medium text-sm">Sluit</span>
+                        <div className="flex items-center justify-center gap-1">
+                          <Euro className="h-4 w-4" />
+                          <span className="font-semibold text-sm">
+                            {amount}
+                          </span>
                         </div>
                       </button>
-                    </>
-                  )}
-                </div>
+                    ))}
+                  </div>
 
-                {/* Help text - only show when custom amount is active */}
+                  {/* Custom Amount Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCustomAmount(!showCustomAmount);
+                      if (!showCustomAmount) {
+                        setFormData((prev) => ({ ...prev, amount: "" }));
+                      }
+                    }}
+                    className={`w-fit py-3 px-4 rounded-xl border transition-all duration-200 ${
+                      showCustomAmount
+                        ? "bg-primary text-primary-foreground border-primary "
+                        : "bg-background border-input hover:border-primary/50 hover:bg-primary/5"
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <Euro className="h-4 w-4" />
+                      <span className="font-medium text-sm">
+                        {showCustomAmount
+                          ? "Verberg aangepast bedrag"
+                          : "Aangepast bedrag"}
+                      </span>
+                    </div>
+                  </button>
+                </div>
+                {/* Custom Amount Input */}
                 {showCustomAmount && (
-                  <p className="text-xs text-muted-foreground mt-3">
-                    Minimum €1,00 • Maximum €100,00
-                  </p>
+                  <div className="mt-3">
+                    <div className="relative">
+                      <Euro className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                      <input
+                        type="number"
+                        name="amount"
+                        value={formData.amount}
+                        onChange={handleInputChange}
+                        placeholder="0.00"
+                        min="1"
+                        max="100"
+                        step="0.01"
+                        required
+                        className="block w-full pl-12 pr-4 py-3 border border-input bg-background rounded-xl text-base placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Minimum €1,00 • Maximum €100,00
+                    </p>
+                  </div>
+                )}
+
+                {formData.amount && !showCustomAmount && (
+                  <div className="mt-3 p-3 bg-primary/10 border border-primary/20 rounded-xl">
+                    <p className="text-sm font-medium text-primary text-center">
+                      Geselecteerd: €{parseFloat(formData.amount).toFixed(2)}
+                    </p>
+                  </div>
                 )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Recipient Email */}
-                <div>
-                  <label
-                    htmlFor="recipientEmail"
-                    className="block text-sm font-medium text-foreground mb-3"
-                  >
-                    Ontvanger E-mailadres
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <input
-                      type="email"
-                      id="recipientEmail"
-                      name="recipientEmail"
-                      value={formData.recipientEmail}
-                      onChange={handleInputChange}
-                      onBlur={handleEmailBlur}
-                      placeholder="ontvanger@email.nl"
-                      required
-                      className={`block w-full pl-12 pr-4 py-3 border bg-background rounded-xl text-base placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent ${
-                        formData.recipientEmail &&
-                        isValidEmail(formData.recipientEmail)
-                          ? "border-emerald-500 focus:ring-emerald-500"
-                          : touchedEmails.recipientEmail &&
-                            emailErrors.recipientEmail
-                          ? "border-red-400 focus:ring-red-400"
-                          : "border-input"
-                      }`}
-                    />
-                  </div>
-                  {touchedEmails.recipientEmail &&
-                    emailErrors.recipientEmail && (
-                      <p className="text-xs text-red-400 mt-2">
-                        {emailErrors.recipientEmail}
-                      </p>
-                    )}
-                </div>
-
-                {/* Sender Email */}
-                <div>
-                  <label
-                    htmlFor="senderEmail"
-                    className="block text-sm font-medium text-foreground mb-3"
-                  >
-                    Jouw E-mailadres
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <input
-                      type="email"
-                      id="senderEmail"
-                      name="senderEmail"
-                      value={formData.senderEmail}
-                      onChange={handleInputChange}
-                      onBlur={handleEmailBlur}
-                      placeholder="jouw@email.nl"
-                      required
-                      className={`block w-full pl-12 pr-4 py-3 border bg-background rounded-xl text-base placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent ${
-                        formData.senderEmail &&
-                        isValidEmail(formData.senderEmail)
-                          ? "border-emerald-500 focus:ring-emerald-500"
-                          : touchedEmails.senderEmail && emailErrors.senderEmail
-                          ? "border-red-400 focus:ring-red-400"
-                          : "border-input"
-                      }`}
-                    />
-                  </div>
-                  {touchedEmails.senderEmail && emailErrors.senderEmail && (
-                    <p className="text-xs text-red-400 mt-2">
-                      {emailErrors.senderEmail}
-                    </p>
-                  )}
+              {/* Sender Email */}
+              <div>
+                <label
+                  htmlFor="senderEmail"
+                  className="block text-sm font-medium text-foreground mb-2"
+                >
+                  Jouw E-mailadres
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <input
+                    type="email"
+                    id="senderEmail"
+                    name="senderEmail"
+                    value={formData.senderEmail}
+                    onChange={handleInputChange}
+                    placeholder="jouw@email.nl"
+                    required
+                    className="block w-full pl-12 pr-4 py-3 border border-input bg-background rounded-xl text-base placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                  />
                 </div>
               </div>
 
-              {/* Animation Preset Selection */}
+              {/* Recipient Email */}
               <div>
-                <label className="block text-sm font-medium text-foreground mb-3">
+                <label
+                  htmlFor="recipientEmail"
+                  className="block text-sm font-medium text-foreground mb-2"
+                >
+                  Ontvanger E-mailadres
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <input
+                    type="email"
+                    id="recipientEmail"
+                    name="recipientEmail"
+                    value={formData.recipientEmail}
+                    onChange={handleInputChange}
+                    placeholder="ontvanger@email.nl"
+                    required
+                    className="block w-full pl-12 pr-4 py-3 border border-input bg-background rounded-xl text-base placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              {/* Message */}
+              <div>
+                <label
+                  htmlFor="message"
+                  className="block text-sm font-medium text-foreground mb-2"
+                >
+                  Persoonlijk Bericht (optioneel)
+                </label>
+                <div className="relative">
+                  <MessageSquare className="absolute left-4 top-4 h-5 w-5 text-muted-foreground" />
+                  <textarea
+                    id="message"
+                    name="message"
+                    value={formData.message}
+                    onChange={handleInputChange}
+                    placeholder="Schrijf een persoonlijk bericht..."
+                    rows={3}
+                    maxLength={500}
+                    className="block w-full pl-12 pr-4 py-3 border border-input bg-background rounded-xl text-base placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent resize-none"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  {formData.message.length}/500 karakters
+                </p>
+              </div>
+
+              {/* Animation Preset Selection */}
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-foreground">
                   Kies een animatie voor de ontvanger
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-3">
@@ -703,67 +624,15 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Message */}
-              <div>
-                <label
-                  htmlFor="message"
-                  className="block text-sm font-medium text-foreground mb-3"
-                >
-                  Persoonlijk Bericht (optioneel)
-                </label>
-                <div className="relative">
-                  <MessageSquare className="absolute left-4 top-4 h-5 w-5 text-muted-foreground" />
-                  <textarea
-                    id="message"
-                    name="message"
-                    value={formData.message}
-                    onChange={handleInputChange}
-                    placeholder="Schrijf een persoonlijk bericht..."
-                    rows={5}
-                    maxLength={120}
-                    className="block w-full pl-12 pr-4 py-3 border border-input bg-background rounded-xl text-base placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent resize-none"
-                  />
-
-                  {/* Message Templates */}
-                  <div className="absolute bottom-2 left-2">
-                    <p className="text-[10px] text-muted-foreground mb-1">
-                      Snelle berichten
-                    </p>
-                    <div className="flex gap-1">
-                      {getMessageTemplates(formData.animationPreset).map(
-                        (template, index) => (
-                          <button
-                            key={index}
-                            type="button"
-                            onClick={() => {
-                              setFormData((prev) => ({
-                                ...prev,
-                                message: template,
-                              }));
-                            }}
-                            className="px-2 py-1 text-xs bg-primary/10 text-primary border border-primary/20 rounded-md hover:bg-primary/20 transition-colors"
-                          >
-                            {template}
-                          </button>
-                        )
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground mt-3">
-                  {formData.message.length}/120 karakters
-                </p>
-              </div>
-
               {/* Payment Form - Show when form is complete */}
               {isFormComplete && (
-                <div className="border-t border-border/50 pt-6">
-                  <div className="text-center mb-6">
-                    <h3 className="text-lg font-semibold text-foreground mb-3">
-                      Je bent er bijna!
+                <div className="border-t border-border/50 pt-5">
+                  <div className="text-center mb-4">
+                    <h3 className="text-lg font-semibold text-foreground mb-2">
+                      Betaling Voltooien
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Voltooi je betaling om je MonnieGift te versturen
+                      Voer je kaartgegevens in om het cadeau te verzenden
                     </p>
                   </div>
 
@@ -785,11 +654,12 @@ export default function HomePage() {
                           theme: "stripe",
                           variables: {
                             colorPrimary: "#3b82f6",
+                            colorBackground: "transparent",
                             colorText: "#1f2937",
                             colorDanger: "#ef4444",
                             fontFamily: "system-ui, sans-serif",
-                            spacingUnit: "0px",
-                            borderRadius: "12px",
+                            spacingUnit: "4px",
+                            borderRadius: "8px",
                           },
                         },
                       }}
@@ -912,8 +782,8 @@ export default function HomePage() {
 
           {/* Security Note */}
           <div className="text-center">
-            <p className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-              <Check className="h-4 w-4" /> Geen account nodig • Directcheck
+            <p className="text-xs text-muted-foreground">
+              🔒 Veilig betalen via Stripe • Geen account nodig • Direct
               verzonden
             </p>
           </div>

@@ -15,19 +15,19 @@ export const ANIMATION_PRESETS: Record<AnimationPreset, AnimationConfig> = {
     type: 'confettiRealistic'
   },
   fireworks: {
-    name: 'Vuurwerk Show',
+    name: 'Vuurwerk show',
     description: 'Spectaculaire vuurwerk explosies van beide kanten van het scherm',
     emoji: '🎆',
     type: 'fireworks'
   },
   customShapes: {
-    name: 'Aangepaste Vormen',
+    name: 'Aangepaste vormen',
     description: 'Pompoen, boom en hart vormen in verschillende kleuren',
     emoji: '🎃',
     type: 'customShapes'
   },
   schoolPride: {
-    name: 'School Trots',
+    name: 'School trots',
     description: 'Continue rode en witte confetti regen van beide kanten',
     emoji: '🏫',
     type: 'schoolPride'
@@ -39,7 +39,7 @@ export const ANIMATION_PRESETS: Record<AnimationPreset, AnimationConfig> = {
     type: 'snow'
   },
   stars: {
-    name: 'Sterren Regen',
+    name: 'Sterren',
     description: 'Gouden sterren en cirkels in een prachtige explosie',
     emoji: '⭐',
     type: 'stars'
