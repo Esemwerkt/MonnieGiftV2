@@ -34,8 +34,11 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object;
-        console.log('Webhook received payment_intent.succeeded:', paymentIntent.id, paymentIntent.status);
-        console.log('Payment intent metadata:', paymentIntent.metadata);
+        console.log('=== WEBHOOK: payment_intent.succeeded ===');
+        console.log('Payment Intent ID:', paymentIntent.id);
+        console.log('Payment status:', paymentIntent.status);
+        console.log('Payment amount:', paymentIntent.amount);
+        console.log('Payment metadata:', paymentIntent.metadata);
         
         if (paymentIntent.status === 'succeeded') {
           let existingGift;
@@ -67,6 +70,7 @@ export async function POST(request: NextRequest) {
             });
             
             if (giftAmount) {
+              console.log('✅ Gift amount found, proceeding with gift creation');
               try {
                 console.log('Creating gift with metadata:', {
                   giftAmount,
@@ -76,6 +80,7 @@ export async function POST(request: NextRequest) {
                 
                 // Generate authentication code
                 const authenticationCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+                console.log('Generated authentication code:', authenticationCode);
                 
                 const gift = await prisma.gift.create({
                   data: {
@@ -85,8 +90,7 @@ export async function POST(request: NextRequest) {
                     authenticationCode,
                     animationPreset: animationPreset || 'confettiRealistic',
                     stripePaymentIntentId: paymentIntent.id,
-                    // Store Stripe Connect information for payout tracking
-                    stripeConnectAccountId: null, // No Stripe Connect in simplified flow
+                    stripeConnectAccountId: null,
                     platformFeeAmount: parseInt(paymentIntent.metadata?.platformFee || '0'),
                     applicationFeeAmount: 0, // No application fee in simplified flow
                   },
