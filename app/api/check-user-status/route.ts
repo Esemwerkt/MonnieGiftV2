@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ANON_KEY!
+);
 
 export const dynamic = 'force-dynamic';
 
@@ -16,15 +21,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user exists in database
-    const user = await prisma.user.findUnique({
-      where: { email },
-      select: {
-        id: true,
-        email: true,
-        stripeConnectAccountId: true,
-        createdAt: true,
-      }
-    });
+    const { data: user } = await supabase
+      .from('users')
+      .select('id, email, stripeConnectAccountId, createdAt')
+      .eq('email', email)
+      .single();
 
     if (!user) {
       return NextResponse.json({

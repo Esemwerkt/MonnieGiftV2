@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { prisma } from '@/lib/prisma';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ANON_KEY!
+);
 
 export const dynamic = 'force-dynamic';
 
@@ -24,9 +29,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the gift
-    const gift = await prisma.gift.findUnique({
-      where: { id: giftId },
-    });
+    const { data: gift } = await supabase
+      .from('gifts')
+      .select('*')
+      .eq('id', giftId)
+      .single();
 
     if (!gift) {
       return NextResponse.json(
@@ -43,9 +50,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the user
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
+    const { data: user } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
 
     if (!user) {
       return NextResponse.json(
@@ -102,14 +111,14 @@ export async function POST(request: NextRequest) {
       });
 
       // Update gift as claimed
-      await prisma.gift.update({
-        where: { id: gift.id },
-        data: {
+      await supabase
+        .from('gifts')
+        .update({
           isClaimed: true,
-          claimedAt: new Date(),
+          claimedAt: new Date().toISOString(),
           stripeTransferId: transfer.id,
-        },
-      });
+        })
+        .eq('id', gift.id);
 
       console.log(`Gift ${gift.id} successfully claimed by user ${user.id} with transfer ${transfer.id}`);
 
