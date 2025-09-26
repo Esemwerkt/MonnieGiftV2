@@ -83,15 +83,11 @@ export async function POST(request: NextRequest) {
       }
     } else {
       try {
-        // Create Express account for NL platform
+        // Create minimal Express account - let Stripe determine requirements
         const account = await stripe.accounts.create({
           type: 'express',
           country: 'NL',
-          business_type: 'individual',
           email: email,
-          capabilities: { 
-            transfers: { requested: true } 
-          },
         });
 
         // Create user record
