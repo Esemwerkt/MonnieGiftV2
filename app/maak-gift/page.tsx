@@ -19,13 +19,7 @@ import {
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 import HamburgerMenu from "@/components/HamburgerMenu";
-import { loadStripe } from "@stripe/stripe-js";
-import {
-  Elements,
-  PaymentElement,
-  useStripe,
-  useElements,
-} from "@stripe/react-stripe-js";
+// Stripe imports removed - now handled in separate payment page
 import BeautifulConfetti from "@/components/BeautifulConfetti";
 import {
   ANIMATION_PRESETS,
@@ -34,9 +28,7 @@ import {
   AnimationPreset,
 } from "@/lib/animations";
 
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
-);
+// Stripe configuration moved to payment page
 
 // Message templates based on animation presets
 const getMessageTemplates = (animationPreset: string): string[] => {
@@ -54,187 +46,7 @@ const getMessageTemplates = (animationPreset: string): string[] => {
   );
 };
 
-function PaymentForm({
-  clientSecret,
-  giftId,
-  giftAmount,
-  platformFee,
-  totalAmount,
-  recipientEmail,
-  message,
-  onSuccess,
-  onCancel,
-}: {
-  clientSecret: string;
-  giftId: string;
-  giftAmount: number;
-  platformFee: number;
-  totalAmount: number;
-  recipientEmail: string;
-  message: string;
-  onSuccess: () => void;
-  onCancel: () => void;
-}) {
-  const stripe = useStripe();
-  const elements = useElements();
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState("");
-  const [isPaymentElementReady, setIsPaymentElementReady] = useState(false);
-
-  useEffect(() => {
-    if (!elements) return;
-
-    const paymentElement = elements.getElement("payment");
-    if (paymentElement) {
-      paymentElement.on("ready", () => {
-        setIsPaymentElementReady(true);
-      });
-
-      paymentElement.on("change", (event) => {
-        if (event.complete) {
-        }
-        if (event.empty) {
-        }
-      });
-    }
-  }, [elements]);
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-
-    if (!stripe || !elements) {
-      setError("Payment system not ready. Please try again.");
-      return;
-    }
-
-    const paymentElement = elements.getElement("payment");
-
-    if (!paymentElement) {
-      setError("Payment form not ready. Please try again.");
-      return;
-    }
-
-    setIsProcessing(true);
-    setError("");
-
-    try {
-      const { error, paymentIntent } = await stripe.confirmPayment({
-        elements,
-        confirmParams: {
-          return_url: `${
-            window.location.origin
-          }/success?gift_id=${giftId}&amount=${giftAmount}&currency=eur&recipient=${encodeURIComponent(
-            recipientEmail
-          )}&message=${encodeURIComponent(message)}`,
-        },
-        redirect: "if_required",
-      });
-
-      if (error) {
-        setError(error.message || "Payment failed");
-      } else if (paymentIntent) {
-        if (paymentIntent.status === "succeeded") {
-          onSuccess();
-        } else if (paymentIntent.status === "requires_action") {
-          setError(
-            "Payment requires additional verification. Please try again."
-          );
-        } else if (paymentIntent.status === "processing") {
-          setError("Payment is being processed. Please wait...");
-        } else {
-          setError(`Payment status: ${paymentIntent.status}`);
-        }
-      } else {
-        setError("No payment response received");
-      }
-    } catch (err) {
-      setError("An unexpected error occurred");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Payment Summary */}
-      <div className="py-4">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-sm text-foreground">Cadeau bedrag:</span>
-          <span className="font-semibold text-sm">
-            €{(giftAmount / 100).toFixed(2)}
-          </span>
-        </div>
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-sm text-foreground">Service fee:</span>
-          <span className="font-semibold text-sm">
-            €{(platformFee / 100).toFixed(2)}
-          </span>
-        </div>
-        <div className="border-t  pt-2 mt-2">
-          <div className="flex justify-between items-center">
-            <span className="text-base font-bold text-foreground">Totaal:</span>
-            <span className="text-base font-bold text-primary">
-              €{(totalAmount / 100).toFixed(2)}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Payment Element */}
-      <div className="py-4">
-        <label className="block text-sm font-medium text-foreground mb-3">
-          Betaalmethode
-        </label>
-        <div className="[&_.StripeElement]:!bg-transparent [&_iframe]:!bg-transparent">
-          <PaymentElement
-            options={{
-              layout: {
-                type: "accordion",
-                defaultCollapsed: false,
-                radios: false,
-                spacedAccordionItems: true,
-              },
-            }}
-          />
-        </div>
-      </div>
-
-      {error && (
-        <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-xl">
-          {error}
-        </div>
-      )}
-
-      {!isPaymentElementReady && (
-        <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-xl">
-          Payment form is loading...
-        </div>
-      )}
-
-      {/* Submit Button */}
-      <button
-        type="submit"
-        disabled={!stripe || !isPaymentElementReady || isProcessing}
-        className="w-full bg-primary text-primary-foreground py-4 px-6 rounded-xl font-semibold hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 "
-      >
-        {isProcessing ? (
-          <>
-            <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-            <span className="text-sm">Bezig met betalen...</span>
-          </>
-        ) : (
-          <>
-            <Euro className="h-5 w-5" />
-            <span className="text-sm">
-              Betalen €{(totalAmount / 100).toFixed(2)}
-            </span>
-          </>
-        )}
-      </button>
-    </form>
-  );
-}
+// PaymentForm component moved to separate payment page
 
 export default function HomePage() {
   const router = useRouter();
@@ -251,18 +63,10 @@ export default function HomePage() {
   const [isCreatingPayment, setIsCreatingPayment] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [showSuccessConfetti, setShowSuccessConfetti] = useState(false);
   const [previewAnimation, setPreviewAnimation] = useState<string | null>(null);
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
   const previewIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const [paymentData, setPaymentData] = useState<{
-    clientSecret: string;
-    giftId: string;
-    giftAmount: number;
-    platformFee: number;
-    totalAmount: number;
-  } | null>(null);
   const [emailErrors, setEmailErrors] = useState<{
     senderEmail: string;
     recipientEmail: string;
@@ -292,40 +96,24 @@ export default function HomePage() {
     isValidEmail(formData.recipientEmail);
 
   const createPaymentIntent = async () => {
-    if (!isFormComplete || paymentData || isCreatingPayment) return;
+    if (!isFormComplete || isCreatingPayment) return;
 
     setIsCreatingPayment(true);
     try {
       const amount = parseFloat(formData.amount);
       const amountInCents = Math.round(amount * 100);
 
-      // Form data ready for submission
-
-      const response = await fetch("/api/gifts/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...formData,
-          amount: amountInCents,
-        }),
+      // Redirect to payment page with form data
+      const params = new URLSearchParams({
+        amount: amountInCents.toString(),
+        currency: formData.currency,
+        sender: formData.senderEmail,
+        recipient: formData.recipientEmail,
+        message: formData.message,
+        animation_preset: formData.animationPreset,
       });
 
-      const data = await response.json();
-
-      if (response.ok && data.clientSecret) {
-        setPaymentData({
-          clientSecret: data.clientSecret,
-          giftId: data.giftId,
-          giftAmount: data.giftAmount,
-          platformFee: data.platformFee,
-          totalAmount: data.totalAmount,
-        });
-        setShowPaymentForm(true);
-      } else {
-        setError(data.error || "Failed to create payment intent");
-      }
+      router.push(`/payment?${params.toString()}`);
     } catch (err) {
       setError(
         "Er is een fout opgetreden bij het voorbereiden van de betaling"
@@ -335,11 +123,7 @@ export default function HomePage() {
     }
   };
 
-  useEffect(() => {
-    if (isFormComplete && !paymentData) {
-      createPaymentIntent();
-    }
-  }, [isFormComplete, paymentData]);
+  // Removed automatic payment creation - now handled by button click
 
   // Cleanup interval on unmount
   useEffect(() => {
@@ -791,7 +575,7 @@ export default function HomePage() {
                 </p>
               </div>
 
-              {/* Payment Form - Show when form is complete */}
+              {/* Payment redirect - Show when form is complete */}
               {isFormComplete && (
                 <div className="border-t  pt-6 px-4">
                   <div className="text-center mb-6">
@@ -799,100 +583,9 @@ export default function HomePage() {
                       Je bent er bijna!
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Voltooi je betaling om je MonnieGift te versturen
+                      Klik op betalen om naar de betaalpagina te gaan
                     </p>
                   </div>
-
-                  {isCreatingPayment ? (
-                    <div className="flex items-center justify-center py-8">
-                      <div className="flex items-center gap-3">
-                        <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                        <span className="text-muted-foreground">
-                          Betaling voorbereiden...
-                        </span>
-                      </div>
-                    </div>
-                  ) : paymentData ? (
-                    <Elements
-                      stripe={stripePromise}
-                      options={{
-                        clientSecret: paymentData.clientSecret,
-                        appearance: {
-                          theme: "stripe",
-                          variables: {
-                            colorPrimary: "#3b82f6",
-                            colorText: "#1f2937",
-                            colorDanger: "#ef4444",
-                            fontFamily: "system-ui, sans-serif",
-                            spacingUnit: "0px",
-                            borderRadius: "12px",
-                          },
-                        },
-                      }}
-                    >
-                      <PaymentForm
-                        clientSecret={paymentData.clientSecret}
-                        giftId={paymentData.giftId}
-                        giftAmount={paymentData.giftAmount}
-                        platformFee={paymentData.platformFee}
-                        totalAmount={paymentData.totalAmount}
-                        recipientEmail={formData.recipientEmail}
-                        message={formData.message}
-                        onSuccess={async () => {
-                          setSuccess(
-                            "Betaling succesvol! Cadeau wordt verzonden..."
-                          );
-                          setShowPaymentForm(false);
-                          setShowSuccessConfetti(true);
-
-                          try {
-                            const emailResponse = await fetch(
-                              "/api/send-gift-email",
-                              {
-                                method: "POST",
-                                headers: {
-                                  "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({
-                                  giftId: paymentData.giftId,
-                                }),
-                              }
-                            );
-
-                            if (emailResponse.ok) {
-                            } else {
-                            }
-                          } catch (emailError) {}
-
-                          setTimeout(() => {
-                            router.push(
-                              `/success?gift_id=${paymentData.giftId}&amount=${
-                                paymentData.giftAmount
-                              }&currency=eur&recipient=${encodeURIComponent(
-                                formData.recipientEmail
-                              )}${
-                                formData.message
-                                  ? `&message=${encodeURIComponent(
-                                      formData.message
-                                    )}`
-                                  : ""
-                              }`
-                            );
-                          }, 2000);
-                        }}
-                        onCancel={() => {
-                          setPaymentData(null);
-                          setShowPaymentForm(false);
-                        }}
-                      />
-                    </Elements>
-                  ) : (
-                    <div className="text-center py-4">
-                      <p className="text-muted-foreground text-sm">
-                        Vul alle velden in om de betaling voor te bereiden
-                      </p>
-                    </div>
-                  )}
                 </div>
               )}
 
@@ -911,21 +604,20 @@ export default function HomePage() {
                 </div>
               )}
 
-              {/* Submit Button - Only show when payment form is not active */}
+              {/* Submit Button */}
               <div className=" px-4">
-                {!paymentData && (
-                  <button
-                    type="button"
-                    onClick={createPaymentIntent}
-                    disabled={
-                      isLoading ||
-                      isCreatingPayment ||
-                      !formData.amount ||
-                      !formData.senderEmail ||
-                      !formData.recipientEmail
-                    }
-                    className="w-full bg-primary text-primary-foreground py-4 px-6 rounded-xl font-semibold hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 group"
-                  >
+                <button
+                  type="button"
+                  onClick={createPaymentIntent}
+                  disabled={
+                    isLoading ||
+                    isCreatingPayment ||
+                    !formData.amount ||
+                    !formData.senderEmail ||
+                    !formData.recipientEmail
+                  }
+                  className="w-full bg-primary text-primary-foreground py-4 px-6 rounded-xl font-semibold hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 group"
+                >
                     {isLoading || isCreatingPayment ? (
                       <>
                         <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
@@ -943,7 +635,6 @@ export default function HomePage() {
                       </>
                     )}
                   </button>
-                )}
               </div>
             </div>
           </div>

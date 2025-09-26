@@ -24,7 +24,8 @@ export async function POST(request: NextRequest) {
       message, 
       senderEmail, 
       recipientEmail,
-      animationPreset
+      animationPreset,
+      paymentIntentId
     } = body;
     
     // Ensure animationPreset is not undefined, null, or empty string
@@ -66,6 +67,27 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Check if gift already exists for this payment intent (prevent duplicates)
+    if (paymentIntentId) {
+      try {
+        const existingGift = await prisma.gift.findFirst({
+          where: {
+            stripePaymentIntentId: paymentIntentId,
+          },
+        });
+
+        if (existingGift) {
+          return NextResponse.json({
+            success: true,
+            giftId: existingGift.id,
+            message: 'Gift already created for this payment',
+          });
+        }
+      } catch (dbError) {
+        console.error('Error checking for existing gift:', dbError);
+      }
+    }
+
     const authenticationCode = generateVerificationCode();
 
     let gift;
@@ -78,6 +100,7 @@ export async function POST(request: NextRequest) {
         recipientEmail,
         authenticationCode,
         animationPreset: finalAnimationPreset,
+        stripePaymentIntentId: paymentIntentId || null,
       };
       
       gift = await prisma.gift.create({

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Gift, CheckCircle, Mail, ArrowRight, Home, Send } from 'lucide-react';
+import { Gift, CheckCircle, Mail, ArrowRight, Home, Send, MessageCircle, Copy, Check } from 'lucide-react';
 
 export default function SuccessPage() {
   const searchParams = useSearchParams();
@@ -16,6 +16,8 @@ export default function SuccessPage() {
   const [emailSent, setEmailSent] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [claimUrl, setClaimUrl] = useState('');
 
   const handleSendEmail = async () => {
     if (!giftData) return;
@@ -40,46 +42,101 @@ export default function SuccessPage() {
     }
   };
 
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(claimUrl);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy link:', error);
+    }
+  };
+
+  const handleWhatsAppShare = () => {
+    const message = `🎁 Ik heb een cadeau van ${formatAmount(giftData?.amount || 0, giftData?.currency || 'eur')} voor je gemaakt!\n\n${giftData?.message ? `Bericht: "${giftData.message}"\n\n` : ''}Klik op de link om je cadeau op te halen: ${claimUrl}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
   useEffect(() => {
-    const giftId = searchParams.get('gift_id');
+    const paymentIntentId = searchParams.get('payment_intent_id');
     const amount = searchParams.get('amount');
     const currency = searchParams.get('currency');
     const recipientEmail = searchParams.get('recipient');
     const message = searchParams.get('message');
+    const senderEmail = searchParams.get('sender');
+    const animationPreset = searchParams.get('animation_preset');
 
-    if (giftId && amount && currency && recipientEmail) {
-      const newGiftData = {
-        id: giftId,
-        amount: parseInt(amount),
-        currency,
-        recipientEmail,
-        message: message || undefined,
-      };
-      
-      setGiftData(newGiftData);
-      
-      setShowConfetti(true);
-
-      setTimeout(async () => {
-        setSendingEmail(true);
+    if (paymentIntentId && amount && currency && recipientEmail && senderEmail) {
+      // Create the gift from payment intent
+      const createGift = async () => {
         try {
-          const response = await fetch('/api/send-gift-email', {
+          const response = await fetch('/api/gifts/create', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ giftId: newGiftData.id }),
+            body: JSON.stringify({
+              amount: parseInt(amount),
+              currency,
+              senderEmail,
+              recipientEmail,
+              message: message || '',
+              animationPreset: animationPreset || 'confettiRealistic',
+              paymentIntentId, // Pass the payment intent ID
+            }),
           });
 
-          if (response.ok) {
-            setEmailSent(true);
+          const data = await response.json();
+
+          if (data.success) {
+            const newGiftData = {
+              id: data.giftId,
+              amount: parseInt(amount),
+              currency,
+              recipientEmail,
+              message: message || undefined,
+            };
+            
+            setGiftData(newGiftData);
+            
+            // Generate claim URL
+            const baseUrl = window.location.origin;
+            const claimLink = `${baseUrl}/claim/${data.giftId}`;
+            setClaimUrl(claimLink);
+            
+            setShowConfetti(true);
+
+            // Send email
+            setTimeout(async () => {
+              setSendingEmail(true);
+              try {
+                const emailResponse = await fetch('/api/send-gift-email', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({ giftId: data.giftId }),
+                });
+
+                if (emailResponse.ok) {
+                  setEmailSent(true);
+                }
+              } catch (error) {
+                console.error('Email sending error:', error);
+              } finally {
+                setSendingEmail(false);
+              }
+            }, 1000);
           } else {
+            console.error('Failed to create gift:', data.error);
           }
         } catch (error) {
-        } finally {
-          setSendingEmail(false);
+          console.error('Error creating gift:', error);
         }
-      }, 1000);
+      };
+
+      createGift();
     }
   }, [searchParams]);
 
@@ -142,7 +199,7 @@ export default function SuccessPage() {
               </div>
 
               {giftData.message && (
-                <div className="bg-background/50 rounded-xl p-4 border-l-4 border-primary mb-6">
+                <div className="bg-background rounded-xl p-4 border-l-4 border-primary mb-6">
                   <p className="text-foreground italic">
                     "{giftData.message}"
                   </p>
@@ -184,6 +241,62 @@ export default function SuccessPage() {
                   </p>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Share Options */}
+          {giftData && claimUrl && (
+            <div className="bg-card/30 backdrop-blur-sm border border-border/30 rounded-2xl p-6 mb-8">
+              <h3 className="text-lg font-bold text-foreground mb-4 flex items-center justify-center gap-2">
+                <div className="w-2 h-2 bg-chart-1 rounded-full" />
+                Deel je cadeau
+              </h3>
+              
+              {/* Copy Link Section */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Cadeau link:
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={claimUrl}
+                    readOnly
+                    className="flex-1 h-[48px] pl-4 pr-4 border border-input bg-background rounded-xl text-base placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                  />
+                  <button
+                    onClick={handleCopyLink}
+                    className="px-4 py-2 bg-chart-1 text-white rounded-lg text-sm font-medium hover:bg-chart-1/90 transition-all duration-200 flex items-center gap-2"
+                  >
+                    {linkCopied ? (
+                      <>
+                        <Check className="h-4 w-4" />
+                        Gekopieerd!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4" />
+                        Kopiëren
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* WhatsApp Share Button */}
+              <div className="text-center">
+                <button
+                  onClick={handleWhatsAppShare}
+                  className="px-6 py-3 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 transition-all duration-200 flex items-center justify-center gap-2 mx-auto group"
+                >
+                  <MessageCircle className="h-5 w-5" />
+                  Deel via WhatsApp
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
+                </button>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Deel je cadeau direct via WhatsApp
+                </p>
+              </div>
             </div>
           )}
 
