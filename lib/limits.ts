@@ -1,10 +1,10 @@
 import { prisma } from '@/lib/prisma';
 
 export const LIMITS = {
-  MIN_GIFT_AMOUNT: 100, // €1.00 in cents
-  MAX_GIFT_AMOUNT: 10000, // €100.00 in cents
-  MAX_MONTHLY_AMOUNT: 10000, // €100.00 per month in cents
-  MAX_MONTHLY_GIFTS: 10, // Maximum 10 gifts per month
+  MIN_GIFT_AMOUNT: 100,
+  MAX_GIFT_AMOUNT: 10000,
+  MAX_MONTHLY_AMOUNT: 10000,
+  MAX_MONTHLY_GIFTS: 10,
 } as const;
 
 export interface LimitCheckResult {
@@ -21,7 +21,7 @@ export async function checkUserLimits(
   giftAmount: number
 ): Promise<LimitCheckResult> {
   const now = new Date();
-  const currentMonth = now.getMonth() + 1; // 1-12
+  const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
 
   let user = await (prisma as any).user.findFirst({
@@ -136,7 +136,7 @@ export async function updateUserLimits(
   giftAmount: number
 ): Promise<void> {
   const now = new Date();
-  const currentMonth = now.getMonth() + 1; // 1-12
+  const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
 
   const user = await (prisma as any).user.findUnique({
@@ -175,7 +175,7 @@ export async function updateUserLimits(
 
 export async function getUserLimits(stripeAccountId: string) {
   const now = new Date();
-  const currentMonth = now.getMonth() + 1; // 1-12
+  const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
 
   const user = await (prisma as any).user.findUnique({

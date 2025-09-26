@@ -20,6 +20,7 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import BeautifulConfetti from "@/components/BeautifulConfetti";
+import { ANIMATION_PRESETS, AnimationPreset } from "@/lib/animations";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
@@ -222,6 +223,7 @@ export default function HomePage() {
   const [success, setSuccess] = useState("");
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [showSuccessConfetti, setShowSuccessConfetti] = useState(false);
+  const [previewAnimation, setPreviewAnimation] = useState<string | null>(null);
   const [paymentData, setPaymentData] = useState<{
     clientSecret: string;
     giftId: string;
@@ -291,6 +293,29 @@ export default function HomePage() {
       ...prev,
       [name]: value,
     }));
+  };
+
+  const previewAnimationPreset = async (preset: AnimationPreset) => {
+    if (typeof window === 'undefined') return;
+    
+    const JSConfetti = (await import('js-confetti')).default;
+    const jsConfetti = new JSConfetti();
+    const config = ANIMATION_PRESETS[preset];
+    
+    setPreviewAnimation(preset);
+    
+    setTimeout(() => {
+      jsConfetti.addConfetti({
+        confettiColors: config.confettiColors,
+        confettiNumber: Math.floor(config.confettiNumber * 0.6),
+        confettiRadius: config.confettiRadius,
+        emojis: config.emojis,
+      });
+    }, 100);
+    
+    setTimeout(() => {
+      setPreviewAnimation(null);
+    }, 2000);
   };
 
 
@@ -520,10 +545,8 @@ export default function HomePage() {
                     { value: 'hearts', label: '❤️ Hearts', description: 'Harten en liefde' },
                     { value: 'money', label: '💰 Money', description: 'Geld regen' }
                   ].map((preset) => (
-                    <button
+                    <div
                       key={preset.value}
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, animationPreset: preset.value }))}
                       className={`p-3 rounded-xl border-2 transition-all duration-200 ${
                         formData.animationPreset === preset.value
                           ? 'border-primary bg-primary/10 text-primary'
@@ -531,8 +554,29 @@ export default function HomePage() {
                       }`}
                     >
                       <div className="text-lg mb-1">{preset.label}</div>
-                      <div className="text-xs text-muted-foreground">{preset.description}</div>
-                    </button>
+                      <div className="text-xs text-muted-foreground mb-2">{preset.description}</div>
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, animationPreset: preset.value }))}
+                          className={`flex-1 px-2 py-1 text-xs rounded-md transition-colors ${
+                            formData.animationPreset === preset.value
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                          }`}
+                        >
+                          Selecteer
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => previewAnimationPreset(preset.value as AnimationPreset)}
+                          disabled={previewAnimation === preset.value}
+                          className="px-2 py-1 text-xs rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {previewAnimation === preset.value ? '🎆' : '👁️'}
+                        </button>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
