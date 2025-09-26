@@ -145,7 +145,7 @@ export default function SuccessPage() {
 
   const processGiftWithVerifiedData = async (verifiedData: {
     paymentIntentId: string;
-    amount: number;
+    amount: number; // This is the total amount including platform fee
     currency: string;
     recipientEmail: string;
     senderEmail: string;
@@ -153,6 +153,7 @@ export default function SuccessPage() {
     animationPreset: string;
   }) => {
     const { paymentIntentId, amount, currency, recipientEmail, senderEmail, message, animationPreset } = verifiedData;
+    const PLATFORM_FEE = 99; // €0.99 in cents
     // Check if processing was already completed for this payment intent
     const processingKey = `gift_processed_${paymentIntentId}`;
     const wasProcessed = sessionStorage.getItem(processingKey);
@@ -289,7 +290,7 @@ export default function SuccessPage() {
                       'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                      amount: amount, // Use verified amount from payment intent
+                      amount: amount - PLATFORM_FEE, // Subtract platform fee to get gift amount
                       currency,
                       senderEmail,
                       recipientEmail,
@@ -305,7 +306,7 @@ export default function SuccessPage() {
                   if (fallbackData.success) {
                     const newGiftData = {
                       id: fallbackData.giftId,
-                      amount: fallbackData.giftAmount, // Use gift amount from fallback response (without platform fee)
+                      amount: amount - PLATFORM_FEE, // Use calculated gift amount (total - platform fee)
                       currency,
                       recipientEmail,
                       message: message || undefined,
