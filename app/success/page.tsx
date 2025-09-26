@@ -69,82 +69,94 @@ export default function SuccessPage() {
     const senderEmail = searchParams.get('sender');
     const animationPreset = searchParams.get('animation_preset');
 
-    if (paymentIntentId && amount && currency && recipientEmail && senderEmail) {
-      // Check if processing was already completed for this payment intent
-      const processingKey = `gift_processed_${paymentIntentId}`;
-      const wasProcessed = sessionStorage.getItem(processingKey);
-      
-      if (wasProcessed) {
-        console.log('Processing already complete for this payment intent, fetching existing data...');
-        // Fetch the existing gift data and display it
-        const fetchExistingGift = async () => {
-          try {
-            const response = await fetch(`/api/gifts/by-payment-intent/${paymentIntentId}`);
-            if (response.ok) {
-              const gift = await response.json();
-              console.log('Found existing gift:', gift);
-              
-              const newGiftData = {
-                id: gift.id,
-                amount: parseInt(amount),
-                currency,
-                recipientEmail,
-                message: message || undefined,
-              };
-              
-              setGiftData(newGiftData);
-              
-              // Generate claim URL
-              const baseUrl = window.location.origin;
-              const claimLink = `${baseUrl}/claim/${gift.id}`;
-              setClaimUrl(claimLink);
-              
-              setShowConfetti(true);
-              setEmailSent(true); // Assume email was already sent
-              setProcessingComplete(true);
-              console.log('Existing gift data loaded successfully');
-            } else {
-              console.error('Failed to fetch existing gift:', response.status);
-              // Clear sessionStorage if gift doesn't exist (previous processing failed)
-              sessionStorage.removeItem(processingKey);
-              console.log('Cleared sessionStorage, will retry processing');
-              setProcessingComplete(false);
-            }
-          } catch (error) {
-            console.error('Error fetching existing gift:', error);
-            // Clear sessionStorage if there was an error
-            sessionStorage.removeItem(processingKey);
-            console.log('Cleared sessionStorage due to error, will retry processing');
-            setProcessingComplete(false);
-          }
-        };
-        
-        fetchExistingGift();
-        return;
-      }
-
-      // Prevent multiple executions within the same session
-      if (processingComplete) {
-        console.log('Processing already complete, skipping...');
-        return;
-      }
-
-      // If we reach here, we need to process the gift
-      console.log('Starting gift processing for payment intent:', paymentIntentId);
-      // Simply retrieve the existing gift (created by webhook)
-      const retrieveGift = async () => {
+    if (paymentIntentId) {
+      // First verify the payment with Stripe server-side
+      const verifyPayment = async () => {
         try {
-          console.log('Retrieving gift for payment intent:', paymentIntentId);
-          const response = await fetch(`/api/gifts/by-payment-intent/${paymentIntentId}`);
-          console.log('Retrieve response status:', response.status);
+          const response = await fetch('/api/verify-payment', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ paymentIntentId }),
+          });
+
+          const verificationResult = await response.json();
           
+          if (!response.ok) {
+            console.error('Payment verification failed:', verificationResult);
+            setProcessingError(true);
+            setProcessingComplete(true);
+            return;
+          }
+
+          // Use verified payment data instead of URL parameters
+          const verifiedAmount = verificationResult.paymentIntent.amount;
+          const verifiedCurrency = verificationResult.paymentIntent.currency;
+          const verifiedMetadata = verificationResult.paymentIntent.metadata;
+          
+          // Extract data from verified metadata (set by our API)
+          const verifiedRecipientEmail = verifiedMetadata?.recipientEmail;
+          const verifiedSenderEmail = verifiedMetadata?.senderEmail;
+          const verifiedMessage = verifiedMetadata?.message || '';
+          const verifiedAnimationPreset = verifiedMetadata?.animationPreset || 'confettiRealistic';
+
+          console.log('Payment verified successfully:', {
+            amount: verifiedAmount,
+            currency: verifiedCurrency,
+            recipient: verifiedRecipientEmail,
+            sender: verifiedSenderEmail
+          });
+
+          // Now process the gift with verified data
+          processGiftWithVerifiedData({
+            paymentIntentId,
+            amount: verifiedAmount,
+            currency: verifiedCurrency,
+            recipientEmail: verifiedRecipientEmail,
+            senderEmail: verifiedSenderEmail,
+            message: verifiedMessage,
+            animationPreset: verifiedAnimationPreset
+          });
+
+        } catch (error) {
+          console.error('Payment verification error:', error);
+          setProcessingError(true);
+          setProcessingComplete(true);
+        }
+      };
+
+      verifyPayment();
+    }
+  }, [searchParams, processingComplete]);
+
+  const processGiftWithVerifiedData = async (verifiedData: {
+    paymentIntentId: string;
+    amount: number;
+    currency: string;
+    recipientEmail: string;
+    senderEmail: string;
+    message: string;
+    animationPreset: string;
+  }) => {
+    const { paymentIntentId, amount, currency, recipientEmail, senderEmail, message, animationPreset } = verifiedData;
+    // Check if processing was already completed for this payment intent
+    const processingKey = `gift_processed_${paymentIntentId}`;
+    const wasProcessed = sessionStorage.getItem(processingKey);
+    
+    if (wasProcessed) {
+      console.log('Processing already complete for this payment intent, fetching existing data...');
+      // Fetch the existing gift data and display it
+      const fetchExistingGift = async () => {
+        try {
+          const response = await fetch(`/api/gifts/by-payment-intent/${paymentIntentId}`);
           if (response.ok) {
             const gift = await response.json();
-            console.log('Found gift:', gift);
+            console.log('Found existing gift:', gift);
             
             const newGiftData = {
               id: gift.id,
-              amount: parseInt(amount),
+              amount: amount,
               currency,
               recipientEmail,
               message: message || undefined,
@@ -158,115 +170,172 @@ export default function SuccessPage() {
             setClaimUrl(claimLink);
             
             setShowConfetti(true);
-            setEmailSent(true); // Webhook handles email sending
+            setEmailSent(true); // Assume email was already sent
             setProcessingComplete(true);
-            sessionStorage.setItem(processingKey, 'true');
-            console.log('Gift retrieved successfully');
+            console.log('Existing gift data loaded successfully');
           } else {
-            console.error('Failed to retrieve gift:', response.status);
-            // Webhook might not have fired yet, wait and try again
-            console.log('Webhook might not have fired yet, waiting 3 seconds...');
-            setTimeout(async () => {
-              try {
-                const retryResponse = await fetch(`/api/gifts/by-payment-intent/${paymentIntentId}`);
-                if (retryResponse.ok) {
-                  const gift = await retryResponse.json();
-                  console.log('Found gift on retry:', gift);
-                  
-                  const newGiftData = {
-                    id: gift.id,
-                    amount: parseInt(amount),
-                    currency,
-                    recipientEmail,
-                    message: message || undefined,
-                  };
-                  
-                  setGiftData(newGiftData);
-                  
-                  const baseUrl = window.location.origin;
-                  const claimLink = `${baseUrl}/claim/${gift.id}`;
-                  setClaimUrl(claimLink);
-                  
-                  setShowConfetti(true);
-                  setEmailSent(true);
-                  setProcessingComplete(true);
-                  sessionStorage.setItem(processingKey, 'true');
-                  console.log('Gift retrieved successfully on retry');
-                } else {
-                  console.error('Still no gift found after retry');
-                  // Webhook failed, create gift as fallback
-                  console.log('Webhook failed to create gift, creating fallback gift');
-                  try {
-                    const fallbackResponse = await fetch('/api/gifts/create', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({
-                        amount: parseInt(amount),
-                        currency,
-                        senderEmail,
-                        recipientEmail,
-                        message: message || '',
-                        animationPreset: animationPreset || 'confettiRealistic',
-                        paymentIntentId, // Pass the payment intent ID for idempotency
-                      }),
-                    });
+            console.error('Failed to fetch existing gift:', response.status);
+            // Clear sessionStorage if gift doesn't exist (previous processing failed)
+            sessionStorage.removeItem(processingKey);
+            console.log('Cleared sessionStorage, will retry processing');
+            setProcessingComplete(false);
+          }
+        } catch (error) {
+          console.error('Error fetching existing gift:', error);
+          // Clear sessionStorage if there was an error
+          sessionStorage.removeItem(processingKey);
+          console.log('Cleared sessionStorage due to error, will retry processing');
+          setProcessingComplete(false);
+        }
+      };
+      
+      fetchExistingGift();
+      return;
+    }
 
-                    const fallbackData = await fallbackResponse.json();
-                    console.log('Fallback gift creation response:', fallbackData);
+    // Prevent multiple executions within the same session
+    if (processingComplete) {
+      console.log('Processing already complete, skipping...');
+      return;
+    }
 
-                    if (fallbackData.success) {
-                      const newGiftData = {
-                        id: fallbackData.giftId,
-                        amount: parseInt(amount),
-                        currency,
-                        recipientEmail,
-                        message: message || undefined,
-                      };
-                      
-                      setGiftData(newGiftData);
-                      
-                      const baseUrl = window.location.origin;
-                      const claimLink = `${baseUrl}/claim/${fallbackData.giftId}`;
-                      setClaimUrl(claimLink);
-                      
-                      setShowConfetti(true);
-                      setEmailSent(true); // Assume email was sent by the API
-                      setProcessingComplete(true);
-                      sessionStorage.setItem(processingKey, 'true');
-                      console.log('Gift created successfully as fallback');
-                    } else {
-                      console.error('Fallback gift creation failed:', fallbackData.error);
-                      setProcessingError(true);
-                      setProcessingComplete(true);
-                      sessionStorage.setItem(processingKey, 'true');
-                    }
-                  } catch (fallbackError) {
-                    console.error('Fallback gift creation error:', fallbackError);
+    // If we reach here, we need to process the gift
+    console.log('Starting gift processing for payment intent:', paymentIntentId);
+    // Simply retrieve the existing gift (created by webhook)
+    const retrieveGift = async () => {
+      try {
+        console.log('Retrieving gift for payment intent:', paymentIntentId);
+        const response = await fetch(`/api/gifts/by-payment-intent/${paymentIntentId}`);
+        console.log('Retrieve response status:', response.status);
+        
+        if (response.ok) {
+          const gift = await response.json();
+          console.log('Found gift:', gift);
+          
+          const newGiftData = {
+            id: gift.id,
+            amount: amount,
+            currency,
+            recipientEmail,
+            message: message || undefined,
+          };
+          
+          setGiftData(newGiftData);
+          
+          // Generate claim URL
+          const baseUrl = window.location.origin;
+          const claimLink = `${baseUrl}/claim/${gift.id}`;
+          setClaimUrl(claimLink);
+          
+          setShowConfetti(true);
+          setEmailSent(true); // Webhook handles email sending
+          setProcessingComplete(true);
+          sessionStorage.setItem(processingKey, 'true');
+          console.log('Gift retrieved successfully');
+        } else {
+          console.error('Failed to retrieve gift:', response.status);
+          // Webhook might not have fired yet, wait and try again
+          console.log('Webhook might not have fired yet, waiting 3 seconds...');
+          setTimeout(async () => {
+            try {
+              const retryResponse = await fetch(`/api/gifts/by-payment-intent/${paymentIntentId}`);
+              if (retryResponse.ok) {
+                const gift = await retryResponse.json();
+                console.log('Found gift on retry:', gift);
+                
+                const newGiftData = {
+                  id: gift.id,
+                  amount: amount,
+                  currency,
+                  recipientEmail,
+                  message: message || undefined,
+                };
+                
+                setGiftData(newGiftData);
+                
+                const baseUrl = window.location.origin;
+                const claimLink = `${baseUrl}/claim/${gift.id}`;
+                setClaimUrl(claimLink);
+                
+                setShowConfetti(true);
+                setEmailSent(true);
+                setProcessingComplete(true);
+                sessionStorage.setItem(processingKey, 'true');
+                console.log('Gift retrieved successfully on retry');
+              } else {
+                console.error('Still no gift found after retry');
+                // Webhook failed, create gift as fallback
+                console.log('Webhook failed to create gift, creating fallback gift');
+                try {
+                  const fallbackResponse = await fetch('/api/gifts/create', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      amount: amount,
+                      currency,
+                      senderEmail,
+                      recipientEmail,
+                      message: message || '',
+                      animationPreset: animationPreset || 'confettiRealistic',
+                      paymentIntentId, // Pass the payment intent ID for idempotency
+                    }),
+                  });
+
+                  const fallbackData = await fallbackResponse.json();
+                  console.log('Fallback gift creation response:', fallbackData);
+
+                  if (fallbackData.success) {
+                    const newGiftData = {
+                      id: fallbackData.giftId,
+                      amount: amount,
+                      currency,
+                      recipientEmail,
+                      message: message || undefined,
+                    };
+                    
+                    setGiftData(newGiftData);
+                    
+                    const baseUrl = window.location.origin;
+                    const claimLink = `${baseUrl}/claim/${fallbackData.giftId}`;
+                    setClaimUrl(claimLink);
+                    
+                    setShowConfetti(true);
+                    setEmailSent(true); // Assume email was sent by the API
+                    setProcessingComplete(true);
+                    sessionStorage.setItem(processingKey, 'true');
+                    console.log('Gift created successfully as fallback');
+                  } else {
+                    console.error('Fallback gift creation failed:', fallbackData.error);
                     setProcessingError(true);
                     setProcessingComplete(true);
                     sessionStorage.setItem(processingKey, 'true');
                   }
+                } catch (fallbackError) {
+                  console.error('Fallback gift creation error:', fallbackError);
+                  setProcessingError(true);
+                  setProcessingComplete(true);
+                  sessionStorage.setItem(processingKey, 'true');
                 }
-              } catch (retryError) {
-                console.error('Retry failed:', retryError);
-                setProcessingComplete(true);
-                sessionStorage.setItem(processingKey, 'true');
               }
-            }, 3000);
-          }
-        } catch (error) {
-          console.error('Error retrieving gift:', error);
-          setProcessingError(true);
-          setProcessingComplete(true);
-          sessionStorage.setItem(processingKey, 'true');
+            } catch (retryError) {
+              console.error('Retry failed:', retryError);
+              setProcessingComplete(true);
+              sessionStorage.setItem(processingKey, 'true');
+            }
+          }, 3000);
         }
-      };
+      } catch (error) {
+        console.error('Error retrieving gift:', error);
+        setProcessingError(true);
+        setProcessingComplete(true);
+        sessionStorage.setItem(processingKey, 'true');
+      }
+    };
 
-      retrieveGift();
-    }
-  }, [searchParams, processingComplete]);
+    retrieveGift();
+  };
 
   const formatAmount = (amount: number, currency: string) => {
     const symbol = currency === 'eur' ? '€' : currency === 'usd' ? '$' : '£';
