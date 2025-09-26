@@ -33,6 +33,8 @@ function PaymentForm({
   giftAmount,
   platformFee,
   totalAmount,
+  recipientEmail,
+  message,
   onSuccess,
   onCancel,
 }: {
@@ -41,6 +43,8 @@ function PaymentForm({
   giftAmount: number;
   platformFee: number;
   totalAmount: number;
+  recipientEmail: string;
+  message: string;
   onSuccess: () => void;
   onCancel: () => void;
 }) {
@@ -114,7 +118,7 @@ function PaymentForm({
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/success`,
+          return_url: `${window.location.origin}/success?gift_id=${giftId}&amount=${giftAmount}&currency=eur&recipient=${encodeURIComponent(recipientEmail)}&message=${encodeURIComponent(message)}`,
         },
         redirect: "if_required",
       });
@@ -608,6 +612,8 @@ export default function HomePage() {
                       giftAmount={paymentData.giftAmount}
                       platformFee={paymentData.platformFee}
                       totalAmount={paymentData.totalAmount}
+                      recipientEmail={formData.recipientEmail}
+                      message={formData.message}
                       onSuccess={async () => {
                         console.log("Payment success callback triggered!");
                         setSuccess(
