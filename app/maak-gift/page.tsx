@@ -299,6 +299,11 @@ export default function HomePage() {
       const amount = parseFloat(formData.amount);
       const amountInCents = Math.round(amount * 100);
 
+      console.log('Sending form data:', {
+        ...formData,
+        amount: amountInCents,
+      });
+
       const response = await fetch("/api/gifts/create", {
         method: "POST",
         headers: {

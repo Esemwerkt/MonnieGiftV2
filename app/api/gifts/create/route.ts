@@ -18,13 +18,15 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
+    console.log('Received gift creation data:', body);
+    
     const { 
       amount, 
       currency = 'eur', 
       message, 
       senderEmail, 
       recipientEmail,
-          animationPreset = 'confettiRealistic'
+      animationPreset = 'confettiRealistic'
     } = body;
 
     if (!amount || !senderEmail || !recipientEmail) {
@@ -67,16 +69,20 @@ export async function POST(request: NextRequest) {
 
     let gift;
     try {
+      const giftData = {
+        amount,
+        currency,
+        message,
+        senderEmail,
+        recipientEmail,
+        authenticationCode,
+        animationPreset,
+      };
+      
+      console.log('Creating gift with data:', giftData);
+      
       gift = await prisma.gift.create({
-        data: {
-          amount,
-          currency,
-          message,
-          senderEmail,
-          recipientEmail,
-          authenticationCode,
-          animationPreset,
-        },
+        data: giftData,
       });
     } catch (dbError) {
       return NextResponse.json(
