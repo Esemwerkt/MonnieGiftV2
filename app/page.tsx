@@ -10,6 +10,8 @@ import {
   ArrowRight,
   Send,
   Home,
+  Play,
+  Square,
 } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
@@ -19,7 +21,7 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import BeautifulConfetti from "@/components/BeautifulConfetti";
-import { ANIMATION_PRESETS, executeAnimation, AnimationPreset } from "@/lib/animations";
+import { ANIMATION_PRESETS, executeAnimation, stopAllAnimations, AnimationPreset } from "@/lib/animations";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
@@ -308,18 +310,27 @@ export default function HomePage() {
   const previewAnimationPreset = async (preset: AnimationPreset) => {
     if (typeof window === 'undefined') return;
     
-    const confetti = (await import('canvas-confetti')).default;
+    // Check if this animation is currently playing BEFORE we reset anything
+    const isCurrentlyPlaying = isPreviewPlaying && previewAnimation === preset;
     
-    if (isPreviewPlaying && previewAnimation === preset) {
-      // Stop the animation
+    // Always stop any currently playing animation first
+    if (previewIntervalRef.current) {
+      clearInterval(previewIntervalRef.current);
+      previewIntervalRef.current = null;
+    }
+    
+    // Stop all confetti animations (including requestAnimationFrame ones)
+    stopAllAnimations();
+    
+    const confetti = (await import('canvas-confetti')).default;
+    confetti.reset();
+    
+    if (isCurrentlyPlaying) {
+      // If this animation was playing, stop it
       setIsPreviewPlaying(false);
       setPreviewAnimation(null);
-      if (previewIntervalRef.current) {
-        clearInterval(previewIntervalRef.current);
-        previewIntervalRef.current = null;
-      }
     } else {
-      // Start the animation
+      // Start the new animation
       setIsPreviewPlaying(true);
       setPreviewAnimation(preset);
       
@@ -554,47 +565,40 @@ export default function HomePage() {
               {/* Animation Preset Selection */}
                 <div className="space-y-3">
                   <label className="block text-sm font-medium text-foreground">
-                    🎨 Kies een animatie voor de ontvanger
+                    Kies een animatie voor de ontvanger
                   </label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-3">
                     {Object.entries(ANIMATION_PRESETS).map(([key, preset]) => (
                       <div
                         key={key}
-                        className={`p-3 rounded-xl border-2 transition-all duration-200 ${
+                        className={`p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 ${
                           formData.animationPreset === key
                             ? 'border-primary bg-primary/10 text-primary'
                             : 'border-border hover:border-primary/50 hover:bg-accent/50'
                         }`}
                       >
-                        <div className="text-lg mb-1">{preset.emoji} {preset.name}</div>
-                        <div className="text-xs text-muted-foreground mb-2">{preset.description}</div>
-                        <div className="flex gap-1">
+                        <div className="text-base sm:text-lg mb-3">{preset.name}</div>
+                        <div className="flex gap-2">
                           <button
                             type="button"
                             onClick={() => setFormData(prev => ({ ...prev, animationPreset: key }))}
-                            className={`flex-1 px-2 py-1 text-xs rounded-md transition-colors ${
+                            className={`flex-1 px-3 py-2 text-xs sm:text-sm rounded-md transition-colors ${
                               formData.animationPreset === key
                                 ? 'bg-primary text-primary-foreground'
                                 : 'bg-muted text-muted-foreground hover:bg-muted/80'
                             }`}
                           >
-                            Selecteer
+                            {formData.animationPreset === key ? 'Geselecteerd' : 'Selecteer'}
                           </button>
                           <button
                             type="button"
                             onClick={() => previewAnimationPreset(key as AnimationPreset)}
-                            className="px-2 py-1 text-xs rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors flex items-center gap-1"
+                            className="px-3 py-2 text-xs sm:text-sm rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors flex items-center justify-center min-w-[40px]"
                           >
                             {isPreviewPlaying && previewAnimation === key ? (
-                              <>
-                                <span>⏹️</span>
-                                <span>Stop</span>
-                              </>
+                              <Square className="h-4 w-4" />
                             ) : (
-                              <>
-                                <span>▶️</span>
-                                <span>Play</span>
-                              </>
+                              <Play className="h-4 w-4" />
                             )}
                           </button>
                         </div>

@@ -1,4 +1,4 @@
-export type AnimationPreset = 'emoji' | 'customShapes' | 'schoolPride' | 'snow' | 'stars' | 'fireworks' | 'confettiRealistic';
+export type AnimationPreset = 'customShapes' | 'schoolPride' | 'snow' | 'stars' | 'fireworks' | 'confettiRealistic';
 
 export interface AnimationConfig {
   name: string;
@@ -8,55 +8,54 @@ export interface AnimationConfig {
 }
 
 export const ANIMATION_PRESETS: Record<AnimationPreset, AnimationConfig> = {
-  emoji: {
-    name: 'Emoji Explosie',
-    description: 'Unicorn emoji met confetti',
-    emoji: '🦄',
-    type: 'emoji'
+  confettiRealistic: {
+    name: 'Realistische Confetti',
+    description: 'Natuurlijke confetti explosie met meerdere bursts voor een authentiek effect',
+    emoji: '🎊',
+    type: 'confettiRealistic'
+  },
+  fireworks: {
+    name: 'Vuurwerk Show',
+    description: 'Spectaculaire vuurwerk explosies van beide kanten van het scherm',
+    emoji: '🎆',
+    type: 'fireworks'
   },
   customShapes: {
     name: 'Aangepaste Vormen',
-    description: 'Pompoen, boom en hart vormen',
+    description: 'Pompoen, boom en hart vormen in verschillende kleuren',
     emoji: '🎃',
     type: 'customShapes'
   },
   schoolPride: {
     name: 'School Trots',
-    description: 'Rode en witte confetti regen',
+    description: 'Continue rode en witte confetti regen van beide kanten',
     emoji: '🏫',
     type: 'schoolPride'
   },
   snow: {
     name: 'Sneeuw',
-    description: 'Vallende sneeuwvlokken',
+    description: 'Zachte vallende sneeuwvlokken met realistische fysica',
     emoji: '❄️',
     type: 'snow'
   },
   stars: {
     name: 'Sterren Regen',
-    description: 'Gouden sterren en cirkels',
+    description: 'Gouden sterren en cirkels in een prachtige explosie',
     emoji: '⭐',
     type: 'stars'
-  },
-  fireworks: {
-    name: 'Vuurwerk Show',
-    description: 'Spectaculaire vuurwerk explosies',
-    emoji: '🎆',
-    type: 'fireworks'
-  },
-  confettiRealistic: {
-    name: 'Realistische Confetti',
-    description: 'Natuurlijke confetti explosie',
-    emoji: '🎊',
-    type: 'confettiRealistic'
   }
 };
 
+// Store animation IDs for cleanup
+let schoolPrideAnimationId: number | null = null;
+let snowAnimationId: number | null = null;
+let fireworksIntervalId: NodeJS.Timeout | null = null;
+
 export const executeAnimation = (confetti: any, preset: AnimationPreset) => {
+  // Clear any existing animations first
+  stopAllAnimations();
+  
   switch (preset) {
-    case 'emoji':
-      executeEmoji(confetti);
-      break;
     case 'customShapes':
       executeCustomShapes(confetti);
       break;
@@ -78,47 +77,22 @@ export const executeAnimation = (confetti: any, preset: AnimationPreset) => {
   }
 };
 
-// 1. Emoji - EXACT CODE FROM TEMPLATE
-const executeEmoji = (confetti: any) => {
-  var scalar = 2;
-  var unicorn = confetti.shapeFromText({ text: '🦄', scalar });
-
-  var defaults = {
-    spread: 360,
-    ticks: 60,
-    gravity: 0,
-    decay: 0.96,
-    startVelocity: 20,
-    shapes: [unicorn],
-    scalar
-  };
-
-  function shoot() {
-    confetti({
-      ...defaults,
-      particleCount: 30
-    });
-
-    confetti({
-      ...defaults,
-      particleCount: 5,
-      flat: true
-    });
-
-    confetti({
-      ...defaults,
-      particleCount: 15,
-      scalar: scalar / 2,
-      shapes: ['circle']
-    });
+export const stopAllAnimations = () => {
+  if (schoolPrideAnimationId) {
+    cancelAnimationFrame(schoolPrideAnimationId);
+    schoolPrideAnimationId = null;
   }
-
-  setTimeout(shoot, 0);
-  setTimeout(shoot, 100);
-  setTimeout(shoot, 200);
+  if (snowAnimationId) {
+    cancelAnimationFrame(snowAnimationId);
+    snowAnimationId = null;
+  }
+  if (fireworksIntervalId) {
+    clearInterval(fireworksIntervalId);
+    fireworksIntervalId = null;
+  }
 };
 
-// 2. Custom Shapes - EXACT CODE FROM TEMPLATE
+// 1. Custom Shapes - EXACT CODE FROM TEMPLATE
 const executeCustomShapes = (confetti: any) => {
   // pumpkin shape from https://thenounproject.com/icon/pumpkin-5253388/
   var pumpkin = confetti.shapeFromPath({
@@ -161,7 +135,7 @@ const executeCustomShapes = (confetti: any) => {
   });
 };
 
-// 3. School Pride - EXACT CODE FROM TEMPLATE
+// 2. School Pride - EXACT CODE FROM TEMPLATE
 const executeSchoolPride = (confetti: any) => {
   var end = Date.now() + (15 * 1000);
 
@@ -185,12 +159,14 @@ const executeSchoolPride = (confetti: any) => {
     });
 
     if (Date.now() < end) {
-      requestAnimationFrame(frame);
+      schoolPrideAnimationId = requestAnimationFrame(frame);
+    } else {
+      schoolPrideAnimationId = null;
     }
   })();
 };
 
-// 4. Snow - EXACT CODE FROM TEMPLATE
+// 3. Snow - EXACT CODE FROM TEMPLATE
 const executeSnow = (confetti: any) => {
   var duration = 15 * 1000;
   var animationEnd = Date.now() + duration;
@@ -222,12 +198,14 @@ const executeSnow = (confetti: any) => {
     });
 
     if (timeLeft > 0) {
-      requestAnimationFrame(frame);
+      snowAnimationId = requestAnimationFrame(frame);
+    } else {
+      snowAnimationId = null;
     }
   })();
 };
 
-// 5. Stars - EXACT CODE FROM TEMPLATE
+// 4. Stars - EXACT CODE FROM TEMPLATE
 const executeStars = (confetti: any) => {
   var defaults = {
     spread: 360,
@@ -269,11 +247,13 @@ const executeFireworks = (confetti: any) => {
     return Math.random() * (max - min) + min;
   }
 
-  var interval = setInterval(function() {
+  fireworksIntervalId = setInterval(function() {
     var timeLeft = animationEnd - Date.now();
 
     if (timeLeft <= 0) {
-      return clearInterval(interval);
+      clearInterval(fireworksIntervalId!);
+      fireworksIntervalId = null;
+      return;
     }
 
     var particleCount = 50 * (timeLeft / duration);
