@@ -146,14 +146,14 @@ export async function POST(request: NextRequest) {
         
         if (transfer.metadata?.giftId) {
           try {
-            await prisma.gift.update({
-              where: { id: transfer.metadata.giftId },
-              data: {
+            await supabase
+              .from('gifts')
+              .update({
                 isClaimed: false, 
                 claimedAt: null,
                 stripeTransferId: `reversed_${transfer.id}`,
-              },
-            });
+              })
+              .eq('id', transfer.metadata.giftId);
           } catch (dbError) {
             console.error('Error updating gift after transfer reversal:', dbError);
           }
@@ -172,9 +172,11 @@ export async function POST(request: NextRequest) {
         
         // Check if this is a user account
         try {
-          const user = await prisma.user.findFirst({
-            where: { stripeConnectAccountId: account.id },
-          });
+          const { data: user } = await supabase
+            .from('users')
+            .select('*')
+            .eq('stripeConnectAccountId', account.id)
+            .single();
           
           if (user) {
             console.log(`User ${user.email} needs to complete:`, account.requirements?.currently_due || []);
@@ -191,13 +193,12 @@ export async function POST(request: NextRequest) {
           
           try {
             // Find all pending gifts for this account
-            const pendingGifts = await prisma.gift.findMany({
-              where: {
-                stripeConnectAccountId: account.id,
-                isClaimed: false,
-                claimedAt: null,
-              },
-            });
+            const { data: pendingGifts } = await supabase
+              .from('gifts')
+              .select('*')
+              .eq('stripeConnectAccountId', account.id)
+              .eq('isClaimed', false)
+              .is('claimedAt', null);
 
             console.log(`Found ${pendingGifts.length} pending gifts for account ${account.id}`);
 
@@ -217,14 +218,14 @@ export async function POST(request: NextRequest) {
                   },
                 });
 
-                await prisma.gift.update({
-                  where: { id: gift.id },
-                  data: {
+                await supabase
+                  .from('gifts')
+                  .update({
                     isClaimed: true,
-                    claimedAt: new Date(),
+                    claimedAt: new Date().toISOString(),
                     stripeTransferId: transfer.id,
-                  },
-                });
+                  })
+                  .eq('id', gift.id);
                 
                 console.log(`Successfully transferred gift ${gift.id} with transfer ${transfer.id}`);
                 
