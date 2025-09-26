@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
-);
+import { supabaseAdmin } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,28 +32,25 @@ export async function POST(request: NextRequest) {
     }
 
     // Update user record with the connected account ID
-    await (prisma as any).user.update({
-      where: { email },
-      data: {
+    await supabaseAdmin
+      .from('users')
+      .update({
         stripeConnectAccountId: accountId,
         isVerified: true,
-        identityVerifiedAt: new Date(),
-      },
-    });
+        identityVerifiedAt: new Date().toISOString(),
+      })
+      .eq('email', email);
 
     // Process any pending gifts for this user
-    const pendingGifts = await prisma.gift.findMany({
-      where: {
-        recipientEmail: email,
-        stripeTransferId: {
-          startsWith: 'pending_',
-        },
-        isClaimed: false,
-      },
-    });
+    const { data: pendingGifts } = await supabaseAdmin
+      .from('gifts')
+      .select('*')
+      .eq('recipientEmail', email)
+      .like('stripeTransferId', 'pending_%')
+      .eq('isClaimed', false);
 
     // Process each pending gift
-    for (const gift of pendingGifts) {
+    for (const gift of pendingGifts || []) {
       try {
         const transfer = await stripe.transfers.create({
           amount: gift.amount, 
@@ -71,14 +63,14 @@ export async function POST(request: NextRequest) {
           },
         });
         
-        await prisma.gift.update({
-          where: { id: gift.id },
-          data: {
+        await supabaseAdmin
+          .from('gifts')
+          .update({
             isClaimed: true,
-            claimedAt: new Date(),
+            claimedAt: new Date().toISOString(),
             stripeTransferId: transfer.id,
-          },
-        });
+          })
+          .eq('id', gift.id);
         
       } catch (transferError) {
         console.error(`Failed to transfer gift ${gift.id}:`, transferError);

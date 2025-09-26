@@ -45,16 +45,18 @@ export default function SuccessPage() {
   };
 
   useEffect(() => {
-    const paymentIntentId = searchParams.get('payment_intent_id');
+    const paymentIntentId = searchParams.get('payment_intent') || searchParams.get('payment_intent_id');
     const amount = searchParams.get('amount');
     const currency = searchParams.get('currency');
     const message = searchParams.get('message');
     const animationPreset = searchParams.get('animation_preset');
 
     if (paymentIntentId) {
+      console.log('Using payment intent ID:', paymentIntentId);
       // First verify the payment with Stripe server-side
       const verifyPayment = async (retryCount = 0) => {
         try {
+          console.log('Verifying payment:', paymentIntentId, 'attempt:', retryCount + 1);
           const response = await fetch('/api/verify-payment', {
             method: 'POST',
             headers: {

@@ -53,9 +53,11 @@ function PaymentForm({
     event.preventDefault();
 
     if (!stripe || !elements) {
+      console.log('Stripe or elements not ready:', { stripe: !!stripe, elements: !!elements });
       return;
     }
 
+    console.log('Submitting payment for:', { paymentIntentId, giftAmount, totalAmount });
     setIsProcessing(true);
     setError('');
 
@@ -156,6 +158,8 @@ export default function PaymentPage() {
         const currency = searchParams.get('currency') || 'eur';
         const message = searchParams.get('message') || '';
         const animationPreset = searchParams.get('animation_preset') || 'confettiRealistic';
+
+        console.log('Creating payment intent with:', { amount, currency, message, animationPreset });
 
         if (!amount) {
           setError('Geen bedrag opgegeven');
@@ -309,7 +313,7 @@ export default function PaymentPage() {
 
         {/* Payment Form */}
         <div className="bg-card/50 backdrop-blur-sm border border-border/30 rounded-2xl p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Betaal met iDEAL</h2>
+          <h2 className="text-lg font-semibold text-foreground mb-4">Betaal veilig</h2>
           
           {clientSecret && (
             <Elements

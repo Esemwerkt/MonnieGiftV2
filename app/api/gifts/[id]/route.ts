@@ -1,34 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-export const dynamic = 'force-dynamic';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabase';
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
-);
+export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const gift = await prisma.gift.findUnique({
-      where: { id: params.id },
-      select: {
-        id: true,
-        amount: true,
-        currency: true,
-        message: true,
-        senderEmail: true,
-        recipientEmail: true,
-        authenticationCode: true,
-        isClaimed: true,
-        claimedAt: true,
-        createdAt: true,
-        stripeTransferId: true,
-        animationPreset: true,
-      },
-    });
+    const { data: gift } = await supabaseAdmin
+      .from('gifts')
+      .select('id, amount, currency, message, senderEmail, recipientEmail, authenticationCode, isClaimed, claimedAt, createdAt, stripeTransferId, animationPreset')
+      .eq('id', params.id)
+      .single();
 
     if (!gift) {
       return NextResponse.json(

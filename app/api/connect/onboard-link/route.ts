@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       },
       business_profile: {
         product_description: 'Money gift platform - secure money transfers',
-        url: process.env.NEXT_PUBLIC_BASE_URL || 'https://monnie-gift-v222.vercel.app',
+        url: process.env.NEXTAUTH_URL || 'https://monnie-gift-v222.vercel.app',
       },
       settings: {
         payouts: {
@@ -38,8 +38,8 @@ export async function POST(request: NextRequest) {
     // Create account link for Express onboarding
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://monnie-gift-v222.vercel.app'}/stripe/terug?account_id=${account.id}&gift_id=${giftId}&email=${encodeURIComponent(email)}`,
-      return_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://monnie-gift-v222.vercel.app'}/stripe/terug?account_id=${account.id}&gift_id=${giftId}&email=${encodeURIComponent(email)}`,
+      refresh_url: `${process.env.NEXTAUTH_URL || 'https://monnie-gift-v222.vercel.app'}/stripe/terug?account_id=${account.id}&gift_id=${giftId}&email=${encodeURIComponent(email)}`,
+      return_url: `${process.env.NEXTAUTH_URL || 'https://monnie-gift-v222.vercel.app'}/stripe/terug?account_id=${account.id}&gift_id=${giftId}&email=${encodeURIComponent(email)}`,
       type: 'account_onboarding',
     });
 

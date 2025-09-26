@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
-);
+import { supabaseAdmin } from '@/lib/supabase';
 import { updateUserLimits, checkUserLimits, LIMITS } from '@/lib/limits';
 
 export const dynamic = 'force-dynamic';
@@ -30,15 +25,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = await (prisma as any).user.findFirst({
-      where: {
-        email: email,
-        OR: [
-          { stripeConnectAccountId: accountId },
-          { stripeConnectAccountId: `acct_${accountId}` }
-        ],
-      },
-    });
+    const { data: users } = await supabaseAdmin
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .or(`stripeConnectAccountId.eq.${accountId},stripeConnectAccountId.eq.acct_${accountId}`)
+      .limit(1);
+    
+    const user = users?.[0];
 
     if (!user) {
       return NextResponse.json(
@@ -73,20 +67,16 @@ export async function POST(request: NextRequest) {
     const accountIdForLookup = accountId.startsWith('acct_') ? accountId.replace('acct_', '') : accountId;
     console.log('Looking for pending gifts for email:', email, 'accountId:', accountIdForLookup);
     
-    const pendingGifts = await prisma.gift.findMany({
-      where: {
-        recipientEmail: email,
-        OR: [
-          { stripeTransferId: `pending_${accountIdForLookup}` },
-          { stripeTransferId: `pending_acct_${accountIdForLookup}` }
-        ],
-        isClaimed: false,
-      },
-    });
+    const { data: pendingGifts } = await supabaseAdmin
+      .from('gifts')
+      .select('*')
+      .eq('recipientEmail', email)
+      .or(`stripeTransferId.eq.pending_${accountIdForLookup},stripeTransferId.eq.pending_acct_${accountIdForLookup}`)
+      .eq('isClaimed', false);
 
-    console.log('Found pending gifts:', pendingGifts.length);
+    console.log('Found pending gifts:', pendingGifts?.length || 0);
 
-    if (pendingGifts.length === 0) {
+    if (!pendingGifts || pendingGifts.length === 0) {
       return NextResponse.json({
         success: true,
         message: 'No pending gifts to complete',
@@ -150,7 +140,7 @@ export async function POST(request: NextRequest) {
     }
 
     const completedGifts = [];
-    for (const gift of pendingGifts) {
+    for (const gift of pendingGifts || []) {
       try {
         console.log('Creating transfer for gift:', gift.id, 'amount:', gift.amount, 'to account:', stripeAccountId);
         
@@ -168,14 +158,14 @@ export async function POST(request: NextRequest) {
 
         await updateUserLimits(stripeAccountId, gift.amount);
 
-        await prisma.gift.update({
-          where: { id: gift.id },
-          data: {
+        await supabaseAdmin
+          .from('gifts')
+          .update({
             isClaimed: true,
-            claimedAt: new Date(),
+            claimedAt: new Date().toISOString(),
             stripeTransferId: transfer.id,
-          },
-        });
+          })
+          .eq('id', gift.id);
 
         console.log('Gift updated with transfer ID:', transfer.id);
 

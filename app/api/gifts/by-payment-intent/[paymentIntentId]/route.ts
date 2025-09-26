@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
-);
+import { supabaseAdmin } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +18,7 @@ export async function GET(
       );
     }
 
-    const { data: gift } = await supabase
+    const { data: gift } = await supabaseAdmin
       .from('gifts')
       .select('*')
       .eq('stripePaymentIntentId', paymentIntentId)

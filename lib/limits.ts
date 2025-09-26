@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma';
+import { supabaseAdmin } from '@/lib/supabase';
 
 export const LIMITS = {
   MIN_GIFT_AMOUNT: 100, // €1.00
@@ -25,14 +25,13 @@ export async function checkUserLimits(
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
 
-  let user = await (prisma as any).user.findFirst({
-    where: {
-      OR: [
-        { stripeConnectAccountId: stripeAccountId },
-        { stripeConnectAccountId: stripeAccountId.startsWith('acct_') ? stripeAccountId : `acct_${stripeAccountId}` }
-      ]
-    },
-  });
+  const { data: users } = await supabaseAdmin
+    .from('users')
+    .select('*')
+    .or(`stripeConnectAccountId.eq.${stripeAccountId},stripeConnectAccountId.eq.${stripeAccountId.startsWith('acct_') ? stripeAccountId : `acct_${stripeAccountId}`}`)
+    .limit(1);
+  
+  const user = users?.[0];
 
   if (!user) {
     return {
@@ -44,26 +43,30 @@ export async function checkUserLimits(
     };
   }
 
-  let userLimits = await (prisma as any).userLimits.findUnique({
-    where: {
-      userId_month_year: {
-        userId: user.id,
-        month: currentMonth,
-        year: currentYear,
-      },
-    },
-  });
+  const { data: userLimitsData } = await supabaseAdmin
+    .from('user_limits')
+    .select('*')
+    .eq('userId', user.id)
+    .eq('month', currentMonth)
+    .eq('year', currentYear)
+    .single();
+
+  let userLimits = userLimitsData;
 
   if (!userLimits) {
-    userLimits = await (prisma as any).userLimits.create({
-      data: {
+    const { data: newUserLimits } = await supabaseAdmin
+      .from('user_limits')
+      .insert({
         userId: user.id,
         month: currentMonth,
         year: currentYear,
         totalAmount: 0,
         giftCount: 0,
-      },
-    });
+      })
+      .select()
+      .single();
+    
+    userLimits = newUserLimits;
   }
 
   const newTotalAmount = userLimits.totalAmount + giftAmount;
@@ -140,38 +143,46 @@ export async function updateUserLimits(
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
 
-  const user = await (prisma as any).user.findUnique({
-    where: { stripeConnectAccountId: stripeAccountId },
-  });
+  const { data: user } = await supabaseAdmin
+    .from('users')
+    .select('*')
+    .eq('stripeConnectAccountId', stripeAccountId)
+    .single();
 
   if (!user) {
     throw new Error(`User not found for Stripe account: ${stripeAccountId}`);
   }
 
-  await (prisma as any).userLimits.upsert({
-    where: {
-      userId_month_year: {
+  // Check if user limits exist for this month/year
+  const { data: existingLimits } = await supabaseAdmin
+    .from('user_limits')
+    .select('*')
+    .eq('userId', user.id)
+    .eq('month', currentMonth)
+    .eq('year', currentYear)
+    .single();
+
+  if (existingLimits) {
+    // Update existing limits
+    await supabaseAdmin
+      .from('user_limits')
+      .update({
+        totalAmount: existingLimits.totalAmount + giftAmount,
+        giftCount: existingLimits.giftCount + 1,
+      })
+      .eq('id', existingLimits.id);
+  } else {
+    // Create new limits
+    await supabaseAdmin
+      .from('user_limits')
+      .insert({
         userId: user.id,
         month: currentMonth,
         year: currentYear,
-      },
-    },
-    update: {
-      totalAmount: {
-        increment: giftAmount,
-      },
-      giftCount: {
-        increment: 1,
-      },
-    },
-    create: {
-      userId: user.id,
-      month: currentMonth,
-      year: currentYear,
-      totalAmount: giftAmount,
-      giftCount: 1,
-    },
-  });
+        totalAmount: giftAmount,
+        giftCount: 1,
+      });
+  }
 }
 
 export async function getUserLimits(stripeAccountId: string) {
@@ -179,9 +190,11 @@ export async function getUserLimits(stripeAccountId: string) {
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
 
-  const user = await (prisma as any).user.findUnique({
-    where: { stripeConnectAccountId: stripeAccountId },
-  });
+  const { data: user } = await supabaseAdmin
+    .from('users')
+    .select('*')
+    .eq('stripeConnectAccountId', stripeAccountId)
+    .single();
 
   if (!user) {
     return {
@@ -194,15 +207,13 @@ export async function getUserLimits(stripeAccountId: string) {
     };
   }
 
-  const userLimits = await (prisma as any).userLimits.findUnique({
-    where: {
-      userId_month_year: {
-        userId: user.id,
-        month: currentMonth,
-        year: currentYear,
-      },
-    },
-  });
+  const { data: userLimits } = await supabaseAdmin
+    .from('user_limits')
+    .select('*')
+    .eq('userId', user.id)
+    .eq('month', currentMonth)
+    .eq('year', currentYear)
+    .single();
 
   const currentAmount = userLimits?.totalAmount || 0;
   const currentGiftCount = userLimits?.giftCount || 0;

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { rateLimit } from '../rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,18 +15,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Rate limiting per payment intent (more logical for this use case)
-    const rateLimitResult = rateLimit(`verify-payment-${paymentIntentId}`, 5, 300000); // 5 requests per 5 minutes per payment intent
-    
-    if (!rateLimitResult.allowed) {
-      return NextResponse.json(
-        { 
-          error: 'Too many requests',
-          retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)
-        },
-        { status: 429 }
-      );
-    }
+    // Rate limiting temporarily disabled
 
     // Validate payment intent ID format
     if (!paymentIntentId.startsWith('pi_') || paymentIntentId.length < 20) {
@@ -38,10 +26,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify the payment intent with Stripe
+    console.log('Retrieving payment intent:', paymentIntentId);
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    console.log('Payment intent status:', paymentIntent.status);
+    console.log('Payment intent amount:', paymentIntent.amount);
+    console.log('Payment intent metadata:', paymentIntent.metadata);
 
     // Check if payment actually succeeded
     if (paymentIntent.status !== 'succeeded') {
+      console.log('Payment not succeeded, status:', paymentIntent.status);
       return NextResponse.json(
         { 
           error: 'Payment not completed',

@@ -28,6 +28,9 @@ export default function BeautifulConfetti({
     if (!trigger || !jsConfettiRef.current) return;
 
     const jsConfetti = jsConfettiRef.current;
+    
+    // Add error handling for DOM access
+    try {
 
     const getConfettiConfig = (variant: string, type: string) => {
       const baseConfig = {
@@ -112,6 +115,10 @@ export default function BeautifulConfetti({
     setTimeout(() => {
       onComplete?.();
     }, 2000);
+    
+    } catch (error) {
+      console.error('Confetti error:', error);
+    }
 
   }, [trigger, variant, onComplete]);
 
@@ -122,7 +129,8 @@ export function useBeautifulConfetti() {
   const triggerConfetti = (variant: 'celebration' | 'hearts' | 'money' | 'mixed' = 'celebration', type: 'emojis' | 'confetti' | 'mixed' = 'mixed') => {
     if (typeof window === 'undefined') return;
     
-    const jsConfetti = new JSConfetti();
+    try {
+      const jsConfetti = new JSConfetti();
 
     const getConfettiConfig = (variant: string, type: string) => {
       const baseConfig = {
@@ -199,12 +207,17 @@ export function useBeautifulConfetti() {
         });
       }, 400);
     }
+    
+    } catch (error) {
+      console.error('Confetti error:', error);
+    }
   };
 
   const triggerFullScreenExplosion = (variant: 'celebration' | 'hearts' | 'money' | 'mixed' = 'celebration', type: 'emojis' | 'confetti' | 'mixed' = 'mixed') => {
     if (typeof window === 'undefined') return;
     
-    const jsConfetti = new JSConfetti();
+    try {
+      const jsConfetti = new JSConfetti();
 
     const getFullScreenConfig = (variant: string, type: string) => {
       const baseConfig = {
@@ -296,6 +309,10 @@ export function useBeautifulConfetti() {
           emojis: config.emojis,
         });
       }, 600);
+    }
+    
+    } catch (error) {
+      console.error('Confetti error:', error);
     }
   };
 

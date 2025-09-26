@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
-);
+import { supabaseAdmin } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,31 +18,39 @@ export async function POST(request: NextRequest) {
     }
 
     // Update user record with the connected account ID
-    await (prisma as any).user.upsert({
-      where: { email },
-      update: {
-        stripeConnectAccountId: accountId,
-        isVerified: true,
-        identityVerifiedAt: new Date(),
-      },
-      create: {
-        email,
-        stripeConnectAccountId: accountId,
-        isVerified: true,
-        identityVerifiedAt: new Date(),
-      },
-    });
+    const { data: existingUser } = await supabaseAdmin
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    if (existingUser) {
+      await supabaseAdmin
+        .from('users')
+        .update({
+          stripeConnectAccountId: accountId,
+          isVerified: true,
+          identityVerifiedAt: new Date().toISOString(),
+        })
+        .eq('id', existingUser.id);
+    } else {
+      await supabaseAdmin
+        .from('users')
+        .insert({
+          email,
+          stripeConnectAccountId: accountId,
+          isVerified: true,
+          identityVerifiedAt: new Date().toISOString(),
+        });
+    }
 
     // Process any pending gifts for this user
-    const pendingGifts = await prisma.gift.findMany({
-      where: {
-        recipientEmail: email,
-        stripeTransferId: {
-          startsWith: 'pending_',
-        },
-        isClaimed: false,
-      },
-    });
+    const { data: pendingGifts } = await supabaseAdmin
+      .from('gifts')
+      .select('*')
+      .eq('recipientEmail', email)
+      .like('stripeTransferId', 'pending_%')
+      .eq('isClaimed', false);
 
     // Check if account is ready for transfers
     const account = await stripe.accounts.retrieve(accountId);
@@ -68,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Process each pending gift
-    for (const gift of pendingGifts) {
+    for (const gift of pendingGifts || []) {
       try {
         const transfer = await stripe.transfers.create({
           amount: gift.amount, 
@@ -81,14 +84,14 @@ export async function POST(request: NextRequest) {
           },
         });
         
-        await prisma.gift.update({
-          where: { id: gift.id },
-          data: {
+        await supabaseAdmin
+          .from('gifts')
+          .update({
             isClaimed: true,
-            claimedAt: new Date(),
+            claimedAt: new Date().toISOString(),
             stripeTransferId: transfer.id,
-          },
-        });
+          })
+          .eq('id', gift.id);
         
       } catch (transferError: any) {
         console.error(`Failed to transfer gift ${gift.id}:`, transferError);

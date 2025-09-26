@@ -1,13 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabase';
 import { sendGiftEmail } from '@/lib/email';
 import crypto from 'crypto';
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
-);
 
 export const dynamic = 'force-dynamic';
 
@@ -51,7 +46,7 @@ export async function POST(request: NextRequest) {
         if (paymentIntent.status === 'succeeded') {
           let existingGift;
           try {
-            const { data: gift } = await supabase
+            const { data: gift } = await supabaseAdmin
               .from('gifts')
               .select('*')
               .eq('stripePaymentIntentId', paymentIntent.id)
@@ -93,18 +88,21 @@ export async function POST(request: NextRequest) {
                 const authenticationCode = crypto.randomBytes(3).toString('hex').toUpperCase();
                 console.log('Generated authentication code:', authenticationCode);
                 
-                const { data: gift, error: giftError } = await supabase
+                const { data: gift, error: giftError } = await supabaseAdmin
                   .from('gifts')
                   .insert([{
                     amount: parseInt(giftAmount),
                     currency: paymentIntent.currency,
                     message: message || '',
+                    senderEmail: paymentIntent.metadata?.senderEmail || 'unknown@example.com',
+                    recipientEmail: paymentIntent.metadata?.recipientEmail || 'pending@example.com',
                     authenticationCode,
-                    animationPreset: animationPreset || 'confettiRealistic',
                     stripePaymentIntentId: paymentIntent.id,
-                    stripeConnectAccountId: null,
+                    platformFee: parseInt(paymentIntent.metadata?.platformFee || '0'),
+                    animationPreset: animationPreset || 'confettiRealistic',
                     platformFeeAmount: parseInt(paymentIntent.metadata?.platformFee || '0'),
-                    applicationFeeAmount: 0, // No application fee in simplified flow
+                    applicationFeeAmount: 0,
+                    stripeConnectAccountId: null,
                   }])
                   .select()
                   .single();
@@ -146,7 +144,7 @@ export async function POST(request: NextRequest) {
         
         if (transfer.metadata?.giftId) {
           try {
-            await supabase
+            await supabaseAdmin
               .from('gifts')
               .update({
                 isClaimed: false, 
@@ -172,7 +170,7 @@ export async function POST(request: NextRequest) {
         
         // Check if this is a user account
         try {
-          const { data: user } = await supabase
+          const { data: user } = await supabaseAdmin
             .from('users')
             .select('*')
             .eq('stripeConnectAccountId', account.id)
@@ -193,7 +191,7 @@ export async function POST(request: NextRequest) {
           
           try {
             // Find all pending gifts for this account
-            const { data: pendingGifts } = await supabase
+            const { data: pendingGifts } = await supabaseAdmin
               .from('gifts')
               .select('*')
               .eq('stripeConnectAccountId', account.id)
@@ -218,7 +216,7 @@ export async function POST(request: NextRequest) {
                   },
                 });
 
-                await supabase
+                await supabaseAdmin
                   .from('gifts')
                   .update({
                     isClaimed: true,

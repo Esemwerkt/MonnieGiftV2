@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabase';
 import { generateVerificationCode } from '@/lib/auth';
 import { sendGiftEmail } from '@/lib/email';
 import { checkUserLimits, LIMITS } from '@/lib/limits';
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
-);
 
 export const dynamic = 'force-dynamic';
 
@@ -46,7 +41,7 @@ export async function POST(request: NextRequest) {
     // Check if gift already exists for this payment intent (prevent duplicates)
     if (paymentIntentId) {
       try {
-        const { data: existingGift } = await supabase
+        const { data: existingGift } = await supabaseAdmin
           .from('gifts')
           .select('*')
           .eq('stripePaymentIntentId', paymentIntentId)
@@ -80,7 +75,7 @@ export async function POST(request: NextRequest) {
     };
     
     try {
-      const { data: newGift, error } = await supabase
+      const { data: newGift, error } = await supabaseAdmin
         .from('gifts')
         .insert([giftData])
         .select()
@@ -124,7 +119,7 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      await supabase
+      await supabaseAdmin
         .from('gifts')
         .update({ stripePaymentIntentId: paymentIntent.id })
         .eq('id', gift.id);

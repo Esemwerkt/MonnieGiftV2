@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,12 +25,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { prisma } = await import('@/lib/prisma');
-
-    await prisma.user.update({
-      where: { stripeConnectAccountId: accountId },
-      data: { isVerified: true }
-    });
+    await supabaseAdmin
+      .from('users')
+      .update({ isVerified: true })
+      .eq('stripeConnectAccountId', accountId);
 
     return NextResponse.json({
       success: true,
