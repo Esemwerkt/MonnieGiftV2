@@ -82,54 +82,59 @@ export async function POST(request: NextRequest) {
         });
       }
     } else {
-      // Create Express account according to playbook
-      const account = await stripe.accounts.create({
-        type: 'express',
-        country: 'NL',
-        business_type: 'individual',
-        email: email,
-        capabilities: { 
-          transfers: { requested: true } 
-        },
-        tos_acceptance: { 
-          service_agreement: 'recipient' 
-        },
-        metadata: {
-          onboarding_type: 'express_recipient',
-          platform: 'monniegift',
-          gift_amount: gift.amount.toString(),
-          use_case: 'gift_recipient',
-        },
-      });
+      try {
+        // Create Express account according to playbook
+        const account = await stripe.accounts.create({
+          type: 'express',
+          country: 'NL',
+          business_type: 'individual',
+          email: email,
+          capabilities: { 
+            transfers: { requested: true } 
+          },
+          tos_acceptance: { 
+            service_agreement: 'recipient' 
+          },
+        });
 
-      // Create user record
-      user = await (prisma as any).user.create({
-        data: {
-          email,
-          name: email.split('@')[0],
-          stripeConnectAccountId: account.id,
-          isVerified: false, // Will be verified after onboarding
-        },
-      });
+        // Create user record
+        user = await (prisma as any).user.create({
+          data: {
+            email,
+            name: email.split('@')[0],
+            stripeConnectAccountId: account.id,
+            isVerified: false, // Will be verified after onboarding
+          },
+        });
 
-      stripeAccountId = account.id;
-      
-      // Mark gift as pending transfer
-      await prisma.gift.update({
-        where: { id: giftId },
-        data: {
-          recipientEmail: email,
-          stripeTransferId: `pending_${stripeAccountId}`,
-        },
-      });
+        stripeAccountId = account.id;
+        
+        // Mark gift as pending transfer
+        await prisma.gift.update({
+          where: { id: giftId },
+          data: {
+            recipientEmail: email,
+            stripeTransferId: `pending_${stripeAccountId}`,
+          },
+        });
 
-      return NextResponse.json({
-        needsOnboarding: true,
-        accountId: stripeAccountId,
-        giftId: giftId,
-        email: email,
-        message: 'Account setup required',
-      });
+        return NextResponse.json({
+          needsOnboarding: true,
+          accountId: stripeAccountId,
+          giftId: giftId,
+          email: email,
+          message: 'Account setup required',
+        });
+      } catch (accountError) {
+        console.error('Error creating Express account:', accountError);
+        return NextResponse.json(
+          { 
+            error: 'Failed to create account for gift claiming',
+            details: accountError instanceof Error ? accountError.message : String(accountError)
+          },
+          { status: 500 }
+        );
+      }
     }
 
     const transfer = await stripe.transfers.create({
@@ -158,12 +163,14 @@ export async function POST(request: NextRequest) {
       transferId: transfer.id,
     });
       } catch (error) {
+        console.error('Error in claim API:', error);
         return NextResponse.json(
-      { 
-        error: 'Er is een fout opgetreden bij het ophalen van het cadeau',
-        details: error instanceof Error ? error.message : String(error)
-      },
-      { status: 500 }
-    );
-  }
+          { 
+            error: 'Er is een fout opgetreden bij het ophalen van het cadeau',
+            details: error instanceof Error ? error.message : String(error)
+          },
+          { status: 500 }
+        );
+      }
+    }
 }
