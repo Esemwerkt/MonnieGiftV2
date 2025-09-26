@@ -10,6 +10,7 @@ export async function POST(request: NextRequest) {
     const { accountId, giftId, email } = body;
 
     if (!accountId || !email) {
+      console.error('Missing required parameters:', { accountId, email, giftId });
       return NextResponse.json(
         { error: 'Account ID and email are required' },
         { status: 400 }

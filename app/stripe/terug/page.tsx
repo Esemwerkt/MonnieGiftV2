@@ -12,17 +12,19 @@ export default function StripeReturnPage() {
   const [message, setMessage] = useState('');
 
   const accountId = searchParams.get('account_id');
+  const giftId = searchParams.get('gift_id');
+  const email = searchParams.get('email');
   
-  // Extract gift_id and email from state parameter (format: gift_{giftId}_{email})
+  // Extract gift_id and email from state parameter (format: gift_{giftId}_{email}) if not in URL params
   const state = searchParams.get('state');
-  let giftId = searchParams.get('gift_id');
-  let email = searchParams.get('email');
+  let extractedGiftId = giftId;
+  let extractedEmail = email;
   
-  if (state && state.startsWith('gift_')) {
+  if (state && state.startsWith('gift_') && (!giftId || !email)) {
     const stateParts = state.split('_');
     if (stateParts.length >= 3) {
-      giftId = stateParts[1];
-      email = stateParts.slice(2).join('_'); // In case email contains underscores
+      extractedGiftId = stateParts[1];
+      extractedEmail = stateParts.slice(2).join('_'); // In case email contains underscores
     }
   }
 
@@ -30,6 +32,16 @@ export default function StripeReturnPage() {
     const checkOnboardingStatus = async () => {
       try {
         const code = searchParams.get('code');
+        
+        // Debug logging
+        console.log('Stripe return page params:', {
+          accountId,
+          giftId: extractedGiftId,
+          email: extractedEmail,
+          code,
+          state,
+          allParams: Object.fromEntries(searchParams.entries())
+        });
         
         if (code && state) {
           // OAuth callback - process the authorization code
@@ -41,8 +53,8 @@ export default function StripeReturnPage() {
             body: JSON.stringify({
               code,
               state,
-              giftId,
-              email,
+              giftId: extractedGiftId,
+              email: extractedEmail,
             }),
           });
 
@@ -54,8 +66,8 @@ export default function StripeReturnPage() {
             
             // Redirect to claim page after a short delay
             setTimeout(() => {
-              if (giftId && email) {
-                router.push(`/claim/${giftId}?email=${encodeURIComponent(email)}&onboarding_complete=true&auto_claim=true`);
+              if (extractedGiftId && extractedEmail) {
+                router.push(`/claim/${extractedGiftId}?email=${encodeURIComponent(extractedEmail)}&onboarding_complete=true&auto_claim=true`);
               } else {
                 router.push('/');
               }
@@ -73,8 +85,8 @@ export default function StripeReturnPage() {
             },
             body: JSON.stringify({
               accountId,
-              giftId,
-              email,
+              giftId: extractedGiftId,
+              email: extractedEmail,
             }),
           });
 
@@ -85,8 +97,8 @@ export default function StripeReturnPage() {
             setMessage('Account setup voltooid! Je cadeau wordt nu verwerkt...');
             
             setTimeout(() => {
-              if (giftId && email) {
-                router.push(`/claim/${giftId}?email=${encodeURIComponent(email)}&onboarding_complete=true&auto_claim=true`);
+              if (extractedGiftId && extractedEmail) {
+                router.push(`/claim/${extractedGiftId}?email=${encodeURIComponent(extractedEmail)}&onboarding_complete=true&auto_claim=true`);
               } else {
                 router.push('/');
               }
@@ -101,7 +113,7 @@ export default function StripeReturnPage() {
           }
         } else {
           setStatus('error');
-          setMessage('Geen account ID of OAuth code gevonden.');
+          setMessage('Geen account ID of OAuth code gevonden. Probeer het opnieuw of neem contact op met de ondersteuning.');
         }
       } catch (error) {
         setStatus('error');
