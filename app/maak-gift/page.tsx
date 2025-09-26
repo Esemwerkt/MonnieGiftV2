@@ -244,7 +244,7 @@ export default function HomePage() {
     message: "",
     senderEmail: "",
     recipientEmail: "",
-    animationPreset: "",
+    animationPreset: "confettiRealistic",
   });
   const [showCustomAmount, setShowCustomAmount] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
