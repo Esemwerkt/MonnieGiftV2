@@ -79,10 +79,12 @@ export async function POST(request: NextRequest) {
         data: giftData,
       });
     } catch (dbError) {
+      console.error('Gift creation error:', dbError);
       return NextResponse.json(
         { 
-          error: 'Database connection failed. Please check your environment variables.',
-          details: 'Unable to create gift record in database'
+          error: 'Failed to create gift',
+          details: dbError instanceof Error ? dbError.message : String(dbError),
+          giftData: giftData
         },
         { status: 500 }
       );
