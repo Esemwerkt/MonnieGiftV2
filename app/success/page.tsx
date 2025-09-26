@@ -149,6 +149,7 @@ export default function SuccessPage() {
             setClaimUrl(claimLink);
             
             setShowConfetti(true);
+            setProcessingComplete(true); // Set this immediately after gift creation
 
             // Send email
             setTimeout(async () => {
@@ -175,8 +176,6 @@ export default function SuccessPage() {
                 setSendingEmail(false);
               }
             }, 1000);
-            
-            setProcessingComplete(true);
           } else {
             console.error('Failed to create gift:', data.error);
             setProcessingComplete(true);
