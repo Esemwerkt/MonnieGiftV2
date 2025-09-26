@@ -66,6 +66,8 @@ export async function POST(request: NextRequest) {
     }
 
     const accountIdForLookup = accountId.startsWith('acct_') ? accountId.replace('acct_', '') : accountId;
+    console.log('Looking for pending gifts for email:', email, 'accountId:', accountIdForLookup);
+    
     const pendingGifts = await prisma.gift.findMany({
       where: {
         recipientEmail: email,
@@ -76,6 +78,8 @@ export async function POST(request: NextRequest) {
         isClaimed: false,
       },
     });
+
+    console.log('Found pending gifts:', pendingGifts.length);
 
     if (pendingGifts.length === 0) {
       return NextResponse.json({
@@ -143,6 +147,8 @@ export async function POST(request: NextRequest) {
     const completedGifts = [];
     for (const gift of pendingGifts) {
       try {
+        console.log('Creating transfer for gift:', gift.id, 'amount:', gift.amount, 'to account:', stripeAccountId);
+        
         const transfer = await stripe.transfers.create({
           amount: gift.amount,
           currency: gift.currency,
@@ -152,6 +158,8 @@ export async function POST(request: NextRequest) {
             recipientEmail: email,
           },
         });
+
+        console.log('Transfer created:', transfer.id);
 
         await updateUserLimits(stripeAccountId, gift.amount);
 
@@ -164,12 +172,15 @@ export async function POST(request: NextRequest) {
           },
         });
 
+        console.log('Gift updated with transfer ID:', transfer.id);
+
         completedGifts.push({
           giftId: gift.id,
           amount: gift.amount,
           transferId: transfer.id,
             });
       } catch (transferError) {
+        console.error('Transfer error for gift', gift.id, ':', transferError);
       }
     }
 

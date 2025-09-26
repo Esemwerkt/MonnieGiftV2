@@ -207,7 +207,6 @@ export default function ClaimGiftPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          giftId,
           email,
           accountId,
         }),
