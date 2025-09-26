@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       client_id: process.env.TEST_CLIENT_ID || 'ca_T7CBc0ces4KI6ZjnZyQfmRthI17yuwp6',
       response_type: 'code',
       scope: 'read_write',
-      redirect_uri: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://monnie-gift-v222.vercel.app'}/stripe/terug?gift_id=${giftId}&email=${encodeURIComponent(email)}`,
+      redirect_uri: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://monnie-gift-v222.vercel.app'}/stripe/terug`,
       state: `gift_${giftId}_${email}`,
     });
 

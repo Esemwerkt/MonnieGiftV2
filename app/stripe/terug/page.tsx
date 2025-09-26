@@ -11,15 +11,25 @@ export default function StripeReturnPage() {
   const [status, setStatus] = useState<'success' | 'error' | 'loading'>('loading');
   const [message, setMessage] = useState('');
 
-  const giftId = searchParams.get('gift_id');
-  const email = searchParams.get('email');
   const accountId = searchParams.get('account_id');
+  
+  // Extract gift_id and email from state parameter (format: gift_{giftId}_{email})
+  const state = searchParams.get('state');
+  let giftId = searchParams.get('gift_id');
+  let email = searchParams.get('email');
+  
+  if (state && state.startsWith('gift_')) {
+    const stateParts = state.split('_');
+    if (stateParts.length >= 3) {
+      giftId = stateParts[1];
+      email = stateParts.slice(2).join('_'); // In case email contains underscores
+    }
+  }
 
   useEffect(() => {
     const checkOnboardingStatus = async () => {
       try {
         const code = searchParams.get('code');
-        const state = searchParams.get('state');
         
         if (code && state) {
           // OAuth callback - process the authorization code
