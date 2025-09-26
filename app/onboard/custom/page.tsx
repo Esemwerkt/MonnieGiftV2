@@ -42,7 +42,8 @@ export default function CustomOnboardPage() {
     setError('');
 
     try {
-      const response = await fetch('/api/connect/custom-onboard', {
+      // Create onboarding link using the new Express flow
+      const response = await fetch('/api/connect/onboard-link', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -57,23 +58,16 @@ export default function CustomOnboardPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to complete onboarding');
+        throw new Error(data.error || 'Failed to create onboarding link');
       }
 
       if (data.onboardingUrl) {
+        // Redirect to Stripe's Express onboarding
         window.location.href = data.onboardingUrl;
         return;
       }
 
-      setSuccess(true);
-      
-      setTimeout(() => {
-        if (giftId && formData.email) {
-          router.push(`/claim/${giftId}?email=${encodeURIComponent(formData.email)}&onboarding_complete=true&auto_claim=true`);
-        } else {
-          router.push('/');
-        }
-      }, 2000);
+      setError('No onboarding URL received');
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');

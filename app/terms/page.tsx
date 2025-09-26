@@ -140,7 +140,7 @@ export default function TermsPage() {
                 Voor vragen over deze voorwaarden kun je contact opnemen via:
               </p>
               <div className="mt-4 p-4 bg-primary/10 border border-primary/20 rounded-xl">
-                <p className="text-primary font-medium">E-mail: hello@monniegift.nl</p>
+                <p className="text-primary font-medium">E-mail: hello@monnie-gift-v222.vercel.app</p>
               </div>
             </section>
 

@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma';
 
 export const LIMITS = {
   MIN_GIFT_AMOUNT: 100, // €1.00
-  MAX_GIFT_AMOUNT: 10000, // €100.00
+  MAX_GIFT_AMOUNT: 5000, // €50.00 (per playbook)
   MAX_DAILY_GIFTS: 10, // 10 gifts per day
   MAX_MONTHLY_AMOUNT: 100000, // €1000.00 per month
   MAX_MONTHLY_GIFTS: 10, // 10 gifts per month

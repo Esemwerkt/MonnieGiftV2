@@ -191,7 +191,7 @@ export default function PrivacyPage() {
                 Voor vragen over dit privacybeleid of je gegevens:
               </p>
               <div className="mt-4 p-4 bg-primary/10 border border-primary/20 rounded-xl">
-                <p className="text-primary font-medium">E-mail: privacy@monniegift.nl</p>
+                <p className="text-primary font-medium">E-mail: privacy@monnie-gift-v222.vercel.app</p>
                 <p className="text-muted-foreground text-sm mt-1">
                   We reageren binnen 30 dagen op je verzoek
                 </p>

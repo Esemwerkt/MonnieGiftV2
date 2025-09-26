@@ -137,30 +137,41 @@ export async function POST(request: NextRequest) {
       case 'account.updated': {
         const account = event.data.object;
         
-        const isV2Account = (account as any).configurations !== undefined;
-        
-        if (isV2Account) {
-          const merchantConfig = (account as any).configurations?.merchant;
-        } else {
-        }
-        
+        // Check if account has requirements that need to be fulfilled
         if (account.requirements && account.requirements.currently_due && account.requirements.currently_due.length > 0) {
+          console.log(`Account ${account.id} has pending requirements:`, account.requirements.currently_due);
           
+          // Find user and log requirements
           const user = await (prisma as any).user.findFirst({
             where: { stripeConnectAccountId: account.id },
           });
           
           if (user) {
+            console.log(`User ${user.email} needs to complete:`, account.requirements.currently_due);
           }
         }
         
-        if (account.details_submitted && (!account.requirements || !account.requirements.currently_due || account.requirements.currently_due.length === 0)) {
+        // Check if account is fully onboarded and ready for transfers
+        if (account.details_submitted && 
+            (!account.requirements || !account.requirements.currently_due || account.requirements.currently_due.length === 0)) {
+          
+          console.log(`Account ${account.id} is fully onboarded, processing pending gifts`);
           
           const user = await (prisma as any).user.findFirst({
             where: { stripeConnectAccountId: account.id },
           });
           
           if (user) {
+            // Mark user as verified
+            await (prisma as any).user.update({
+              where: { id: user.id },
+              data: { 
+                isVerified: true,
+                identityVerifiedAt: new Date(),
+              },
+            });
+
+            // Find pending gifts for this user
             const pendingGifts = await prisma.gift.findMany({
               where: {
                 recipientEmail: user.email,
@@ -171,9 +182,13 @@ export async function POST(request: NextRequest) {
               },
             });
             
+            console.log(`Found ${pendingGifts.length} pending gifts for ${user.email}`);
             
+            // Process each pending gift
             for (const gift of pendingGifts) {
               try {
+                console.log(`Processing gift ${gift.id} for ${gift.amount} cents`);
+                
                 const transfer = await stripe.transfers.create({
                   amount: gift.amount, 
                   currency: gift.currency,
@@ -194,7 +209,10 @@ export async function POST(request: NextRequest) {
                   },
                 });
                 
+                console.log(`Successfully transferred gift ${gift.id} with transfer ${transfer.id}`);
+                
               } catch (transferError) {
+                console.error(`Failed to transfer gift ${gift.id}:`, transferError);
               }
             }
           }

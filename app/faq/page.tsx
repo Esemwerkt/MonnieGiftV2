@@ -97,10 +97,10 @@ export default function FAQPage() {
               Neem contact met ons op voor persoonlijke hulp
             </p>
             <a
-              href="mailto:hello@monniegift.nl"
+              href="mailto:hello@monnie-gift-v222.vercel.app"
               className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-colors font-medium"
             >
-              hello@monniegift.nl
+              hello@monnie-gift-v222.vercel.app
             </a>
           </div>
         </div>

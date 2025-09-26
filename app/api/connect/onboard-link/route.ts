@@ -3,13 +3,6 @@ import { stripe } from '@/lib/stripe';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
-  return NextResponse.json({ 
-    message: 'This endpoint only accepts POST requests',
-    method: 'POST'
-  });
-}
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -22,33 +15,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const account = await stripe.accounts.retrieve(accountId);
-    
-    if (account.type !== 'express') {
-      return NextResponse.json(
-        { error: 'Account is not an Express account' },
-        { status: 400 }
-      );
-    }
-
-    const returnUrl = giftId && email 
-      ? `${process.env.NEXTAUTH_URL}/claim/${giftId}?email=${encodeURIComponent(email)}&onboarding_complete=true&auto_claim=true&account_id=${accountId}`
-      : `${process.env.NEXTAUTH_URL}/onboard/success?account_id=${accountId}`;
-    
-    const accountLink = await stripe.accountLinks.create({
+    // Create onboarding link according to playbook
+    const link = await stripe.accountLinks.create({
       account: accountId,
-      refresh_url: `${process.env.NEXTAUTH_URL}/onboard?account_id=${accountId}`,
-      return_url: returnUrl,
       type: 'account_onboarding',
+      refresh_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://monnie-gift-v222.vercel.app'}/stripe/refresh`,
+      return_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://monnie-gift-v222.vercel.app'}/stripe/terug?gift_id=${giftId}&email=${encodeURIComponent(email)}`,
     });
 
     return NextResponse.json({
-      onboardingUrl: accountLink.url,
-      message: 'Express onboarding link created successfully',
+      success: true,
+      onboardingUrl: link.url,
+      expiresAt: link.expires_at,
     });
   } catch (error) {
+    console.error('Error creating onboarding link:', error);
     return NextResponse.json(
-      { error: 'Failed to create onboarding link' },
+      { 
+        error: 'Failed to create onboarding link',
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     );
   }

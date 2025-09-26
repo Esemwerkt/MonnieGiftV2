@@ -578,7 +578,7 @@ export default function HomePage() {
                 {/* Help text - only show when custom amount is active */}
                 {showCustomAmount && (
                   <p className="text-xs text-muted-foreground mt-3">
-                    Minimum €1,00 • Maximum €100,00
+                    Minimum €1,00 • Maximum €50,00
                   </p>
                 )}
               </div>

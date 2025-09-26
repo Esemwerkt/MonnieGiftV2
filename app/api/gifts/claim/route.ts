@@ -82,60 +82,39 @@ export async function POST(request: NextRequest) {
         });
       }
     } else {
+      // Create Express account according to playbook
       const account = await stripe.accounts.create({
         type: 'express',
         country: 'NL',
-        email: email,
-        capabilities: {
-          transfers: { requested: true }
-        },
         business_type: 'individual',
-        individual: {
-          email: email,
-          first_name: email.split('@')[0],
-          last_name: 'User',
-          dob: {
-            day: 1,
-            month: 1,
-            year: 1990, 
-          },
-          address: {
-            country: 'NL',
-            line1: '', 
-            city: '',
-            postal_code: '', 
-          },
+        email: email,
+        capabilities: { 
+          transfers: { requested: true } 
         },
-        settings: {
-          payouts: {
-            schedule: {
-              interval: 'daily',
-            },
-          },
-        },
-        business_profile: {
-          url: 'https://monniegift.com', 
-          mcc: '5999', 
+        tos_acceptance: { 
+          service_agreement: 'recipient' 
         },
         metadata: {
-          onboarding_type: 'kyc_light',
+          onboarding_type: 'express_recipient',
           platform: 'monniegift',
           gift_amount: gift.amount.toString(),
-          use_case: 'incidental_gift',
+          use_case: 'gift_recipient',
         },
       });
 
+      // Create user record
       user = await (prisma as any).user.create({
         data: {
           email,
           name: email.split('@')[0],
           stripeConnectAccountId: account.id,
-          isVerified: true,
+          isVerified: false, // Will be verified after onboarding
         },
       });
 
       stripeAccountId = account.id;
       
+      // Mark gift as pending transfer
       await prisma.gift.update({
         where: { id: giftId },
         data: {

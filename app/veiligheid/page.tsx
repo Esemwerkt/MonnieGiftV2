@@ -241,10 +241,10 @@ export default function VeiligheidPage() {
               Heb je een beveiligingsprobleem ontdekt? Laat het ons weten.
             </p>
             <a
-              href="mailto:security@monniegift.nl"
+              href="mailto:security@monnie-gift-v222.vercel.app"
               className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-colors font-medium"
             >
-              security@monniegift.nl
+              security@monnie-gift-v222.vercel.app
             </a>
           </div>
         </div>
