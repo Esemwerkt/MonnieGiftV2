@@ -60,12 +60,6 @@ export default function SuccessPage() {
   };
 
   useEffect(() => {
-    // Prevent multiple executions
-    if (processingComplete) {
-      console.log('Processing already complete, skipping...');
-      return;
-    }
-
     const paymentIntentId = searchParams.get('payment_intent_id');
     const amount = searchParams.get('amount');
     const currency = searchParams.get('currency');
@@ -75,6 +69,21 @@ export default function SuccessPage() {
     const animationPreset = searchParams.get('animation_preset');
 
     if (paymentIntentId && amount && currency && recipientEmail && senderEmail) {
+      // Check if processing was already completed for this payment intent
+      const processingKey = `gift_processed_${paymentIntentId}`;
+      const wasProcessed = sessionStorage.getItem(processingKey);
+      
+      if (wasProcessed) {
+        console.log('Processing already complete for this payment intent, skipping...');
+        setProcessingComplete(true);
+        return;
+      }
+
+      // Prevent multiple executions within the same session
+      if (processingComplete) {
+        console.log('Processing already complete, skipping...');
+        return;
+      }
       // Simply retrieve the existing gift (created by webhook)
       const retrieveGift = async () => {
         try {
@@ -104,6 +113,7 @@ export default function SuccessPage() {
             setShowConfetti(true);
             setEmailSent(true); // Webhook handles email sending
             setProcessingComplete(true);
+            sessionStorage.setItem(processingKey, 'true');
             console.log('Gift retrieved successfully');
           } else {
             console.error('Failed to retrieve gift:', response.status);
@@ -133,6 +143,7 @@ export default function SuccessPage() {
                   setShowConfetti(true);
                   setEmailSent(true);
                   setProcessingComplete(true);
+                  sessionStorage.setItem(processingKey, 'true');
                   console.log('Gift retrieved successfully on retry');
                 } else {
                   console.error('Still no gift found after retry');
@@ -175,6 +186,7 @@ export default function SuccessPage() {
                       
                       setShowConfetti(true);
                       setProcessingComplete(true);
+                      sessionStorage.setItem(processingKey, 'true');
                       console.log('Gift created successfully as fallback');
                       
                       // Send email for fallback gift
@@ -202,21 +214,25 @@ export default function SuccessPage() {
                     } else {
                       console.error('Fallback gift creation failed:', fallbackData.error);
                       setProcessingComplete(true);
+                      sessionStorage.setItem(processingKey, 'true');
                     }
                   } catch (fallbackError) {
                     console.error('Fallback gift creation error:', fallbackError);
                     setProcessingComplete(true);
+                    sessionStorage.setItem(processingKey, 'true');
                   }
                 }
               } catch (retryError) {
                 console.error('Retry failed:', retryError);
                 setProcessingComplete(true);
+                sessionStorage.setItem(processingKey, 'true');
               }
             }, 3000);
           }
         } catch (error) {
           console.error('Error retrieving gift:', error);
           setProcessingComplete(true);
+          sessionStorage.setItem(processingKey, 'true');
         }
       };
 
