@@ -297,13 +297,12 @@ export default function HomePage() {
   const previewAnimationPreset = async (preset: AnimationPreset) => {
     if (typeof window === 'undefined') return;
     
-    const JSConfetti = (await import('js-confetti')).default;
-    const jsConfetti = new JSConfetti();
+    const confetti = (await import('canvas-confetti')).default;
     
     setPreviewAnimation(preset);
     
     setTimeout(() => {
-      executeAnimation(jsConfetti, preset);
+      executeAnimation(confetti, preset);
     }, 100);
     
     setTimeout(() => {

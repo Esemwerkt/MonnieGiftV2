@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Gift, ArrowRight, Mail, CheckCircle, Home } from 'lucide-react';
 import MoneyLoader from '@/components/MoneyLoader';
-import JSConfetti from 'js-confetti';
+import confetti from 'canvas-confetti';
 import { executeAnimation, AnimationPreset } from '@/lib/animations';
 
 interface GiftData {
@@ -36,24 +36,24 @@ export default function ClaimGiftPage() {
   const [authCode, setAuthCode] = useState('');
   const [showConfetti, setShowConfetti] = useState(false);
   const router = useRouter();
-  const [jsConfetti, setJsConfetti] = useState<JSConfetti | null>(null);
+  const [confettiInstance, setConfettiInstance] = useState<typeof confetti | null>(null);
   const claimProcessedRef = useRef(false);
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setJsConfetti(new JSConfetti());
+      setConfettiInstance(confetti);
     }
   }, []);
 
   useEffect(() => {
-    if (showConfetti && jsConfetti && gift) {
-      const animationPreset = (gift.animationPreset as AnimationPreset) || 'confetti';
+    if (showConfetti && confettiInstance && gift) {
+      const animationPreset = (gift.animationPreset as AnimationPreset) || 'confettiRealistic';
       
       setTimeout(() => {
-        executeAnimation(jsConfetti, animationPreset);
+        executeAnimation(confettiInstance, animationPreset);
       }, 300); 
     }
-  }, [showConfetti, jsConfetti, gift]);
+  }, [showConfetti, confettiInstance, gift]);
 
   useEffect(() => {
     if (giftId) {
