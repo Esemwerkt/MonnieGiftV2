@@ -176,7 +176,6 @@ function PaymentForm({
                 radios: false,
                 spacedAccordionItems: true,
               },
-              paymentMethodTypes: ['ideal'],
             }}
           />
         </div>
