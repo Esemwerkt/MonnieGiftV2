@@ -200,10 +200,10 @@ export async function POST(request: NextRequest) {
               .eq('isClaimed', false)
               .is('claimedAt', null);
 
-            console.log(`Found ${pendingGifts.length} pending gifts for account ${account.id}`);
+            console.log(`Found ${pendingGifts?.length || 0} pending gifts for account ${account.id}`);
 
             // Process each pending gift
-            for (const gift of pendingGifts) {
+            for (const gift of pendingGifts || []) {
               try {
                 console.log(`Processing gift ${gift.id} for ${gift.amount} cents`);
                 
