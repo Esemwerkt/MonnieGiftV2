@@ -24,6 +24,8 @@ function PaymentForm({
   totalAmount,
   recipientEmail,
   message,
+  senderEmail,
+  animationPreset,
   onSuccess,
   onCancel,
 }: {
@@ -34,6 +36,8 @@ function PaymentForm({
   totalAmount: number;
   recipientEmail: string;
   message: string;
+  senderEmail: string;
+  animationPreset: string;
   onSuccess: () => void;
   onCancel: () => void;
 }) {
@@ -86,7 +90,9 @@ function PaymentForm({
         confirmParams: {
           return_url: `${window.location.origin}/success?payment_intent_id=${paymentIntentId}&amount=${giftAmount}&currency=eur&recipient=${encodeURIComponent(
             recipientEmail
-          )}&message=${encodeURIComponent(message)}`,
+          )}&message=${encodeURIComponent(message)}&sender=${encodeURIComponent(
+            senderEmail
+          )}&animation_preset=${encodeURIComponent(animationPreset)}`,
         },
         redirect: 'if_required',
       });
@@ -414,6 +420,8 @@ export default function PaymentPage() {
             totalAmount={paymentData.totalAmount}
             recipientEmail={paymentData.recipientEmail}
             message={paymentData.message}
+            senderEmail={paymentData.senderEmail}
+            animationPreset={paymentData.animationPreset}
             onSuccess={handleSuccess}
             onCancel={handleCancel}
           />
