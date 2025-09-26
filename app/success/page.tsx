@@ -84,6 +84,17 @@ export default function SuccessPage() {
           const verificationResult = await response.json();
           
           if (!response.ok) {
+            if (response.status === 429) {
+              // Rate limited - wait and retry
+              const retryAfter = verificationResult.retryAfter || 30;
+              console.log(`Rate limited, retrying in ${retryAfter} seconds...`);
+              
+              setTimeout(() => {
+                verifyPayment();
+              }, retryAfter * 1000);
+              return;
+            }
+            
             console.error('Payment verification failed:', verificationResult);
             setProcessingError(true);
             setProcessingComplete(true);

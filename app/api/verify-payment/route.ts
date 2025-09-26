@@ -6,9 +6,18 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting
-    const clientIP = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
-    const rateLimitResult = rateLimit(`verify-payment-${clientIP}`, 5, 60000); // 5 requests per minute
+    const body = await request.json();
+    const { paymentIntentId } = body;
+
+    if (!paymentIntentId) {
+      return NextResponse.json(
+        { error: 'Payment intent ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Rate limiting per payment intent (more logical for this use case)
+    const rateLimitResult = rateLimit(`verify-payment-${paymentIntentId}`, 5, 300000); // 5 requests per 5 minutes per payment intent
     
     if (!rateLimitResult.allowed) {
       return NextResponse.json(
@@ -17,16 +26,6 @@ export async function POST(request: NextRequest) {
           retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)
         },
         { status: 429 }
-      );
-    }
-
-    const body = await request.json();
-    const { paymentIntentId } = body;
-
-    if (!paymentIntentId) {
-      return NextResponse.json(
-        { error: 'Payment intent ID is required' },
-        { status: 400 }
       );
     }
 
