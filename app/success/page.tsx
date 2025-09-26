@@ -19,6 +19,7 @@ export default function SuccessPage() {
   const [linkCopied, setLinkCopied] = useState(false);
   const [claimUrl, setClaimUrl] = useState('');
   const [processingComplete, setProcessingComplete] = useState(false);
+  const [processingError, setProcessingError] = useState(false);
 
   const handleSendEmail = async () => {
     if (!giftData) return;
@@ -193,80 +194,11 @@ export default function SuccessPage() {
                   console.log('Gift retrieved successfully on retry');
                 } else {
                   console.error('Still no gift found after retry');
-                  // Webhook might not be working, create gift as fallback
-                  console.log('Creating gift as fallback since webhook failed');
-                  try {
-                    const fallbackResponse = await fetch('/api/gifts/create', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({
-                        amount: parseInt(amount),
-                        currency,
-                        senderEmail,
-                        recipientEmail,
-                        message: message || '',
-                        animationPreset: animationPreset || 'confettiRealistic',
-                        paymentIntentId, // Pass the payment intent ID
-                      }),
-                    });
-
-                    const fallbackData = await fallbackResponse.json();
-                    console.log('Fallback gift creation response:', fallbackData);
-
-                    if (fallbackData.success) {
-                      const newGiftData = {
-                        id: fallbackData.giftId,
-                        amount: parseInt(amount),
-                        currency,
-                        recipientEmail,
-                        message: message || undefined,
-                      };
-                      
-                      setGiftData(newGiftData);
-                      
-                      const baseUrl = window.location.origin;
-                      const claimLink = `${baseUrl}/claim/${fallbackData.giftId}`;
-                      setClaimUrl(claimLink);
-                      
-                      setShowConfetti(true);
-                      setProcessingComplete(true);
-                      sessionStorage.setItem(processingKey, 'true');
-                      console.log('Gift created successfully as fallback');
-                      
-                      // Send email for fallback gift
-                      setTimeout(async () => {
-                        try {
-                          const emailResponse = await fetch('/api/send-gift-email', {
-                            method: 'POST',
-                            headers: {
-                              'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({ giftId: fallbackData.giftId }),
-                          });
-
-                          if (emailResponse.ok) {
-                            setEmailSent(true);
-                            console.log('Email sent successfully for fallback gift');
-                          } else {
-                            const errorData = await emailResponse.json();
-                            console.error('Email sending failed for fallback gift:', errorData);
-                          }
-                        } catch (error) {
-                          console.error('Email sending error for fallback gift:', error);
-                        }
-                      }, 1000);
-                    } else {
-                      console.error('Fallback gift creation failed:', fallbackData.error);
-                      setProcessingComplete(true);
-                      sessionStorage.setItem(processingKey, 'true');
-                    }
-                  } catch (fallbackError) {
-                    console.error('Fallback gift creation error:', fallbackError);
-                    setProcessingComplete(true);
-                    sessionStorage.setItem(processingKey, 'true');
-                  }
+                  // Show error message instead of creating fallback gift
+                  console.log('Webhook failed to create gift, showing error state');
+                  setProcessingError(true);
+                  setProcessingComplete(true);
+                  sessionStorage.setItem(processingKey, 'true');
                 }
               } catch (retryError) {
                 console.error('Retry failed:', retryError);
@@ -277,6 +209,7 @@ export default function SuccessPage() {
           }
         } catch (error) {
           console.error('Error retrieving gift:', error);
+          setProcessingError(true);
           setProcessingComplete(true);
           sessionStorage.setItem(processingKey, 'true');
         }
@@ -320,12 +253,25 @@ export default function SuccessPage() {
           </div>
 
           {/* Success Message */}
-          <h1 className="text-4xl font-bold text-foreground mb-4">
-            Cadeau Succesvol Verzonden!
-          </h1>
-          <p className="text-xl text-muted-foreground mb-8">
-            Je cadeau is veilig verzonden en de ontvanger heeft een e-mail ontvangen.
-          </p>
+          {processingError ? (
+            <>
+              <h1 className="text-4xl font-bold text-destructive mb-4">
+                Verwerking Fout
+              </h1>
+              <p className="text-xl text-muted-foreground mb-8">
+                Er is een fout opgetreden bij het verwerken van je cadeau. Neem contact op met de ondersteuning.
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-4xl font-bold text-foreground mb-4">
+                Cadeau Succesvol Verzonden!
+              </h1>
+              <p className="text-xl text-muted-foreground mb-8">
+                Je cadeau is veilig verzonden en de ontvanger heeft een e-mail ontvangen.
+              </p>
+            </>
+          )}
 
           {/* Gift Details */}
           {giftData && (

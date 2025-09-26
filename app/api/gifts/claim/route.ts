@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
 
     // Validate email matches the gift's recipient email
     if (gift.recipientEmail.toLowerCase() !== email.toLowerCase()) {
+      
       return NextResponse.json(
         { error: 'E-mailadres komt niet overeen met het cadeau. Controleer of je het juiste e-mailadres hebt ingevoerd.' },
         { status: 400 }

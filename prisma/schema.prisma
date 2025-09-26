@@ -41,7 +41,7 @@ model Gift {
   authenticationCode    String    @unique
   isClaimed             Boolean   @default(false)
   claimedAt             DateTime?
-  stripePaymentIntentId String?
+  stripePaymentIntentId String? @unique
   stripeTransferId      String?
   platformFee           Int?      
   animationPreset       String 

@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
 
           if (existingGift) {
             console.log('Gift already exists:', existingGift.id);
-            // Gift already exists, just send email
+            // Gift already exists, just send email if not already sent
             try {
               await sendGiftEmail({
                 recipientEmail: existingGift.recipientEmail,
@@ -77,6 +77,7 @@ export async function POST(request: NextRequest) {
             } catch (emailError) {
               console.error('Email sending error:', emailError);
             }
+            return NextResponse.json({ received: true, message: 'Gift already exists' });
           } else {
             console.log('No existing gift found, creating new one');
             // Create new gift
