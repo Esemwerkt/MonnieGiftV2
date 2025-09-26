@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { checkUserLimits, LIMITS } from '@/lib/limits';
 import { prisma } from '@/lib/prisma';
-import { generateVerificationCode } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,40 +67,13 @@ export async function POST(request: NextRequest) {
     const platformFee = 99; // €0.99 in cents
     const totalAmount = amount + platformFee;
 
-    // Create gift first
-    const authenticationCode = generateVerificationCode();
-    let gift;
-    try {
-      const giftData = {
-        amount,
-        currency,
-        message: message || '',
-        senderEmail,
-        recipientEmail,
-        authenticationCode,
-        animationPreset: finalAnimationPreset,
-        stripePaymentIntentId: null, // Will be updated when payment succeeds
-      };
-      
-      gift = await prisma.gift.create({
-        data: giftData,
-      });
-    } catch (dbError) {
-      console.error('Database error creating gift:', dbError);
-      return NextResponse.json(
-        { error: 'Failed to create gift' },
-        { status: 500 }
-      );
-    }
-
-    // Create payment intent with giftId in metadata
+    // Create payment intent (gift will be created by webhook after payment succeeds)
     const paymentIntent = await stripe.paymentIntents.create({
       amount: totalAmount,
       currency: currency.toLowerCase(),
       payment_method_types: ['ideal'], // Only allow iDEAL payments
       metadata: {
         type: 'gift',
-        giftId: gift.id, // Add giftId to metadata
         senderEmail,
         recipientEmail,
         message: message || '',
@@ -111,17 +83,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Update gift with payment intent ID
-    await prisma.gift.update({
-      where: { id: gift.id },
-      data: { stripePaymentIntentId: paymentIntent.id },
-    });
-
     return NextResponse.json({
       success: true,
       clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
-      giftId: gift.id,
       giftAmount: amount,
       platformFee: platformFee,
       totalAmount: totalAmount,

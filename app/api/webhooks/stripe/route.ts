@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 import { sendGiftEmail } from '@/lib/email';
+import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,49 +47,70 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object;
-        const giftId = paymentIntent.metadata?.giftId;
-
         
-        if (giftId && paymentIntent.status === 'succeeded') {
-          let gift;
+        if (paymentIntent.status === 'succeeded') {
+          // Check if gift already exists for this payment intent
+          let existingGift;
           try {
-            gift = await prisma.gift.findUnique({
-              where: { id: giftId },
+            existingGift = await prisma.gift.findFirst({
+              where: { stripePaymentIntentId: paymentIntent.id },
             });
           } catch (dbError) {
-            gift = null;
+            console.error('Database error finding existing gift:', dbError);
+            existingGift = null;
           }
 
-          if (gift) {
-            
+          if (existingGift) {
+            // Gift already exists, just send email
             try {
               await sendGiftEmail({
-                recipientEmail: gift.recipientEmail,
-                giftId: gift.id,
-                authenticationCode: gift.authenticationCode,
-                amount: gift.amount,
-                message: gift.message || undefined,
-                senderEmail: gift.senderEmail,
+                recipientEmail: existingGift.recipientEmail,
+                giftId: existingGift.id,
+                authenticationCode: existingGift.authenticationCode,
+                amount: existingGift.amount,
+                message: existingGift.message || undefined,
+                senderEmail: existingGift.senderEmail,
               });
-                } catch (emailError) {
-                }
+            } catch (emailError) {
+              console.error('Email sending error:', emailError);
+            }
           } else {
-            
+            // Create new gift
             const recipientEmail = paymentIntent.metadata?.recipientEmail;
             const senderEmail = paymentIntent.metadata?.senderEmail;
             const giftAmount = paymentIntent.metadata?.giftAmount;
+            const message = paymentIntent.metadata?.message;
+            const animationPreset = paymentIntent.metadata?.animationPreset;
             
             if (recipientEmail && senderEmail && giftAmount) {
               try {
+                // Generate authentication code
+                const authenticationCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+                
+                const gift = await prisma.gift.create({
+                  data: {
+                    amount: parseInt(giftAmount),
+                    currency: paymentIntent.currency,
+                    message: message || '',
+                    senderEmail,
+                    recipientEmail,
+                    authenticationCode,
+                    animationPreset: animationPreset || 'confettiRealistic',
+                    stripePaymentIntentId: paymentIntent.id,
+                  },
+                });
+
+                // Send email
                 await sendGiftEmail({
                   recipientEmail,
-                  giftId,
-                  authenticationCode: 'TEMP123',
-                  amount: parseInt(giftAmount),
-                  message: paymentIntent.metadata?.message || undefined,
+                  giftId: gift.id,
+                  authenticationCode: gift.authenticationCode,
+                  amount: gift.amount,
+                  message: gift.message || undefined,
                   senderEmail,
                 });
-              } catch (fallbackError) {
+              } catch (error) {
+                console.error('Error creating gift or sending email:', error);
               }
             }
           }
