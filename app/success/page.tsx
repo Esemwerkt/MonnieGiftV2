@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Gift, CheckCircle, ArrowRight, Home, MessageCircle, Copy, Check, Share2, ArrowLeft } from 'lucide-react';
+import { Gift, CheckCircle, ArrowRight, Home, MessageCircle, Copy, Check, Share2, ArrowLeft, Mail } from 'lucide-react';
 
 export default function SuccessPage() {
   const searchParams = useSearchParams();
@@ -20,6 +20,10 @@ export default function SuccessPage() {
   const [claimUrl, setClaimUrl] = useState('');
   const [processingComplete, setProcessingComplete] = useState(false);
   const [processingError, setProcessingError] = useState(false);
+  const [recipientEmail, setRecipientEmail] = useState('');
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [emailError, setEmailError] = useState('');
 
   const handleCopyLink = async () => {
     if (!claimUrl) return;
@@ -51,6 +55,47 @@ export default function SuccessPage() {
     const message = `🎁 Ik heb een cadeau van €${(giftData.amount / 100).toFixed(2)} voor je gemaakt!\n\n${giftData.message ? `Bericht: "${giftData.message}"\n\n` : ''}Code: ${giftData.authenticationCode}\n\nKlik op de link om je cadeau op te halen: ${claimUrl}`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
+  };
+
+  const handleEmailShare = async () => {
+    if (!giftData || !recipientEmail) return;
+    
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(recipientEmail)) {
+      setEmailError('Voer een geldig e-mailadres in');
+      return;
+    }
+
+    setIsSendingEmail(true);
+    setEmailError('');
+    
+    try {
+      const response = await fetch('/api/send-gift-email-manual', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          giftId: giftData.id,
+          recipientEmail: recipientEmail,
+        }),
+      });
+
+      if (response.ok) {
+        setEmailSent(true);
+        setRecipientEmail('');
+        setTimeout(() => setEmailSent(false), 3000);
+      } else {
+        const errorData = await response.json();
+        setEmailError(errorData.error || 'Kon e-mail niet verzenden');
+      }
+    } catch (error) {
+      console.error('Failed to send email:', error);
+      setEmailError('Er is een fout opgetreden bij het verzenden');
+    } finally {
+      setIsSendingEmail(false);
+    }
   };
 
   const formatAmount = (amount: number, currency: string) => {
@@ -521,6 +566,54 @@ export default function SuccessPage() {
                         <MessageCircle className="h-4 w-4" />
                         Deel via WhatsApp
                       </button>
+                    </div>
+
+                    {/* Email Share Section */}
+                    <div className="pt-3 border-t border-border">
+                      <p className="text-xs text-muted-foreground mb-2">Of verstuur per e-mail:</p>
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <input
+                            type="email"
+                            value={recipientEmail}
+                            onChange={(e) => {
+                              setRecipientEmail(e.target.value);
+                              setEmailError('');
+                            }}
+                            placeholder="ontvanger@email.nl"
+                            className="w-full h-[48px] pl-10 pr-4 border border-input bg-background rounded-xl text-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                          />
+                        </div>
+                        <button
+                          onClick={handleEmailShare}
+                          disabled={isSendingEmail || !recipientEmail}
+                          className="px-4 h-[48px] bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                        >
+                          {isSendingEmail ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                              Verzenden...
+                            </>
+                          ) : emailSent ? (
+                            <>
+                              <Check className="h-4 w-4" />
+                              Verzonden!
+                            </>
+                          ) : (
+                            <>
+                              <Mail className="h-4 w-4" />
+                              Versturen
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      {emailError && (
+                        <p className="text-xs text-destructive mt-2">{emailError}</p>
+                      )}
+                      {emailSent && !emailError && (
+                        <p className="text-xs text-green-600 mt-2">E-mail succesvol verzonden!</p>
+                      )}
                     </div>
                   </div>
                 </div>
