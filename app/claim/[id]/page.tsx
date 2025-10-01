@@ -43,8 +43,10 @@ export default function ClaimPage() {
   }, []);
 
   // Trigger animation when confetti should show
+  const hasTriggeredAnimation = useRef(false);
   useEffect(() => {
-    if (showConfetti && jsConfettiRef.current && gift?.animationPreset) {
+    if (showConfetti && jsConfettiRef.current && gift?.animationPreset && !hasTriggeredAnimation.current) {
+      hasTriggeredAnimation.current = true;
       // Pass the confetti function from the JSConfetti instance
       executeAnimation(jsConfettiRef.current.addConfetti.bind(jsConfettiRef.current), gift.animationPreset as AnimationPreset);
     }
