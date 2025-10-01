@@ -243,23 +243,64 @@ export default function ClaimPage() {
 
   if (step === 'success') {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        {/* Animation is handled by useEffect */}
-        
-        <div className="max-w-md mx-auto text-center space-y-4 p-6">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-            <CheckCircle className="h-8 w-8 text-green-600" />
+      <div className="">
+        <div className="w-full mx-auto max-w-4xl flex flex-col">
+          {/* Header */}
+          <div className="px-4 relative top-0 z-10 border-b py-3 border-border">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => window.location.href = '/'}
+                className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
+              >
+                <Home className="h-4 w-4" />
+                <span className="hidden sm:inline">Terug naar home</span>
+              </button>
+              <div className="flex items-center gap-2">
+                <Gift className="h-5 w-5 text-primary" />
+                <span className="font-semibold text-foreground">MonnieGift</span>
+              </div>
+            </div>
           </div>
-          <h1 className="text-xl font-semibold text-foreground">Cadeau succesvol opgehaald!</h1>
-          <p className="text-muted-foreground">
-            Het geld is overgemaakt naar je account. Bedankt voor het gebruiken van MonnieGift!
-          </p>
-          <button
-            onClick={() => window.location.href = '/'}
-            className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors"
-          >
-            Terug naar home
-          </button>
+
+          {/* Main Content */}
+          <div className="flex-1 px-4 py-12 space-y-6">
+            <div className="backdrop-blur-sm rounded-2xl">
+              <div className="gap-y-6 flex flex-col">
+                <div className="text-center">
+                  {/* Success Icon */}
+                  <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-chart-1/20 to-chart-1/10 rounded-full mb-8">
+                    <CheckCircle className="h-12 w-12 text-chart-1" />
+                  </div>
+
+                  {/* Success Message */}
+                  <h1 className="text-4xl font-bold text-foreground mb-4">
+                    Cadeau succesvol opgehaald!
+                  </h1>
+                  <p className="text-xl text-muted-foreground mb-8">
+                    Het geld is overgemaakt naar je account. Bedankt voor het gebruiken van MonnieGift!
+                  </p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => window.location.href = '/'}
+                    className="flex-1 h-[48px] rounded-xl border transition-all duration-200 bg-background border-input hover:border-border hover:bg-primary/5 text-sm font-medium flex items-center justify-center gap-2"
+                  >
+                    <Home className="h-4 w-4" />
+                    Terug naar home
+                  </button>
+                  <button
+                    onClick={() => window.location.href = '/maak-gift'}
+                    className="flex-1 h-[48px] bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-200 flex items-center justify-center gap-2 text-sm"
+                  >
+                    <Gift className="h-4 w-4" />
+                    Verstuur ook een gift
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
