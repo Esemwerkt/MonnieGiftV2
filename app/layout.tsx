@@ -20,6 +20,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Favicon */}
+        <link rel="icon" href="/favi.png" />
+        {/* You can add more favicon sizes/types as needed */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
