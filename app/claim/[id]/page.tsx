@@ -47,10 +47,15 @@ export default function ClaimPage() {
   // Trigger animation when confetti should show
   const hasTriggeredAnimation = useRef(false);
   useEffect(() => {
-    if (showConfetti && jsConfettiRef.current && gift?.animationPreset && !hasTriggeredAnimation.current) {
+    if (showConfetti && jsConfettiRef.current && !hasTriggeredAnimation.current) {
       hasTriggeredAnimation.current = true;
       // Pass the confetti function from the JSConfetti instance
-      executeAnimation(jsConfettiRef.current.addConfetti.bind(jsConfettiRef.current), gift.animationPreset as AnimationPreset);
+      // Use gift's animation preset or default to 'confettiRealistic' if missing/invalid
+      const validPresets: AnimationPreset[] = ['customShapes', 'schoolPride', 'snow', 'stars', 'fireworks', 'confettiRealistic'];
+      const animationToUse = (gift?.animationPreset && validPresets.includes(gift.animationPreset as AnimationPreset)) 
+        ? gift.animationPreset as AnimationPreset 
+        : 'confettiRealistic';
+      executeAnimation(jsConfettiRef.current.addConfetti.bind(jsConfettiRef.current), animationToUse);
     }
   }, [showConfetti, gift?.animationPreset]);
 
