@@ -11,6 +11,8 @@ import {
 } from '@stripe/react-stripe-js';
 import { Euro, ArrowLeft, Gift, CheckCircle, InfoIcon } from 'lucide-react';
 import Image from 'next/image';
+import { LoaderFiveDemo } from '@/components/ui/shimmerload';
+import { AnimatedLogo } from '@/components/ui/animated-logo';
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
@@ -171,10 +173,7 @@ function PaymentForm({
           className="flex-1 h-[48px]  bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 text-sm"
         >
           {isProcessing ? (
-            <>
-              <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-              Verwerken...
-            </>
+            <LoaderFiveDemo text="Verwerken..." />
           ) : (
             <>
               <CheckCircle className="h-4 w-4" />
@@ -269,10 +268,7 @@ export default function PaymentPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin mx-auto" />
-          <p className="text-muted-foreground">Betaling voorbereiden...</p>
-        </div>
+        <LoaderFiveDemo text="Betaling voorbereiden..." />
       </div>
     );
   }
@@ -324,10 +320,7 @@ export default function PaymentPage() {
               <ArrowLeft className="h-4 w-4" />
               <span className="hidden sm:inline">Terug naar cadeau</span>
             </button>
-            <div className="flex items-center gap-2">
-              <Gift className="h-5 w-5 text-primary" />
-              <span className="font-semibold text-foreground">MonnieGift</span>
-            </div>
+            <AnimatedLogo />
           </div>
         </div>
 

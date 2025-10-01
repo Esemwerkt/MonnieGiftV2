@@ -42,9 +42,12 @@ export default function RootLayout({
         <ThemeProvider>
           <ToastProvider>
             <div className="min-h-screen bg-background text-foreground">
-              <LayoutWrapper>
-                {children}
-              </LayoutWrapper>
+              
+              <div className="">
+                <LayoutWrapper>
+                  {children}
+                </LayoutWrapper>
+              </div>
             </div>
           </ToastProvider>
         </ThemeProvider>

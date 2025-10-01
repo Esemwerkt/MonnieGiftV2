@@ -26,6 +26,8 @@ import {
   AnimationPreset,
 } from "@/lib/animations";
 import { Badge } from "@/components/ui/badge";
+import { LoaderFiveDemo } from "@/components/ui/shimmerload";
+import { AnimatedLogo } from "@/components/ui/animated-logo";
 
 // Message templates based on animation presets
 const getMessageTemplates = (animationPreset: string): string[] => {
@@ -196,10 +198,7 @@ export default function HomePage() {
               <ArrowLeft className="h-4 w-4" />
               <span className="hidden sm:inline">Terug naar home</span>
             </button>
-            <div className="flex items-center gap-2">
-              <Gift className="h-5 w-5 text-primary" />
-              <span className="font-semibold text-foreground">MonnieGift</span>
-            </div>
+       <AnimatedLogo />
           </div>
         </div>
         <div className="flex-1 px-0 py-12 space-y-6">
@@ -455,17 +454,14 @@ export default function HomePage() {
                     isCreatingPayment ||
                     !formData.amount
                   }
-                  className="w-full bg-primary text-primary-foreground py-4 px-6 rounded-xl font-semibold hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 group"
+                  className="w-full bg-primary text-primary-foreground py-4 px-6 rounded-xl font-semibold hover:bg-primary/90 focus:outline-none  disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 group"
                 >
                     {isLoading || isCreatingPayment ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                        <span className="text-sm">
-                          {isCreatingPayment
-                            ? "Betaling Voorbereiden..."
-                            : "Cadeau Aanmaken..."}
-                        </span>
-                      </>
+                      <LoaderFiveDemo 
+                        text={isCreatingPayment
+                          ? "Betaling Voorbereiden..."
+                          : "Cadeau Aanmaken..."}
+                      />
                     ) : (
                       <>
                         <Gift className="h-5 w-5" />

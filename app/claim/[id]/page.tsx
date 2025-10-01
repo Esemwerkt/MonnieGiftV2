@@ -8,6 +8,8 @@ import JSConfetti from 'js-confetti';
 import Lottie from 'lottie-react';
 import bearAnimation from '@/public/animation-hero/bear.json';
 import { TypingAnimation } from '@/components/ui/typing-animation';
+import { LoaderFiveDemo } from '@/components/ui/shimmerload';
+import { AnimatedLogo } from '@/components/ui/animated-logo';
 
 export default function ClaimPage() {
   const params = useParams();
@@ -213,10 +215,7 @@ export default function ClaimPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin mx-auto" />
-          <p className="text-muted-foreground">Cadeau laden...</p>
-        </div>
+        <LoaderFiveDemo text="Cadeau laden..." />
       </div>
     );
   }
@@ -255,10 +254,7 @@ export default function ClaimPage() {
                 <Home className="h-4 w-4" />
                 <span className="hidden sm:inline">Terug naar home</span>
               </button>
-              <div className="flex items-center gap-2">
-                <Gift className="h-5 w-5 text-primary" />
-                <span className="font-semibold text-foreground">MonnieGift</span>
-              </div>
+              <AnimatedLogo />
             </div>
           </div>
 
@@ -273,10 +269,10 @@ export default function ClaimPage() {
                   </div>
 
                   {/* Success Message */}
-                  <h1 className="text-4xl font-bold text-foreground mb-4">
+                  <h1 className="text-2xl font-bold text-foreground mb-4">
                     Cadeau succesvol opgehaald!
                   </h1>
-                  <p className="text-xl text-muted-foreground mb-8">
+                  <p className="text-muted-foreground mb-4">
                     Het geld is overgemaakt naar je account. Bedankt voor het gebruiken van MonnieGift!
                   </p>
                 </div>
@@ -319,10 +315,7 @@ export default function ClaimPage() {
               <Home className="h-4 w-4" />
               <span className="hidden sm:inline">Terug naar home</span>
             </button>
-            <div className="flex items-center gap-2">
-              <Gift className="h-5 w-5 text-primary" />
-              <span className="font-semibold text-foreground">MonnieGift</span>
-            </div>
+            <AnimatedLogo />
           </div>
         </div>
 
@@ -427,10 +420,7 @@ export default function ClaimPage() {
                         className="w-full h-[48px] bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 text-sm"
                       >
                         {isCheckingUser ? (
-                          <>
-                            <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                            Verifiëren...
-                          </>
+                          <LoaderFiveDemo text="Verifiëren..." />
                         ) : (
                           <>
                             <ArrowRight className="h-4 w-4" />
@@ -451,10 +441,7 @@ export default function ClaimPage() {
               <div className="gap-y-6 flex flex-col">
                 <div className="">
                   <div className="space-y-4 p-4 bg-background border border-input rounded-xl text-center">
-                    <div className="w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin mx-auto" />
-                    <h2 className="text-lg font-semibold text-foreground">
-                      Cadeau wordt opgehaald...
-                    </h2>
+                    <LoaderFiveDemo text="Cadeau wordt opgehaald..." />
                     <p className="text-muted-foreground text-sm">
                       Even geduld, we verwerken je cadeau.
                     </p>

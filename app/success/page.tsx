@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Gift, CheckCircle, ArrowRight, Home, MessageCircle, Copy, Check, Share2, ArrowLeft, Mail } from 'lucide-react';
+import { LoaderFiveDemo } from '@/components/ui/shimmerload';
+import { AnimatedLogo } from '@/components/ui/animated-logo';
 
 export default function SuccessPage() {
   const searchParams = useSearchParams();
@@ -380,9 +382,7 @@ export default function SuccessPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin mx-auto" />
-          <p className="text-muted-foreground">Betaling wordt geverifieerd...</p>
-          <p className="text-xs text-muted-foreground">Dit kan even duren</p>
+          <LoaderFiveDemo text="Betaling wordt geverifieerd..." />
         </div>
       </div>
     );
@@ -430,10 +430,7 @@ export default function SuccessPage() {
               <ArrowLeft className="h-4 w-4" />
               <span className="hidden sm:inline">Terug naar home</span>
             </button>
-            <div className="flex items-center gap-2">
-              <Gift className="h-5 w-5 text-primary" />
-              <span className="font-semibold text-foreground">MonnieGift</span>
-            </div>
+            <AnimatedLogo />
           </div>
         </div>
 
@@ -448,10 +445,10 @@ export default function SuccessPage() {
             
 
                 {/* Success Message */}
-                <h1 className="text-4xl font-bold text-foreground mb-4">
+                <h1 className="text-2xl font-bold text-foreground mb-4">
                   Cadeau succesvol aangemaakt!
                 </h1>
-                <p className="text-xl text-muted-foreground mb-8">
+                <p className="text-muted-foreground mb-4">
                   Je cadeau is klaar om te delen! Deel de code en link om de ontvanger te informeren.
                 </p>
               </div>
@@ -591,10 +588,7 @@ export default function SuccessPage() {
                           className="px-4 h-[48px] bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                         >
                           {isSendingEmail ? (
-                            <>
-                              <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                              Verzenden...
-                            </>
+                            <LoaderFiveDemo text="Verzenden..." />
                           ) : emailSent ? (
                             <>
                               <Check className="h-4 w-4" />
