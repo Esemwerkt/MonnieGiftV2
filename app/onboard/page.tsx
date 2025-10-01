@@ -63,9 +63,6 @@ export default function OnboardPage() {
           <h1 className="text-3xl font-bold text-foreground mb-2">
             Snelle Account Setup
           </h1>
-          <p className="text-muted-foreground">
-            Alleen e-mail en IBAN nodig voor je cadeau
-          </p>
         </div>
 
         {/* Main Content */}
@@ -105,7 +102,7 @@ export default function OnboardPage() {
                   <div>
                     <h3 className="font-semibold text-foreground">Verificatie</h3>
                     <p className="text-sm text-muted-foreground">
-                      Minimale verificatie (alleen e-mail + IBAN)
+                      Minimale verificatie vereist om je cadeau uit te betalen
                     </p>
                   </div>
                 </div>
@@ -123,12 +120,6 @@ export default function OnboardPage() {
                 </div>
               </div>
 
-              {/* Info */}
-              <div className="p-4 bg-chart-1/10 border border-chart-1/20 rounded-lg">
-                <p className="text-sm text-chart-1">
-                  💡 <strong>KYC-Light:</strong> Voor cadeautjes tot €100 is alleen e-mail en IBAN nodig. Geen ID-upload of uitgebreide verificatie!
-                </p>
-              </div>
 
               {/* Action Button */}
               <button
