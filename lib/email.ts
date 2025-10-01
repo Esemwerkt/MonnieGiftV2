@@ -23,7 +23,7 @@ export async function sendGiftEmail({
   message,
   senderEmail,
 }: SendGiftEmailParams) {
-  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXTAUTH_URL || 'https://monnie-gift-v2-rydb.vercel.app';
   const giftUrl = `${baseUrl}/claim/${giftId}`;
   const dashboardUrl = `${baseUrl}/dashboard?gift=${giftId}`;
   const formattedAmount = (amount / 100).toFixed(2);

@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       },
       business_profile: {
         product_description: 'Money gift platform - secure money transfers',
-        url: process.env.NEXTAUTH_URL || 'https://vast-ties-unite.loca.lt',
+        url: process.env.NEXTAUTH_URL || 'https://monnie-gift-v2-rydb.vercel.app',
         mcc: '7399', // Computer Software Stores (appropriate for digital gift platform)
       },
       individual: {
@@ -46,8 +46,8 @@ export async function POST(request: NextRequest) {
     // Create account link for Express onboarding
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: `${process.env.NEXTAUTH_URL || 'https://vast-ties-unite.loca.lt'}/stripe/terug?account_id=${account.id}&gift_id=${giftId}&email=${encodeURIComponent(email)}`,
-      return_url: `${process.env.NEXTAUTH_URL || 'https://vast-ties-unite.loca.lt'}/stripe/terug?account_id=${account.id}&gift_id=${giftId}&email=${encodeURIComponent(email)}`,
+      refresh_url: `${process.env.NEXTAUTH_URL || 'https://monnie-gift-v2-rydb.vercel.app'}/stripe/terug?account_id=${account.id}&gift_id=${giftId}&email=${encodeURIComponent(email)}`,
+      return_url: `${process.env.NEXTAUTH_URL || 'https://monnie-gift-v2-rydb.vercel.app'}/stripe/terug?account_id=${account.id}&gift_id=${giftId}&email=${encodeURIComponent(email)}`,
       type: 'account_onboarding',
     });
 

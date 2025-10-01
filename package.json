@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "NEXT_TELEMETRY_DISABLED=1 next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "github": "git add . && git commit -m 'Update' && git push"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",

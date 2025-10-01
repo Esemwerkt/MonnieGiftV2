@@ -21,15 +21,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user by email
-    const user = await (prisma as any).user.findUnique({
-      where: { email },
-      select: {
-        stripeConnectAccountId: true,
-        isVerified: true,
-      },
-    });
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('stripeConnectAccountId, isVerified')
+      .eq('email', email)
+      .single();
 
-    if (!user || !user.stripeConnectAccountId) {
+    if (userError || !user || !user.stripeConnectAccountId) {
       return NextResponse.json(
         { error: 'Account not found' },
         { status: 404 }

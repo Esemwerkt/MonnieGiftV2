@@ -28,8 +28,8 @@ export async function GET(request: NextRequest) {
       const updateLink = await stripe.accountLinks.create({
         account: accountId,
         type: 'account_update',
-        refresh_url: `${process.env.NEXTAUTH_URL || 'https://vast-ties-unite.loca.lt'}/stripe/refresh`,
-        return_url: `${process.env.NEXTAUTH_URL || 'https://vast-ties-unite.loca.lt'}/stripe/terug?account_id=${accountId}`,
+        refresh_url: `${process.env.NEXTAUTH_URL || 'https://monnie-gift-v2-rydb.vercel.app'}/stripe/refresh`,
+        return_url: `${process.env.NEXTAUTH_URL || 'https://monnie-gift-v2-rydb.vercel.app'}/stripe/terug?account_id=${accountId}`,
       });
 
       return NextResponse.json({
