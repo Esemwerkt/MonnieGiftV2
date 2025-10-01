@@ -65,7 +65,8 @@ export async function POST(request: NextRequest) {
       .eq('isClaimed', false);
 
     // Process each pending gift
-    for (const gift of pendingGifts) {
+    if (pendingGifts && pendingGifts.length > 0) {
+      for (const gift of pendingGifts) {
       try {
         const transfer = await stripe.transfers.create({
           amount: gift.amount, 
@@ -89,6 +90,7 @@ export async function POST(request: NextRequest) {
         
       } catch (transferError) {
         console.error(`Failed to transfer gift ${gift.id}:`, transferError);
+      }
       }
     }
 
