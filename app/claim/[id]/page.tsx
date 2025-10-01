@@ -361,14 +361,14 @@ export default function ClaimPage() {
                           type="text"
                           value={authCode}
                           onChange={(e) => setAuthCode(e.target.value.toUpperCase())}
-                           placeholder="ABC123DEF456"
-                          maxLength={12}
+                           placeholder="ABC123"
+                          maxLength={6}
                           required
                           className="w-full h-[48px] pl-12 pr-4 border border-input bg-background rounded-xl text-base placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent  text-left text-lg tracking-widest"
                         />
                       </div>
                       <p className="text-xs text-muted-foreground text-center">
-                        Voer de 12-karakter code in die je hebt ontvangen
+                        Voer de 6-karakter code in die je hebt ontvangen
                       </p>
                       
                       {error && (
