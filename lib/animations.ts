@@ -135,12 +135,12 @@ const executeCustomShapes = (confetti: any) => {
   });
 };
 
-// 2. School Pride - EXACT CODE FROM TEMPLATE
+// 2. School Pride - Using template colors
 const executeSchoolPride = (confetti: any) => {
   var end = Date.now() + (15 * 1000);
 
-  // go Buckeyes!
-  var colors = ['#bb0000', '#ffffff'];
+  // Using template colors: primary dark green and secondary gold
+  var colors = ['#0a2d27', '#d4b483'];
 
   (function frame() {
     confetti({
@@ -166,7 +166,7 @@ const executeSchoolPride = (confetti: any) => {
   })();
 };
 
-// 3. Snow - EXACT CODE FROM TEMPLATE
+// 3. Snow - Using snowflake shapes
 const executeSnow = (confetti: any) => {
   var duration = 15 * 1000;
   var animationEnd = Date.now() + duration;
@@ -194,7 +194,8 @@ const executeSnow = (confetti: any) => {
       shapes: ['circle'],
       gravity: randomInRange(0.4, 0.6),
       scalar: randomInRange(0.4, 1),
-      drift: randomInRange(-0.4, 0.4)
+      drift: randomInRange(-0.4, 0.4),
+      rotation: randomInRange(0, 360)
     });
 
     if (timeLeft > 0) {
@@ -205,14 +206,14 @@ const executeSnow = (confetti: any) => {
   })();
 };
 
-// 4. Stars - EXACT CODE FROM TEMPLATE
+// 4. Stars - Slower animation
 const executeStars = (confetti: any) => {
   var defaults = {
     spread: 360,
-    ticks: 50,
+    ticks: 100,
     gravity: 0,
-    decay: 0.94,
-    startVelocity: 30,
+    decay: 0.98,
+    startVelocity: 15,
     colors: ['FFE400', 'FFBD00', 'E89400', 'FFCA6C', 'FDFFB8']
   };
 
@@ -237,11 +238,17 @@ const executeStars = (confetti: any) => {
   setTimeout(shoot, 200);
 };
 
-// 6. Fireworks - EXACT CODE FROM TEMPLATE
+// 6. Fireworks - Using template colors
 const executeFireworks = (confetti: any) => {
   var duration = 15 * 1000;
   var animationEnd = Date.now() + duration;
-  var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+  var defaults = { 
+    startVelocity: 30, 
+    spread: 360, 
+    ticks: 60, 
+    zIndex: 0,
+    colors: ['#0a2d27', '#d4b483', '#1a584e', '#e4c59a', '#809c98']
+  };
 
   function randomInRange(min: number, max: number) {
     return Math.random() * (max - min) + min;
@@ -263,11 +270,12 @@ const executeFireworks = (confetti: any) => {
   }, 250);
 };
 
-// 7. Confetti Realistic - EXACT CODE FROM TEMPLATE
+// 7. Confetti Realistic - Using template colors
 const executeConfettiRealistic = (confetti: any) => {
   var count = 200;
   var defaults = {
-    origin: { y: 0.7 }
+    origin: { y: 0.7 },
+    colors: ['#0a2d27', '#d4b483', '#1a584e', '#e4c59a', '#809c98']
   };
 
   function fire(particleRatio: number, opts: any) {

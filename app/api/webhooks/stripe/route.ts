@@ -88,9 +88,11 @@ export async function POST(request: NextRequest) {
                 const authenticationCode = crypto.randomBytes(3).toString('hex').toUpperCase();
                 console.log('Generated authentication code:', authenticationCode);
                 
+                const now = new Date().toISOString();
                 const { data: gift, error: giftError } = await supabaseAdmin
                   .from('gifts')
                   .insert([{
+                    id: crypto.randomUUID(),
                     amount: parseInt(giftAmount),
                     currency: paymentIntent.currency,
                     message: message || '',
@@ -103,6 +105,8 @@ export async function POST(request: NextRequest) {
                     platformFeeAmount: parseInt(paymentIntent.metadata?.platformFee || '0'),
                     applicationFeeAmount: 0,
                     stripeConnectAccountId: null,
+                    createdAt: now,
+                    updatedAt: now,
                   }])
                   .select()
                   .single();

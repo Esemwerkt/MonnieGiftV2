@@ -20,7 +20,12 @@ export default function BeautifulConfetti({
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      jsConfettiRef.current = new JSConfetti();
+      try {
+        jsConfettiRef.current = new JSConfetti();
+      } catch (error) {
+        console.error('Failed to initialize JSConfetti:', error);
+        jsConfettiRef.current = null;
+      }
     }
   }, []);
 
@@ -31,8 +36,7 @@ export default function BeautifulConfetti({
     
     // Add error handling for DOM access
     try {
-
-    const getConfettiConfig = (variant: string, type: string) => {
+      const getConfettiConfig = (variant: string, type: string) => {
       const baseConfig = {
         emojiSize: 50,
         confettiNumber: 60,
@@ -131,6 +135,12 @@ export function useBeautifulConfetti() {
     
     try {
       const jsConfetti = new JSConfetti();
+      
+      // Check if JSConfetti was properly initialized
+      if (!jsConfetti) {
+        console.error('JSConfetti failed to initialize');
+        return;
+      }
 
     const getConfettiConfig = (variant: string, type: string) => {
       const baseConfig = {
@@ -218,6 +228,12 @@ export function useBeautifulConfetti() {
     
     try {
       const jsConfetti = new JSConfetti();
+      
+      // Check if JSConfetti was properly initialized
+      if (!jsConfetti) {
+        console.error('JSConfetti failed to initialize');
+        return;
+      }
 
     const getFullScreenConfig = (variant: string, type: string) => {
       const baseConfig = {

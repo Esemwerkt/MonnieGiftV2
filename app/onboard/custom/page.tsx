@@ -79,9 +79,9 @@ export default function CustomOnboardPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center p-4">
+      <div className="bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center p-4">
         <div className="w-full max-w-4xl">
-          <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-3 shadow-xl text-center">
+          <div className="bg-card/50  p-3 shadow-xl text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500/20 rounded-full mb-4">
               <CheckCircle className="h-8 w-8 text-green-500" />
             </div>
@@ -102,7 +102,7 @@ export default function CustomOnboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center p-4">
+    <div className="bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center p-4">
       <div className="w-full max-w-4xl">
         {/* Header */}
         <div className="text-center mb-8">

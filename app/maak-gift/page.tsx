@@ -18,8 +18,6 @@ import {
 } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
-import HamburgerMenu from "@/components/HamburgerMenu";
-// Stripe imports removed - now handled in separate payment page
 import BeautifulConfetti from "@/components/BeautifulConfetti";
 import {
   ANIMATION_PRESETS,
@@ -27,8 +25,7 @@ import {
   stopAllAnimations,
   AnimationPreset,
 } from "@/lib/animations";
-
-// Stripe configuration moved to payment page
+import { Badge } from "@/components/ui/badge";
 
 // Message templates based on animation presets
 const getMessageTemplates = (animationPreset: string): string[] => {
@@ -51,7 +48,7 @@ const getMessageTemplates = (animationPreset: string): string[] => {
 export default function HomePage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    amount: "",
+    amount: "5",
     currency: "eur",
     message: "",
     animationPreset: "confettiRealistic",
@@ -64,6 +61,7 @@ export default function HomePage() {
   const [showSuccessConfetti, setShowSuccessConfetti] = useState(false);
   const [previewAnimation, setPreviewAnimation] = useState<string | null>(null);
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
+  const [amountError, setAmountError] = useState("");
   const previewIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isFormComplete = formData.amount && formData.amount !== "";
 
@@ -108,11 +106,29 @@ export default function HomePage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
+    
+    // Validate amount input
+    if (name === 'amount') {
+      if (value === '') {
+        setAmountError("");
+      } else {
+        const numValue = parseFloat(value);
+        if (isNaN(numValue)) {
+          setAmountError("Voer een geldig bedrag in");
+        } else if (numValue < 1) {
+          setAmountError("Minimum bedrag is €1,00");
+        } else if (numValue > 50) {
+          setAmountError("Maximum bedrag is €50,00");
+        } else {
+          setAmountError("");
+        }
+      }
+    }
+    
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
-
   };
 
 
@@ -162,7 +178,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="">
       {/* Success Confetti */}
       <BeautifulConfetti
         trigger={showSuccessConfetti}
@@ -170,10 +186,8 @@ export default function HomePage() {
         onComplete={() => setShowSuccessConfetti(false)}
       />
 
-      {/* Mobile-first container */}
-      <div className="w-full mx-auto min-h-screen max-w-4xl flex flex-col">
-        {/* Mobile Header - Fixed at top */}
-        <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b  px-4 py-3">
+      <div className="w-full mx-auto max-w-4xl flex flex-col">
+        <div className="relative top-0 z-10  border-b  px-4 py-3 border-border">
           <div className="flex items-center justify-between">
             <button
               onClick={() => router.push("/")}
@@ -186,33 +200,18 @@ export default function HomePage() {
               <Gift className="h-5 w-5 text-primary" />
               <span className="font-semibold text-foreground">MonnieGift</span>
             </div>
-            <HamburgerMenu />
           </div>
         </div>
-
-        {/* Main Content - Scrollable */}
-        <div className="flex-1 px-0 py-6 space-y-6">
-          {/* Header */}
-          <div className="text-left  px-4 flex items-center gap-2">
-            <div className="">
-              <Gift className="h-8 w-8 text-chart-1" />
-            </div>
-            <p className="text-xs text-muted-foreground leading-relaxed ">
-              Maak iemand blij met een persoonlijk geldcadeau.
-              <br />
-              <span className="text-primary text-xs font-medium">
-                Veilig, snel en direct overgemaakt.
-              </span>
-            </p>
-          </div>
+        <div className="flex-1 px-0 py-12 space-y-6">
 
           {/* Gift Creation Form */}
-          <div className=" backdrop-blur-sm rounded-2xl">
+          <div className="">
             <div className="gap-y-12 flex flex-col">
               {/* Amount Selection */}
               <div className=" px-4">
                 <label className="block text-sm font-medium text-foreground mb-3">
-                  Bedrag
+                <Badge variant="default" className="mr-2">Stap 1</Badge>
+                Bedrag
                 </label>
 
                 <div className="flex gap-3 items-center h-[60px]">
@@ -234,7 +233,7 @@ export default function HomePage() {
                             className={`h-[48px] px-3 rounded-xl border transition-all duration-200 ${
                               formData.amount === amount.toString()
                                 ? "bg-primary text-primary-foreground border-primary "
-                                : "bg-background border-input hover:border-primary/50 hover:bg-primary/5"
+                                : "bg-background border-input hover:border-border hover:bg-primary/5"
                             }`}
                           >
                             <div className="flex items-center justify-center gap-1">
@@ -254,7 +253,7 @@ export default function HomePage() {
                           setShowCustomAmount(true);
                           setFormData((prev) => ({ ...prev, amount: "" }));
                         }}
-                        className="h-[48px] px-4 rounded-xl border transition-all duration-200 bg-background border-input hover:border-primary/50 hover:bg-primary/5"
+                        className="h-[48px] px-4 rounded-xl border transition-all duration-200 bg-background border-input hover:border-border hover:bg-primary/5"
                       >
                         <div className="flex items-center justify-center gap-2">
                           <Pencil className="h-4 w-4" />
@@ -274,10 +273,14 @@ export default function HomePage() {
                           onChange={handleInputChange}
                           placeholder="0.00"
                           min="1"
-                          max="100"
+                          max="50"
                           step="0.01"
                           required
-                          className="block w-full h-[48px] pl-12 pr-4 border border-input bg-background rounded-xl text-base placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                          className={`block w-full h-[48px] pl-12 pr-4 border rounded-xl text-base placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent ${
+                            amountError 
+                              ? "border-red-400 bg-background focus:ring-red-400" 
+                              : "border-input bg-background"
+                          }`}
                           autoFocus
                         />
                       </div>
@@ -289,7 +292,7 @@ export default function HomePage() {
                           setShowCustomAmount(false);
                           setFormData((prev) => ({ ...prev, amount: "" }));
                         }}
-                        className="h-[48px] px-4 rounded-xl border transition-all duration-200 bg-background border-input hover:border-primary/50 hover:bg-primary/5"
+                        className="h-[48px] px-4 rounded-xl border transition-all duration-200 bg-background border-input hover:border-border hover:bg-primary/5"
                       >
                         <div className="flex items-center justify-center gap-2">
                           <Square className="h-4 w-4" />
@@ -299,45 +302,44 @@ export default function HomePage() {
                     </>
                   )}
                 </div>
+              
 
-                {/* Help text - only show when custom amount is active */}
                 {showCustomAmount && (
-                  <p className="text-xs text-muted-foreground mt-3">
-                    Minimum €1,00 • Maximum €50,00
-                  </p>
+                  <div className="mt-3">
+                    {amountError ? (
+                      <p className="text-xs text-red-400">
+                        {amountError}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">
+                        Minimum €1,00 • Maximum €50,00
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
 
-              <div className=" px-4">
+              <div className="px-4">
 
               {/* Animation Preset Selection */}
-              <label className=" block text-sm font-medium text-foreground mb-3">
-                Kies een animatie voor de ontvanger
+              <label className="block text-sm font-medium text-foreground mb-2">
+              <Badge variant="default" className="mr-2">Stap 2</Badge>  Kies een animatie voor de ontvanger
               </label>
 
-              <div
-                className="
-                  grid 
-                  gap-4 
-                  grid-cols-1
-                  sm:grid-cols-2
-                  md:grid-cols-3
-                  "
-              >
-
+              <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 md:grid-cols-3">
                 {Object.entries(ANIMATION_PRESETS).map(([key, preset]) => (
                   <div
                     key={key}
-                    className={`p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 h-full ${
+                    className={`p-2 rounded-lg border transition-all duration-200 ${
                       formData.animationPreset === key
                         ? "border-primary bg-primary/10 text-primary"
-                        : "border-border hover:border-primary/50 hover:bg-accent/50"
+                        : "border-border hover:border-border hover:bg-accent/50"
                     }`}
                   >
-                    <div className="text-base sm:text-lg mb-3">
+                    <div className="text-xs font-medium mb-2 leading-tight">
                       {preset.name}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-1">
                       <button
                         type="button"
                         onClick={() =>
@@ -346,27 +348,25 @@ export default function HomePage() {
                             animationPreset: key,
                           }))
                         }
-                        className={`flex-1 px-3 py-2 text-xs sm:text-sm rounded-md transition-colors ${
+                        className={`flex-1 px-2 py-1 text-xs rounded transition-colors ${
                           formData.animationPreset === key
                             ? "bg-primary text-primary-foreground"
                             : "bg-muted text-muted-foreground hover:bg-muted"
                         }`}
                       >
-                        {formData.animationPreset === key
-                          ? "Geselecteerd"
-                          : "Selecteer"}
+                        {formData.animationPreset === key ? "✓" : "Selecteer"}
                       </button>
                       <button
                         type="button"
                         onClick={() =>
                           previewAnimationPreset(key as AnimationPreset)
                         }
-                        className="px-3 py-2 text-xs sm:text-sm rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors flex items-center justify-center min-w-[40px]"
+                        className="px-2 py-1 text-xs rounded bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors flex items-center justify-center min-w-[28px]"
                       >
                         {isPreviewPlaying && previewAnimation === key ? (
-                          <Square className="h-4 w-4" />
+                          <Square className="h-3 w-3" />
                         ) : (
-                          <Play className="h-4 w-4" />
+                          <Play className="h-3 w-3" />
                         )}
                       </button>
                     </div>
@@ -380,7 +380,7 @@ export default function HomePage() {
                   htmlFor="message"
                   className="block text-sm font-medium text-foreground mb-3"
                 >
-                  Persoonlijk Bericht (optioneel)
+                 <Badge variant="default" className="mr-2">Stap 3</Badge> Persoonlijk Bericht (optioneel)
                 </label>
                 <div className="relative">
                   <MessageSquare className="absolute left-4 top-4 h-5 w-5 text-muted-foreground" />
@@ -412,7 +412,11 @@ export default function HomePage() {
                                 message: template,
                               }));
                             }}
-                            className="px-2 py-1 text-[10px] bg-primary/10 text-primary border border-primary rounded-md hover:bg-primary/20 transition-colors"
+                            className={`px-2 py-1 text-[10px] rounded-md transition-colors ${
+                              formData.message === template
+                                ? "bg-primary text-primary-foreground border border-primary"
+                                : "bg-primary/10 text-primary border border-primary hover:bg-primary/20"
+                            }`}
                           >
                             {template}
                           </button>
@@ -425,20 +429,6 @@ export default function HomePage() {
                   {formData.message.length}/120 karakters
                 </p>
               </div>
-
-              {/* Payment redirect - Show when form is complete */}
-              {isFormComplete && (
-                <div className="border-t  pt-6 px-4">
-                  <div className="text-center mb-6">
-                    <h3 className="text-lg font-semibold text-foreground mb-3">
-                      Je bent er bijna!
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Klik op betalen om naar de betaalpagina te gaan
-                    </p>
-                  </div>
-                </div>
-              )}
 
               {/* Error/Success Messages */}
               {error && (

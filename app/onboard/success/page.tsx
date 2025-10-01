@@ -88,9 +88,9 @@ export default function OnboardSuccessPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
+          <div className="w-8 h-8 border border-border border-t-primary rounded-full animate-spin mx-auto mb-4" />
           <p className="text-muted-foreground">Account status controleren...</p>
         </div>
       </div>
@@ -98,7 +98,7 @@ export default function OnboardSuccessPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-chart-1/10 to-chart-2/10 flex items-center justify-center p-4">
+    <div className="bg-gradient-to-br from-chart-1/10 to-chart-2/10 flex items-center justify-center p-4">
       {/* Confetti */}
       <BeautifulConfetti 
         trigger={showConfetti} 

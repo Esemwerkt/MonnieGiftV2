@@ -1,8 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Gift, CheckCircle, ArrowRight, Home, Mail, User, CreditCard } from 'lucide-react';
+import { executeAnimation, AnimationPreset } from '@/lib/animations';
+import JSConfetti from 'js-confetti';
+import Lottie from 'lottie-react';
+import bearAnimation from '@/public/animation-hero/bear.json';
+import { TypingAnimation } from '@/components/ui/typing-animation';
 
 export default function ClaimPage() {
   const params = useParams();
@@ -11,10 +16,13 @@ export default function ClaimPage() {
   
   const [gift, setGift] = useState<any>(null);
   const [email, setEmail] = useState('');
+  const [authCode, setAuthCode] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isCheckingUser, setIsCheckingUser] = useState(false);
   const [error, setError] = useState('');
-  const [step, setStep] = useState<'loading' | 'email' | 'onboarding' | 'claiming' | 'success' | 'error'>('loading');
+  const [step, setStep] = useState<'loading' | 'verification' | 'onboarding' | 'claiming' | 'success' | 'error'>('loading');
+  const [showConfetti, setShowConfetti] = useState(false);
+  const jsConfettiRef = useRef<JSConfetti | null>(null);
 
   useEffect(() => {
     if (giftId) {
@@ -22,13 +30,33 @@ export default function ClaimPage() {
     }
   }, [giftId]);
 
+  // Initialize JSConfetti
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        jsConfettiRef.current = new JSConfetti();
+      } catch (error) {
+        console.error('Failed to initialize JSConfetti:', error);
+        jsConfettiRef.current = null;
+      }
+    }
+  }, []);
+
+  // Trigger animation when confetti should show
+  useEffect(() => {
+    if (showConfetti && jsConfettiRef.current && gift?.animationPreset) {
+      // Pass the confetti function from the JSConfetti instance
+      executeAnimation(jsConfettiRef.current.addConfetti.bind(jsConfettiRef.current), gift.animationPreset as AnimationPreset);
+    }
+  }, [showConfetti, gift?.animationPreset]);
+
   const fetchGift = async () => {
     try {
       const response = await fetch(`/api/gifts/${giftId}`);
       if (response.ok) {
         const giftData = await response.json();
         setGift(giftData);
-        setStep('email');
+        setStep('verification');
       } else {
         setError('Cadeau niet gevonden');
         setStep('error');
@@ -42,10 +70,40 @@ export default function ClaimPage() {
     }
   };
 
-  const checkUserStatus = async (email: string) => {
+  const verifyAuthCode = async (email: string, authCode: string) => {
     setIsCheckingUser(true);
     setError('');
 
+    try {
+      const response = await fetch('/api/gifts/verify-auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          giftId, 
+          email, 
+          authCode 
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.valid) {
+        // Auth code is valid, now check user status
+        await checkUserStatus(email);
+      } else {
+        setError(result.error || 'Ongeldige authenticatiecode of e-mailadres');
+      }
+    } catch (err) {
+      console.error('Error verifying auth code:', err);
+      setError('Er is een fout opgetreden bij het verifiëren van je gegevens');
+    } finally {
+      setIsCheckingUser(false);
+    }
+  };
+
+  const checkUserStatus = async (email: string) => {
     try {
       const response = await fetch('/api/check-user-status', {
         method: 'POST',
@@ -62,16 +120,43 @@ export default function ClaimPage() {
         await claimGift(result.user.id);
       } else if (result.status === 'existing_user_no_stripe') {
         // User exists but needs Stripe Connect onboarding
-        setStep('onboarding');
+        await createStripeAccountAndRedirect();
       } else if (result.status === 'new_user') {
         // New user - create account and onboard
-        setStep('onboarding');
+        await createStripeAccountAndRedirect();
       }
     } catch (err) {
       console.error('Error checking user status:', err);
       setError('Er is een fout opgetreden bij het controleren van je account');
-    } finally {
-      setIsCheckingUser(false);
+    }
+  };
+
+  const createStripeAccountAndRedirect = async () => {
+    try {
+      // Create a new Stripe Express account
+      const accountResponse = await fetch('/api/connect/create-account', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          email,
+          giftId 
+        }),
+      });
+
+      const accountData = await accountResponse.json();
+
+      if (accountResponse.ok) {
+        // Redirect to onboarding with account ID
+        window.location.href = `/onboard?email=${encodeURIComponent(email)}&account_id=${accountData.accountId}&gift_id=${giftId}`;
+      } else {
+        throw new Error(accountData.error || 'Failed to create Stripe account');
+      }
+    } catch (err) {
+      console.error('Error creating Stripe account:', err);
+      setError('Er is een fout opgetreden bij het aanmaken van je account');
+      setStep('error');
     }
   };
 
@@ -93,6 +178,7 @@ export default function ClaimPage() {
 
       if (response.ok) {
         setStep('success');
+        setShowConfetti(true);
       } else {
         const errorData = await response.json();
         setError(errorData.error || 'Er is een fout opgetreden bij het claimen');
@@ -105,10 +191,10 @@ export default function ClaimPage() {
     }
   };
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
+  const handleVerificationSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email && isValidEmail(email)) {
-      checkUserStatus(email);
+    if (email && authCode && isValidEmail(email)) {
+      verifyAuthCode(email, authCode);
     }
   };
 
@@ -124,9 +210,9 @@ export default function ClaimPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
+          <div className="w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin mx-auto" />
           <p className="text-muted-foreground">Cadeau laden...</p>
         </div>
       </div>
@@ -135,7 +221,7 @@ export default function ClaimPage() {
 
   if (step === 'error') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="max-w-md mx-auto text-center space-y-4 p-6">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
             <Gift className="h-8 w-8 text-red-600" />
@@ -155,7 +241,9 @@ export default function ClaimPage() {
 
   if (step === 'success') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
+        {/* Animation is handled by useEffect */}
+        
         <div className="max-w-md mx-auto text-center space-y-4 p-6">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
             <CheckCircle className="h-8 w-8 text-green-600" />
@@ -176,136 +264,164 @@ export default function ClaimPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b px-4 py-3">
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => window.location.href = '/'}
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
-          >
-            <Home className="h-4 w-4" />
-            <span className="hidden sm:inline">Home</span>
-          </button>
-          <div className="flex items-center gap-2">
-            <Gift className="h-5 w-5 text-primary" />
-            <span className="font-semibold text-foreground">MonnieGift</span>
-          </div>
-          <div className="w-16" />
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="px-4 py-6 max-w-2xl mx-auto space-y-6">
-        {/* Gift Info */}
-        {gift && (
-          <div className="bg-card/30 backdrop-blur-sm border border-border/30 rounded-2xl p-6 text-center">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Gift className="h-8 w-8 text-primary" />
-            </div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">
-              Je hebt een cadeau ontvangen!
-            </h1>
-            <p className="text-3xl font-bold text-primary mb-2">
-              {formatAmount(gift.amount, gift.currency)}
-            </p>
-            {gift.message && (
-              <p className="text-muted-foreground italic">"{gift.message}"</p>
-            )}
-          </div>
-        )}
-
-        {/* Email Input Step */}
-        {step === 'email' && (
-          <div className="bg-card/30 backdrop-blur-sm border border-border/30 rounded-2xl p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4 text-center">
-              Voer je e-mailadres in om het cadeau op te halen
-            </h2>
-            
-            <form onSubmit={handleEmailSubmit} className="space-y-4">
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="je@email.nl"
-                  required
-                  className="w-full pl-12 pr-4 py-3 border border-input bg-background rounded-xl text-base placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                />
-              </div>
-              
-              {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
-                  <p className="text-red-600 text-sm">{error}</p>
-                </div>
-              )}
-              
-              <button
-                type="submit"
-                disabled={isCheckingUser || !email || !isValidEmail(email)}
-                className="w-full px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-              >
-                {isCheckingUser ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Controleren...
-                  </>
-                ) : (
-                  <>
-                    <ArrowRight className="h-4 w-4" />
-                    Cadeau ophalen
-                  </>
-                )}
-              </button>
-            </form>
-          </div>
-        )}
-
-        {/* Onboarding Step */}
-        {step === 'onboarding' && (
-          <div className="bg-card/30 backdrop-blur-sm border border-border/30 rounded-2xl p-6 text-center">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CreditCard className="h-8 w-8 text-blue-600" />
-            </div>
-            <h2 className="text-lg font-semibold text-foreground mb-4">
-              Account instellen
-            </h2>
-            <p className="text-muted-foreground mb-6">
-              Om je cadeau te ontvangen, moet je eerst je account instellen met Stripe Connect. 
-              Dit duurt slechts een paar minuten.
-            </p>
+    <div className="">
+      <div className="w-full mx-auto max-w-4xl flex flex-col">
+        {/* Header */}
+        <div className="px-4 relative top-0 z-10 border-b py-3 border-border">
+          <div className="flex items-center justify-between">
             <button
-              onClick={() => {
-                // Redirect to Stripe Connect onboarding
-                window.location.href = `/onboard?email=${encodeURIComponent(email)}&giftId=${giftId}`;
-              }}
-              className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 mx-auto"
+              onClick={() => window.location.href = '/'}
+              className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
             >
-              <CreditCard className="h-4 w-4" />
-              Account instellen
+              <Home className="h-4 w-4" />
+              <span className="hidden sm:inline">Terug naar home</span>
             </button>
+            <div className="flex items-center gap-2">
+              <Gift className="h-5 w-5 text-primary" />
+              <span className="font-semibold text-foreground">MonnieGift</span>
+            </div>
           </div>
-        )}
+        </div>
 
-        {/* Claiming Step */}
-        {step === 'claiming' && (
-          <div className="bg-card/30 backdrop-blur-sm border border-border/30 rounded-2xl p-6 text-center">
-            <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
-            <h2 className="text-lg font-semibold text-foreground mb-2">
-              Cadeau wordt opgehaald...
-            </h2>
-            <p className="text-muted-foreground">
-              Even geduld, we verwerken je cadeau.
-            </p>
-          </div>
-        )}
+        {/* Main Content */}
+        <div className="flex-1 px-4 py-12 space-y-6 overflow-x-hidden">
+          {/* Gift Info */}
+          {gift && (
+            <div className="mb-24">
+              <div className="gap-y-6 flex flex-col">
+                <div className="">
+             
+                  
+                  <div className="text-center">
+                    {/* Lottie Animation */}
+              
+                    <h1 className="text-2xl font-bold text-foreground mb-2">
+                      Je hebt een cadeau ontvangen!
+                    </h1>
+                    <p className="text-3xl font-bold text-primary mb-2">
+                      {formatAmount(gift.amount, gift.currency)}
+                    </p>
+                    {gift.message && (
+                      <div className="bg-muted/50 border border-border rounded-xl p-5 mt-6 max-w-md mx-auto">
+                        <p className="text-xs text-muted-foreground mb-3 font-medium">Persoonlijk bericht:</p>
+                        <div className="min-h-[3rem] flex items-center justify-center">
+                          <TypingAnimation
+                            className="text-base italic text-foreground leading-relaxed"
+                            duration={80}
+                            delay={1500}
+                          >
+                            {`"${gift.message}"`}
+                          </TypingAnimation>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
-        {/* Info */}
-        <div className="bg-muted/30 rounded-xl p-4 text-center">
-          <p className="text-sm text-muted-foreground">
-            MonnieGift is een veilige manier om digitale cadeaus te versturen en ontvangen.
-          </p>
+          {/* Verification Step */}
+          {step === 'verification' && (
+            <div className="">
+              <div className="gap-y-6 flex flex-col">
+                <div className="relative">
+                  <label className="block text-sm font-medium text-foreground mb-3">
+                    Verifieer je gegevens
+                  </label>
+                  <div className="absolute -top-12 -right-6 rotate-12 w-24 h-24 mx-auto mb-4">
+                      <Lottie
+                        animationData={bearAnimation}
+                        loop={true}
+                        autoplay={true}
+                        style={{ width: "100%", height: "100%" }}
+                      />
+                    </div>
+                  <div className="space-y-4 p-4 bg-background border border-input rounded-xl">
+                    <p className="text-muted-foreground text-sm text-center">
+                      Voer je e-mailadres en authenticatiecode in om je cadeau te claimen.
+                    </p>
+                    
+                    <form onSubmit={handleVerificationSubmit} className="space-y-4">
+                      <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="je@email.nl"
+                          required
+                          className="w-full h-[48px] pl-12 pr-4 border border-input bg-background rounded-xl text-base placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                        />
+                      </div>
+                      
+                      <div className="relative">
+                        <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <input
+                          type="text"
+                          value={authCode}
+                          onChange={(e) => setAuthCode(e.target.value.toUpperCase())}
+                           placeholder="ABC123DEF456"
+                          maxLength={12}
+                          required
+                          className="w-full h-[48px] pl-12 pr-4 border border-input bg-background rounded-xl text-base placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent  text-left text-lg tracking-widest"
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground text-center">
+                        Voer de 12-karakter code in die je hebt ontvangen
+                      </p>
+                      
+                      {error && (
+                        <div className="p-3 bg-destructive/10 border border-destructive/20 text-destructive rounded-xl flex items-center gap-2">
+                          <div className="w-2 h-2 bg-destructive rounded-full" />
+                          <p className="text-sm">{error}</p>
+                        </div>
+                      )}
+                      
+                      <button
+                        type="submit"
+                        disabled={isCheckingUser || !email || !authCode || !isValidEmail(email)}
+                        className="w-full h-[48px] bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 text-sm"
+                      >
+                        {isCheckingUser ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                            Verifiëren...
+                          </>
+                        ) : (
+                          <>
+                            <ArrowRight className="h-4 w-4" />
+                            Verifieer & Claim
+                          </>
+                        )}
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Claiming Step */}
+          {step === 'claiming' && (
+            <div className="">
+              <div className="gap-y-6 flex flex-col">
+                <div className="">
+                  <div className="space-y-4 p-4 bg-background border border-input rounded-xl text-center">
+                    <div className="w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin mx-auto" />
+                    <h2 className="text-lg font-semibold text-foreground">
+                      Cadeau wordt opgehaald...
+                    </h2>
+                    <p className="text-muted-foreground text-sm">
+                      Even geduld, we verwerken je cadeau.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+       
         </div>
       </div>
     </div>

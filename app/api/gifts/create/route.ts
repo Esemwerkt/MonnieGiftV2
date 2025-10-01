@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { supabaseAdmin } from '@/lib/supabase';
-import { generateVerificationCode } from '@/lib/auth';
+import { generateUniqueVerificationCode } from '@/lib/auth';
 import { sendGiftEmail } from '@/lib/email';
 import { checkUserLimits, LIMITS } from '@/lib/limits';
 
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const authenticationCode = generateVerificationCode();
+    const authenticationCode = await generateUniqueVerificationCode(supabaseAdmin);
 
     let gift;
     const giftData = {

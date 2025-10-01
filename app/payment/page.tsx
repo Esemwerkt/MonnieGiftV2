@@ -9,8 +9,8 @@ import {
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js';
-import { Euro, ArrowLeft, Gift, CheckCircle } from 'lucide-react';
-import HamburgerMenu from '@/components/HamburgerMenu';
+import { Euro, ArrowLeft, Gift, CheckCircle, InfoIcon } from 'lucide-react';
+import Image from 'next/image';
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
@@ -65,6 +65,11 @@ function PaymentForm({
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
+          payment_method_data: {
+            billing_details: {
+              name: 'iDEAL Payment',
+            },
+          },
           return_url: `${window.location.origin}/success?payment_intent_id=${paymentIntentId}`,
         },
         redirect: 'if_required',
@@ -87,41 +92,87 @@ function PaymentForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Payment Element */}
-      <div className="space-y-4">
-        <div className="p-4 bg-background border border-input rounded-xl">
-          <PaymentElement
-            options={{
-              layout: 'tabs',
-            }}
-            onReady={() => setIsPaymentElementReady(true)}
-          />
+      {/* Hidden PaymentElement for Stripe functionality */}
+      <div style={{ display: 'none' }}>
+        <PaymentElement
+          options={{
+            layout: 'accordion',
+            defaultValues: {
+              billingDetails: {
+                name: '',
+                email: '',
+              }
+            },
+            fields: {
+              billingDetails: {
+                name: 'never',
+                email: 'auto',
+              }
+            },
+            paymentMethodOrder: ['ideal'],
+            wallets: {
+              applePay: 'never',
+              googlePay: 'never',
+            }
+          }}
+          onReady={() => setIsPaymentElementReady(true)}
+        />
+      </div>
+
+
+
+
+      {/* Custom iDEAL Payment UI */}
+      <div className="relative">
+        <label className="block text-sm font-medium text-foreground mb-3">
+          Betaalmethode
+        </label>
+        
+        <div className="p-4 bg-background border-2 border-muted rounded-xl">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
+              <Image 
+                src="/payment-logo/ideal.svg" 
+                alt="iDEAL" 
+                width={32}
+                height={32}
+              />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-foreground">iDEAL</p>
+              <p className="text-xs text-muted-foreground">Direct betalen via je bank</p>
+            </div>
+            <div className="w-4 h-4 rounded-full border-2 border-primary bg-muted flex items-center justify-center">
+              <div className="w-1.5 h-1.5 bg-white rounded-full" />
+            </div>
+          </div>
         </div>
         
         {error && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
-            <p className="text-red-600 text-sm">{error}</p>
+          <div className="mt-3 p-3 bg-destructive/10 border border-destructive/20 text-destructive rounded-xl flex items-center gap-2">
+            <div className="w-2 h-2 bg-destructive rounded-full" />
+            <p className="text-sm">{error}</p>
           </div>
         )}
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <button
+      <div className="flex gap-3">
+        {/* <button
           type="button"
           onClick={onCancel}
-          className="flex-1 px-6 py-3 border border-input bg-background text-foreground rounded-xl font-medium hover:bg-muted transition-colors"
+          className="flex-1 h-[48px]  rounded-xl border transition-all duration-200 bg-background border-input hover:border-border hover:bg-primary/5 text-sm font-medium"
         >
           Annuleren
-        </button>
+        </button> */}
         <button
           type="submit"
           disabled={!stripe || !elements || isProcessing || !isPaymentElementReady}
-          className="flex-1 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+          className="flex-1 h-[48px]  bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 text-sm"
         >
           {isProcessing ? (
             <>
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
               Verwerken...
             </>
           ) : (
@@ -217,9 +268,9 @@ export default function PaymentPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
+          <div className="w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin mx-auto" />
           <p className="text-muted-foreground">Betaling voorbereiden...</p>
         </div>
       </div>
@@ -228,7 +279,7 @@ export default function PaymentPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
+      <div className="bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
         <div className="max-w-md mx-auto text-center space-y-4 p-6">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
             <CheckCircle className="h-8 w-8 text-red-600" />
@@ -248,7 +299,7 @@ export default function PaymentPage() {
 
   if (showSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
+      <div className="bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
         <div className="max-w-md mx-auto text-center space-y-4 p-6">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
             <CheckCircle className="h-8 w-8 text-green-600" />
@@ -261,92 +312,120 @@ export default function PaymentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      {/* Mobile Header */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b px-4 py-3">
-        <div className="flex items-center justify-between">
-          <button
-            onClick={handleCancel}
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Terug</span>
-          </button>
-          <div className="flex items-center gap-2">
-            <Gift className="h-5 w-5 text-primary" />
-            <span className="font-semibold text-foreground">MonnieGift</span>
+    <div className="">
+      <div className="w-full mx-auto max-w-4xl flex flex-col">
+        {/* Header */}
+        <div className="px-4 relative top-0 z-10 border-b  py-3 border-border">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={handleCancel}
+              className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Terug naar cadeau</span>
+            </button>
+            <div className="flex items-center gap-2">
+              <Gift className="h-5 w-5 text-primary" />
+              <span className="font-semibold text-foreground">MonnieGift</span>
+            </div>
           </div>
-          <HamburgerMenu />
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="px-4 py-6 max-w-2xl mx-auto">
-        {/* Payment Summary */}
-        <div className="bg-card/50 backdrop-blur-sm border border-border/30 rounded-2xl p-6 mb-6">
-          <h1 className="text-2xl font-bold text-foreground mb-4">Betaling</h1>
-          
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Cadeau bedrag</span>
-              <span className="font-medium">€{(giftAmount / 100).toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Servicekosten</span>
-              <span className="font-medium">€{(platformFee / 100).toFixed(2)}</span>
-            </div>
-            <div className="border-t border-border pt-3">
-              <div className="flex justify-between items-center text-lg font-semibold">
-                <span>Totaal</span>
-                <span className="text-primary">€{(totalAmount / 100).toFixed(2)}</span>
+        {/* Main Content */}
+        <div className="flex-1 px-4  px-0 py-12 space-y-6">
+
+          {/* Payment Summary */}
+          <div className="">
+            <div className="gap-y-6 flex flex-col">
+              <div className="">
+                <label className="block text-sm font-medium text-foreground mb-3">
+                  Betalingsoverzicht
+                </label>
+                
+                <div className="space-y-3 p-4 bg-background border border-input rounded-xl">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Cadeau bedrag</span>
+                    <span className="text-sm font-medium">€{(giftAmount / 100).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Servicekosten</span>
+                    <span className="text-sm font-medium">€{(platformFee / 100).toFixed(2)}</span>
+                  </div>
+                  <div className="border-t border-border pt-3">
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold">Totaal</span>
+                      <span className="text-primary font-semibold">€{(totalAmount / 100).toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {message && (
+                  <div className="mt-6 p-3 bg-muted rounded-xl">
+                    <p className="text-xs text-muted-foreground mb-1">Persoonlijk bericht:</p>
+                    <p className="text-sm">"{message}"</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Payment Form */}
+              <div className="">
+                {clientSecret && (
+                  <Elements
+                    stripe={stripePromise}
+                    options={{
+                      clientSecret,
+                      appearance: {
+                        theme: 'stripe',
+                        variables: {
+                          colorPrimary: 'hsl(var(--primary))',
+                          colorBackground: 'hsl(var(--background))',
+                          colorText: 'hsl(var(--foreground))',
+                          colorDanger: 'hsl(var(--destructive))',
+                          fontFamily: 'system-ui, sans-serif',
+                          spacingUnit: '8px',
+                          borderRadius: '12px',
+                          fontSizeBase: '16px',
+                        },
+                      },
+                    }}
+                  >
+                    <PaymentForm
+                      clientSecret={clientSecret}
+                      paymentIntentId={paymentIntentId}
+                      giftAmount={giftAmount}
+                      platformFee={platformFee}
+                      totalAmount={totalAmount}
+                      message={message}
+                      animationPreset={animationPreset}
+                      onSuccess={handleSuccess}
+                      onCancel={handleCancel}
+                    />
+                  </Elements>
+                )}
               </div>
             </div>
           </div>
 
-          {message && (
-            <div className="mt-4 p-3 bg-muted/50 rounded-xl">
-              <p className="text-sm text-muted-foreground mb-1">Bericht:</p>
-              <p className="text-sm">"{message}"</p>
+          {/* Security Note */}
+          <div className="text-center py-4">
+            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground mb-3">
+              <div className="flex items-center gap-1">
+                <CheckCircle className="h-3 w-3 text-green-500" />
+                <span>Direct bezorgd</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <CheckCircle className="h-3 w-3 text-green-500" />
+                <span>100% veilig</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <CheckCircle className="h-3 w-3 text-green-500" />
+                <span>Geen wachtwoord</span>
+              </div>
             </div>
-          )}
-        </div>
-
-        {/* Payment Form */}
-        <div className="bg-card/50 backdrop-blur-sm border border-border/30 rounded-2xl p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Betaal veilig</h2>
-          
-          {clientSecret && (
-            <Elements
-              stripe={stripePromise}
-              options={{
-                clientSecret,
-                appearance: {
-                  theme: 'stripe',
-                  variables: {
-                    colorPrimary: 'hsl(var(--primary))',
-                    colorBackground: 'hsl(var(--background))',
-                    colorText: 'hsl(var(--foreground))',
-                    colorDanger: 'hsl(var(--destructive))',
-                    fontFamily: 'system-ui, sans-serif',
-                    spacingUnit: '4px',
-                    borderRadius: '12px',
-                  },
-                },
-              }}
-            >
-              <PaymentForm
-                clientSecret={clientSecret}
-                paymentIntentId={paymentIntentId}
-                giftAmount={giftAmount}
-                platformFee={platformFee}
-                totalAmount={totalAmount}
-                message={message}
-                animationPreset={animationPreset}
-                onSuccess={handleSuccess}
-                onCancel={handleCancel}
-              />
-            </Elements>
-          )}
+            <p className="text-xs text-muted-foreground">
+              Je MonnieGift cadeau is direct klaar om te delen 
+            </p>
+          </div>
         </div>
       </div>
     </div>

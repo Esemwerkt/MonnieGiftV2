@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Gift, CheckCircle, ArrowRight, Home, MessageCircle, Copy, Check, Share2 } from 'lucide-react';
+import { Gift, CheckCircle, ArrowRight, Home, MessageCircle, Copy, Check, Share2, ArrowLeft } from 'lucide-react';
 
 export default function SuccessPage() {
   const searchParams = useSearchParams();
@@ -12,9 +12,11 @@ export default function SuccessPage() {
     currency: string;
     message?: string;
     authenticationCode: string;
+    platformFeeAmount?: number;
   } | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
   const [claimUrl, setClaimUrl] = useState('');
   const [processingComplete, setProcessingComplete] = useState(false);
   const [processingError, setProcessingError] = useState(false);
@@ -28,6 +30,18 @@ export default function SuccessPage() {
       setTimeout(() => setLinkCopied(false), 2000);
     } catch (error) {
       console.error('Failed to copy link:', error);
+    }
+  };
+
+  const handleCopyCode = async () => {
+    if (!giftData?.authenticationCode) return;
+    
+    try {
+      await navigator.clipboard.writeText(giftData.authenticationCode);
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy code:', error);
     }
   };
 
@@ -153,6 +167,7 @@ export default function SuccessPage() {
               currency: gift.currency,
               message: gift.message || undefined,
               authenticationCode: gift.authenticationCode,
+              platformFeeAmount: gift.platformFeeAmount || 99, // Default to 99 cents if not available
             };
             
             setGiftData(newGiftData);
@@ -224,6 +239,7 @@ export default function SuccessPage() {
                   currency: gift.currency,
                   message: gift.message || undefined,
                   authenticationCode: gift.authenticationCode,
+                  platformFeeAmount: gift.platformFeeAmount || 99, // Default to 99 cents if not available
                 };
                 
                 setGiftData(newGiftData);
@@ -238,10 +254,67 @@ export default function SuccessPage() {
                 console.log('Gift retrieved successfully on retry');
               } else {
                 console.error('Still no gift found after retry');
-                console.log('Webhook failed to create gift - please contact support');
-                setProcessingError(true);
-                setProcessingComplete(true);
-                sessionStorage.setItem(processingKey, 'true');
+                console.log('Webhook failed to create gift, attempting fallback creation...');
+                
+                // Fallback: Create gift manually using the gifts/create endpoint
+                try {
+                  const createResponse = await fetch('/api/gifts/create', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      amount: amount,
+                      currency: currency,
+                      message: message,
+                      animationPreset: animationPreset,
+                      paymentIntentId: paymentIntentId,
+                    }),
+                  });
+
+                  if (createResponse.ok) {
+                    const createResult = await createResponse.json();
+                    console.log('Fallback gift creation successful:', createResult);
+                    
+                    // Fetch the newly created gift
+                    const giftResponse = await fetch(`/api/gifts/by-payment-intent/${paymentIntentId}`);
+                    if (giftResponse.ok) {
+                      const gift = await giftResponse.json();
+                      console.log('Found newly created gift:', gift);
+                      
+                      const newGiftData = {
+                        id: gift.id,
+                        amount: gift.amount,
+                        currency: gift.currency,
+                        message: gift.message || undefined,
+                        authenticationCode: gift.authenticationCode,
+                        platformFeeAmount: gift.platformFeeAmount || 99, // Default to 99 cents if not available
+                      };
+                      
+                      setGiftData(newGiftData);
+                      
+                      const baseUrl = window.location.origin;
+                      const claimLink = `${baseUrl}/claim/${gift.id}`;
+                      setClaimUrl(claimLink);
+                      
+                      setShowConfetti(true);
+                      setProcessingComplete(true);
+                      sessionStorage.setItem(processingKey, 'true');
+                      console.log('Fallback gift creation and retrieval successful');
+                    } else {
+                      throw new Error('Failed to fetch newly created gift');
+                    }
+                  } else {
+                    const errorData = await createResponse.json();
+                    throw new Error(errorData.error || 'Failed to create gift');
+                  }
+                } catch (fallbackError) {
+                  console.error('Fallback gift creation failed:', fallbackError);
+                  console.log('All gift creation methods failed - please contact support');
+                  setProcessingError(true);
+                  setProcessingComplete(true);
+                  sessionStorage.setItem(processingKey, 'true');
+                }
               }
             } catch (retryError) {
               console.error('Retry error:', retryError);
@@ -262,7 +335,7 @@ export default function SuccessPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
+          <div className="w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin mx-auto" />
           <p className="text-muted-foreground">Betaling wordt geverifieerd...</p>
           <p className="text-xs text-muted-foreground">Dit kan even duren</p>
         </div>
@@ -293,7 +366,7 @@ export default function SuccessPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="">
       {/* Confetti */}
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50">
@@ -301,198 +374,206 @@ export default function SuccessPage() {
         </div>
       )}
 
-      {/* Mobile Header */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b px-4 py-3">
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => window.location.href = '/'}
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
-          >
-            <Home className="h-4 w-4" />
-            <span className="hidden sm:inline">Home</span>
-          </button>
-          <div className="flex items-center gap-2">
-            <Gift className="h-5 w-5 text-primary" />
-            <span className="font-semibold text-foreground">MonnieGift</span>
+      <div className="w-full mx-auto max-w-4xl flex flex-col">
+        {/* Header */}
+        <div className="px-4 relative top-0 z-10 border-b py-3 border-border">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => window.location.href = '/'}
+              className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Terug naar home</span>
+            </button>
+            <div className="flex items-center gap-2">
+              <Gift className="h-5 w-5 text-primary" />
+              <span className="font-semibold text-foreground">MonnieGift</span>
+            </div>
           </div>
-          <div className="w-16" /> {/* Spacer for centering */}
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="px-4 py-6 max-w-2xl mx-auto space-y-6">
-        {/* Success Content */}
-        <div className="text-center">
-          {/* Success Icon */}
-          <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-chart-1/20 to-chart-1/10 rounded-full mb-8">
-            <CheckCircle className="h-12 w-12 text-chart-1" />
-          </div>
-
-          {/* Success Message */}
-          <h1 className="text-4xl font-bold text-foreground mb-4">
-            Cadeau Succesvol Verzonden!
-          </h1>
-          <p className="text-xl text-muted-foreground mb-8">
-            Je cadeau is veilig verzonden! Deel de code en link om de ontvanger te informeren.
-          </p>
         </div>
 
-        {/* Gift Details */}
-        {giftData && (
-          <div className="bg-card/30 backdrop-blur-sm border border-border/30 rounded-2xl p-6 mb-8">
-            <h2 className="text-lg font-semibold text-foreground mb-4 text-center">
-              Cadeau Details
-            </h2>
-            
-            <div className="space-y-4">
-              {/* Amount */}
+        {/* Main Content */}
+        <div className="flex-1 px-4 px-0 py-12 space-y-6">
+
+          {/* Success Content */}
+          <div className="">
+            <div className="gap-y-6 flex flex-col">
               <div className="text-center">
-                <p className="text-3xl font-bold text-foreground">
-                  {formatAmount(giftData.amount, giftData.currency)}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Cadeau bedrag
+                {/* Success Icon */}
+            
+
+                {/* Success Message */}
+                <h1 className="text-4xl font-bold text-foreground mb-4">
+                  Cadeau succesvol aangemaakt!
+                </h1>
+                <p className="text-xl text-muted-foreground mb-8">
+                  Je cadeau is klaar om te delen! Deel de code en link om de ontvanger te informeren.
                 </p>
               </div>
 
-              {/* Message */}
-              {giftData.message && (
-                <div className="p-4 bg-muted/50 rounded-xl">
-                  <p className="text-sm text-muted-foreground mb-1">Bericht:</p>
-                  <p className="text-sm">"{giftData.message}"</p>
+              {/* Gift Details */}
+              {giftData && (
+                <div className="">
+                  <label className="block text-sm font-medium text-foreground mb-3">
+                    Cadeau Details
+                  </label>
+                  
+                  <div className="space-y-3 p-4 bg-background border border-input rounded-xl">
+                    {/* Amount */}
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Cadeau bedrag</span>
+                      <span className="text-sm font-medium">{formatAmount(giftData.amount, giftData.currency)}</span>
+                    </div>
+                    
+                    {/* Platform Fee */}
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Servicekosten</span>
+                      <span className="text-sm font-medium">{formatAmount(giftData.platformFeeAmount || 99, giftData.currency)}</span>
+                    </div>
+                    
+                    {/* Total */}
+                    <div className="border-t border-border pt-3">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold">Totaal betaald</span>
+                        <span className="text-primary font-semibold">{formatAmount((giftData.amount + (giftData.platformFeeAmount || 99)), giftData.currency)}</span>
+                      </div>
+                    </div>
+                    
+                  </div>
+
+                  {/* Message */}
+                  {giftData.message && (
+                    <div className="mt-4 p-3 bg-muted rounded-xl">
+                      <p className="text-xs text-muted-foreground mb-1">Persoonlijk bericht:</p>
+                      <p className="text-sm">"{giftData.message}"</p>
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* Authentication Code - PROMINENT */}
-              <div className="bg-primary/10 border-2 border-primary/20 rounded-xl p-6 text-center">
-                <p className="text-sm text-muted-foreground mb-2">Deel deze code met de ontvanger:</p>
-                <div className="bg-background border border-primary/30 rounded-lg p-4 mb-3">
-                  <p className="text-3xl font-bold text-primary font-mono tracking-wider">
-                    {giftData.authenticationCode}
-                  </p>
+              {giftData && (
+                <div className="">
+                  <label className="block text-sm font-medium text-foreground mb-3">
+                    Authenticatie code
+                  </label>
+                  
+                  <div className="bg-primary/10 border-2 border-primary/20 rounded-xl p-6 text-center">
+                    <p className="text-sm text-muted-foreground mb-2">Deel deze code met de ontvanger:</p>
+                    <div className="relative bg-background border border-border rounded-lg p-4 mb-3">
+                      <p className="text-3xl font-bold text-primary  tracking-wider pr-12">
+                        {giftData.authenticationCode}
+                      </p>
+                      <button
+                        onClick={handleCopyCode}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 hover:bg-muted rounded transition-colors"
+                        title="Kopieer code"
+                      >
+                        {codeCopied ? (
+                          <Check className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <Copy className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-3">
+                      De ontvanger heeft deze code nodig om het cadeau op te halen
+                    </p>
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  De ontvanger heeft deze code nodig om het cadeau op te halen
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+              )}
 
-        {/* Share Options */}
-        {giftData && claimUrl && (
-          <div className="bg-card/30 backdrop-blur-sm border border-border/30 rounded-2xl p-6 mb-8">
-            <h3 className="text-lg font-bold text-foreground mb-4 flex items-center justify-center gap-2">
-              <div className="w-2 h-2 bg-chart-1 rounded-full" />
-              Deel je cadeau
-            </h3>
-            
-            {/* Copy Link Section */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Cadeau link:
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={claimUrl}
-                  readOnly
-                  className="flex-1 h-[48px] pl-4 pr-4 border border-input bg-background rounded-xl text-base placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                />
+              {/* Share Options */}
+              {giftData && claimUrl && (
+                <div className="">
+                  <label className="block text-sm font-medium text-foreground mb-3">
+                    Deel je cadeau
+                  </label>
+                  
+                  <div className="space-y-3 p-4 bg-background border border-input rounded-xl">
+                    {/* Copy Link Section */}
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={claimUrl}
+                        readOnly
+                        className="w-full h-[48px] pl-4 pr-12 border border-input bg-background rounded-xl text-base placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                      />
+                      <button
+                        onClick={handleCopyLink}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 hover:bg-muted rounded transition-colors"
+                        title="Kopieer link"
+                      >
+                        {linkCopied ? (
+                          <Check className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <Copy className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Share Buttons */}
+                    <div className="flex gap-2">
+                      {/* WhatsApp Share Button */}
+                      <button
+                        onClick={handleWhatsAppShare}
+                        className="flex-1 h-[48px] bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 transition-all duration-200 flex items-center justify-center gap-2"
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                        Deel via WhatsApp
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Next Steps */}
+              <div className="">
+                <label className="block text-sm font-medium text-foreground mb-3">
+                  Wat gebeurt er nu?
+                </label>
+                
+                <div className="space-y-3 p-4 bg-background border border-input rounded-xl">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+                    <span className="text-sm text-muted-foreground">1. Deel de code en link</span>
+                    <span className="text-sm font-medium">Via WhatsApp of andere manier</span>
+                  </div>
+                  
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+                    <span className="text-sm text-muted-foreground">2. Ontvanger bezoekt link</span>
+                    <span className="text-sm font-medium">En voert de code in</span>
+                  </div>
+                  
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+                    <span className="text-sm text-muted-foreground">3. Automatische doorverwijzing</span>
+                    <span className="text-sm font-medium">Naar juiste pagina</span>
+                  </div>
+                  
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+                    <span className="text-sm text-muted-foreground">4. Geld wordt overgemaakt</span>
+                    <span className="text-sm font-medium">Zodra alles is ingesteld</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
                 <button
-                  onClick={handleCopyLink}
-                  className="px-4 py-2 bg-chart-1 text-white rounded-lg text-sm font-medium hover:bg-chart-1/90 transition-all duration-200 flex items-center gap-2"
+                  onClick={() => window.location.href = '/'}
+                  className="flex-1 h-[48px] rounded-xl border transition-all duration-200 bg-background border-input hover:border-border hover:bg-primary/5 text-sm font-medium flex items-center justify-center gap-2"
                 >
-                  {linkCopied ? (
-                    <>
-                      <Check className="h-4 w-4" />
-                      Gekopieerd!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-4 w-4" />
-                      Kopiëren
-                    </>
-                  )}
+                  <Home className="h-4 w-4" />
+                  Terug naar home
+                </button>
+                <button
+                  onClick={() => window.location.href = '/maak-gift'}
+                  className="flex-1 h-[48px] bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-200 flex items-center justify-center gap-2 text-sm"
+                >
+                  <Gift className="h-4 w-4" />
+                  Nieuw cadeau maken
                 </button>
               </div>
             </div>
-
-            {/* Share Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              {/* WhatsApp Share Button */}
-              <button
-                onClick={handleWhatsAppShare}
-                className="px-6 py-3 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 transition-all duration-200 flex items-center justify-center gap-2 group"
-              >
-                <MessageCircle className="h-5 w-5" />
-                Deel via WhatsApp
-                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
-              </button>
-            </div>
-            
-            <div className="text-center mt-4">
-              <p className="text-xs text-muted-foreground">
-                De ontvanger kan het cadeau ophalen door de link te bezoeken en de code in te voeren
-              </p>
-            </div>
           </div>
-        )}
-
-        {/* Next Steps */}
-        <div className="bg-card/30 backdrop-blur-sm border border-border/30 rounded-2xl p-6 mb-8">
-          <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-            <div className="w-2 h-2 bg-chart-1 rounded-full" />
-            Wat gebeurt er nu?
-          </h3>
-          
-          <div className="space-y-4 text-sm text-muted-foreground">
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 bg-primary/20 text-primary rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
-                1
-              </div>
-              <p>Deel de code en link met de ontvanger via WhatsApp of een andere manier</p>
-            </div>
-            
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 bg-primary/20 text-primary rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
-                2
-              </div>
-              <p>De ontvanger bezoekt de link en voert de code in</p>
-            </div>
-            
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 bg-primary/20 text-primary rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
-                3
-              </div>
-              <p>De ontvanger wordt automatisch doorgestuurd naar de juiste pagina (onboarding of claimen)</p>
-            </div>
-            
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 bg-primary/20 text-primary rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
-                4
-              </div>
-              <p>Het geld wordt overgemaakt naar de ontvanger zodra alles is ingesteld</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <button
-            onClick={() => window.location.href = '/'}
-            className="flex-1 px-6 py-3 border border-input bg-background text-foreground rounded-xl font-medium hover:bg-muted transition-colors flex items-center justify-center gap-2"
-          >
-            <Home className="h-4 w-4" />
-            Terug naar home
-          </button>
-          <button
-            onClick={() => window.location.href = '/maak-gift'}
-            className="flex-1 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
-          >
-            <Gift className="h-4 w-4" />
-            Nieuw cadeau maken
-          </button>
         </div>
       </div>
     </div>

@@ -22,7 +22,35 @@ export function verifyAuthToken(token: string): AuthToken | null {
 }
 
 export function generateVerificationCode(): string {
-  return crypto.randomBytes(3).toString('hex').toUpperCase();
+  return crypto.randomBytes(6).toString('hex').toUpperCase();
+}
+
+export async function generateUniqueVerificationCode(supabase: any, maxRetries: number = 5): Promise<string> {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const code = generateVerificationCode();
+    
+    try {
+      // Check if code already exists
+      const { data: existingGift } = await supabase
+        .from('gifts')
+        .select('id')
+        .eq('authenticationCode', code)
+        .single();
+      
+      // If no existing gift found, code is unique
+      if (!existingGift) {
+        return code;
+      }
+      
+      console.log(`Verification code collision detected: ${code}, retrying... (attempt ${attempt + 1}/${maxRetries})`);
+    } catch (error) {
+      // If error (likely "not found"), code is unique
+      return code;
+    }
+  }
+  
+  // If we've exhausted all retries, throw an error
+  throw new Error(`Failed to generate unique verification code after ${maxRetries} attempts`);
 }
 
 export function generateMagicLink(email: string): string {

@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
-);
+import { supabaseAdmin } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,7 +24,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the gift
-    const { data: gift } = await supabase
+    const { data: gift } = await supabaseAdmin
       .from('gifts')
       .select('*')
       .eq('id', giftId)
@@ -50,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the user
-    const { data: user } = await supabase
+    const { data: user } = await supabaseAdmin
       .from('users')
       .select('*')
       .eq('id', userId)
@@ -97,6 +92,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // First, update the gift with recipient information BEFORE creating transfer
+    console.log('Updating gift with recipient information...');
+    const { error: updateError } = await supabaseAdmin
+      .from('gifts')
+      .update({
+        recipientEmail: email, // Update with actual recipient email
+        stripeConnectAccountId: user.stripeConnectAccountId,
+        updatedAt: new Date().toISOString(),
+      })
+      .eq('id', gift.id);
+
+    if (updateError) {
+      console.error('Error updating gift with recipient info:', updateError);
+      return NextResponse.json(
+        { error: 'Er is een fout opgetreden bij het bijwerken van het cadeau' },
+        { status: 500 }
+      );
+    }
+
+    console.log('Gift updated with recipient info, creating transfer...');
+
     // Create transfer to user's Stripe account
     try {
       const transfer = await stripe.transfers.create({
@@ -107,11 +123,12 @@ export async function POST(request: NextRequest) {
         metadata: {
           giftId: gift.id,
           type: 'gift_payout',
+          recipientEmail: email,
         },
       });
 
-      // Update gift as claimed
-      await supabase
+      // Update gift as claimed with transfer ID
+      await supabaseAdmin
         .from('gifts')
         .update({
           isClaimed: true,

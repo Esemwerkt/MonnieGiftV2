@@ -1,21 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ANON_KEY!
+);
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { accountId, giftId, email } = body;
+    const { email, giftId } = body;
 
-    if (!accountId) {
+    if (!email || !giftId) {
       return NextResponse.json(
-        { error: 'Account ID is required' },
+        { error: 'Email and gift ID are required' },
         { status: 400 }
       );
     }
 
-    // Create Express account first
+    // Create Express account
     const account = await stripe.accounts.create({
       type: 'express',
       country: 'NL',
@@ -27,7 +33,7 @@ export async function POST(request: NextRequest) {
       },
       business_profile: {
         product_description: 'Money gift platform - secure money transfers',
-        url: process.env.NEXTAUTH_URL || 'https://vast-ties-unite.loca.lt',
+        url: process.env.NEXTAUTH_URL || 'https://monnie-gift-v222.vercel.app',
         mcc: '7399', // Computer Software Stores (appropriate for digital gift platform)
       },
       individual: {
@@ -46,19 +52,35 @@ export async function POST(request: NextRequest) {
     // Create account link for Express onboarding
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: `${process.env.NEXTAUTH_URL || 'https://vast-ties-unite.loca.lt'}/stripe/terug?account_id=${account.id}&gift_id=${giftId}&email=${encodeURIComponent(email)}`,
-      return_url: `${process.env.NEXTAUTH_URL || 'https://vast-ties-unite.loca.lt'}/stripe/terug?account_id=${account.id}&gift_id=${giftId}&email=${encodeURIComponent(email)}`,
+      refresh_url: `${process.env.NEXTAUTH_URL || 'https://monnie-gift-v222.vercel.app'}/stripe/terug?account_id=${account.id}&gift_id=${giftId}&email=${encodeURIComponent(email)}`,
+      return_url: `${process.env.NEXTAUTH_URL || 'https://monnie-gift-v222.vercel.app'}/stripe/terug?account_id=${account.id}&gift_id=${giftId}&email=${encodeURIComponent(email)}`,
       type: 'account_onboarding',
     });
 
-    const link = accountLink.url;
+    // Store the account in our database
+    const { error: dbError } = await supabase
+      .from('users')
+      .upsert({
+        email: email,
+        stripeConnectAccountId: account.id,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }, {
+        onConflict: 'email'
+      });
+
+    if (dbError) {
+      console.error('Database error:', dbError);
+      // Don't fail the request, just log the error
+    }
 
     return NextResponse.json({
       success: true,
-      onboardingUrl: link,
+      accountId: account.id,
+      onboardingUrl: accountLink.url,
     });
   } catch (error: any) {
-    console.error('Error creating onboarding link:', error);
+    console.error('Error creating Stripe account:', error);
     
     // Handle Stripe verification errors
     if (error.type === 'invalid_request_error' && error.code) {
@@ -80,10 +102,6 @@ export async function POST(request: NextRequest) {
         'invalid_url_format',
         'invalid_url_denylisted',
         'invalid_url_website_inaccessible',
-        'invalid_url_website_business_information_mismatch',
-        'invalid_url_website_incomplete',
-        'invalid_url_website_other',
-        'missing_url_web_presence_detected'
       ];
       
       if (verificationErrors.includes(error.code)) {
@@ -91,8 +109,7 @@ export async function POST(request: NextRequest) {
           { 
             error: 'Account verification failed',
             code: error.code,
-            message: 'Er is een probleem met de account verificatie. Probeer het opnieuw of neem contact op met de ondersteuning.',
-            details: error.message
+            message: 'Er is een probleem met de accountgegevens. Probeer het opnieuw.'
           },
           { status: 400 }
         );
@@ -101,7 +118,7 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json(
       { 
-        error: 'Failed to create onboarding link',
+        error: 'Failed to create Stripe account',
         details: error instanceof Error ? error.message : String(error)
       },
       { status: 500 }

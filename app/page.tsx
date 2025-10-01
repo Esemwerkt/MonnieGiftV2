@@ -3,7 +3,10 @@
 import { useState, useEffect, useRef } from "react";
 import { Gift, ArrowRight, Shield } from "lucide-react";
 import Link from "next/link";
-import HamburgerMenu from "@/components/HamburgerMenu";
+import Lottie from "lottie-react";
+import bearAnimation from "@/public/animation-hero/bear.json";
+import { TypingAnimation } from "@/components/ui/typing-animation";
+import { SparklesText } from "@/components/ui/sparkles-text";
 
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);
@@ -18,16 +21,16 @@ export default function HomePage() {
     if (!mounted) return;
 
     const startFireworks = async () => {
-      const confetti = (await import('canvas-confetti')).default;
-      
+      const confetti = (await import("canvas-confetti")).default;
+
       const playFireworks = () => {
         // Get the preview section element
-        const previewSection = document.getElementById('preview-section');
+        const previewSection = document.getElementById("preview-section");
         if (!previewSection) return;
 
         // Get the bounding rectangle of the preview section
         const rect = previewSection.getBoundingClientRect();
-        
+
         // Calculate center position within the preview section
         const x = (rect.left + rect.width / 2) / window.innerWidth;
         const y = (rect.top + rect.height / 2) / window.innerHeight;
@@ -37,7 +40,14 @@ export default function HomePage() {
           particleCount: 100,
           spread: 70,
           origin: { x, y },
-          colors: ['#d4b483', '#556b68', '#0a2d27', '#96ceb4', '#feca57', '#ff9ff3']
+          colors: [
+            "#d4b483",
+            "#556b68",
+            "#0a2d27",
+            "#96ceb4",
+            "#feca57",
+            "#ff9ff3",
+          ],
         });
 
         // Add a second burst for more effect
@@ -46,14 +56,21 @@ export default function HomePage() {
             particleCount: 50,
             spread: 50,
             origin: { x, y },
-            colors: ['#d4b483', '#556b68', '#0a2d27', '#96ceb4', '#feca57', '#ff9ff3']
+            colors: [
+              "#d4b483",
+              "#556b68",
+              "#0a2d27",
+              "#96ceb4",
+              "#feca57",
+              "#ff9ff3",
+            ],
           });
         }, 200);
       };
 
       // Play immediately
       playFireworks();
-      
+
       // Set up interval to loop every 3 seconds
       fireworksIntervalRef.current = setInterval(playFireworks, 3000);
     };
@@ -75,168 +92,72 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      {/* Mobile-first container */}
-      <div className="w-full mx-auto min-h-screen max-w-4xl flex flex-col">
-        {/* Header */}
-        <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Gift className="h-5 w-5 text-primary" />
-              <span className="font-semibold text-foreground">MonnieGift</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <HamburgerMenu />
-              <Link
-                href="/maak-gift"
-                className="px-6 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors font-medium"
-              >
-                Geef een MonnieGift
-              </Link>
-            </div>
-          </div>
-        </header>
-
+    <div className="relative overflow-hidden">
+      <div className="w-full mx-auto max-w-4xl flex flex-col relative z-10">
         {/* Main Content - Scrollable */}
-        <main className="flex-1 px-0 py-6 space-y-6">
-          <div className="text-center max-w-5xl mx-auto px-4">
-          {/* Main Heading */}
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-foreground mb-8 leading-tight">
-            Maak iemand blij met een{" "}
-            <span className="text-primary">
-              MonnieGift
-            </span>
-          </h1>
-          
-          {/* Subheading */}
-          <p className="text-xl sm:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
-            Persoonlijke geldcadeaus die direct en veilig worden overgemaakt. 
-            Geen gedoe, gewoon blij maken!
-          </p>
-
-          {/* CTA Button */}
-          <div className="mb-20">
-            <Link
-              href="/maak-gift"
-              className="group inline-flex items-center gap-3 px-10 py-5 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all duration-200 font-semibold text-xl shadow-lg hover:shadow-xl"
-            >
-              Geef een MonnieGift
-              <ArrowRight className="h-6 w-6 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-
-          {/* Features Section */}
-          <div className="grid md:grid-cols-3 gap-6 mb-20">
-            <div className="text-center p-6 bg-card mx-4 rounded-md">
-              <h3 className="text-xl font-semibold text-foreground mb-3">
-                Supersnel
-              </h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Je MonnieGift wordt direct overgemaakt. Geen wachttijden, geen gedoe.
-              </p>
+        <main className="flex-1 px-0 py-4 sm:py-6 lg:py-8 space-y-4 sm:space-y-6 lg:space-y-8">
+          <div className="py-12 text-center max-w-6xl mx-auto px-4">
+            {/* Main Heading */}
+            <div className="mb-8 sm:mb-10 lg:mb-12">
+              <SparklesText
+                className="text-4xl xs:text-5xl sm:text-6xl  font-bold text-foreground leading-tight"
+                sparklesCount={6}
+                colors={{ first: "#d4b483", second: "#556b68" }}
+              >
+                Maak iemand blij met een{" "}
+                <span className="text-primary">MonnieGift</span>
+              </SparklesText>
             </div>
 
-            <div className="text-center p-6 bg-card mx-4 rounded-md">
-              <h3 className="text-xl font-semibold text-foreground mb-3">
-                Veilig
-              </h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Beveiligd door Stripe. Je gegevens zijn veilig en je betaling is beschermd.
-              </p>
-            </div>
-
-            <div className="text-center p-6 bg-card mx-4 rounded-md">
-              <h3 className="text-xl font-semibold text-foreground mb-3">
-                Persoonlijk
-              </h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Voeg een persoonlijk bericht toe en kies een leuke animatie.
-              </p>
-            </div>
-          </div>
-
-          {/* How it works */}
-          <div className="mb-20">
-            <h2 className="text-3xl font-bold text-foreground mb-8 text-center">
-              Zo werkt het
-            </h2>
-            <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-              <div className="text-center p-6 bg-card mx-4 rounded-md">
-                <div className="w-12 h-12 bg-primary text-primary-foreground rounded-xl flex items-center justify-center mx-auto mb-4 text-xl font-bold">
-                  1
+            {/* Chat Balloon */}
+            <div className="-mb-6 flex justify-center ">
+              <div className="relative rotate-12 -right-14">
+                {/* Balloon */}
+                <div className="bg-white rounded-2xl px-3 py-2 shadow-lg">
+                  <TypingAnimation
+                    className="text-xs font-bold  text-background"
+                    duration={80}
+                    delay={1000}
+                  >
+                    Geld cadeau geven is makkelijk!
+                  </TypingAnimation>
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-3">
-                  Kies bedrag
-                </h3>
-                <p className="text-muted-foreground">
-                  Selecteer een bedrag tussen €1 en €100
-                </p>
-              </div>
-
-              <div className="text-center p-6 bg-card mx-4 rounded-md">
-                <div className="w-12 h-12 bg-primary text-primary-foreground rounded-xl flex items-center justify-center mx-auto mb-4 text-xl font-bold">
-                  2
+                {/* Tail */}
+                <div className="absolute -bottom-1.5 left-1/2 transform -translate-x-1/2">
+                  <div className="w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-white"></div>
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-3">
-                  Voeg details toe
-                </h3>
-                <p className="text-muted-foreground">
-                  E-mailadressen en een persoonlijk bericht
-                </p>
-              </div>
-
-              <div className="text-center p-6 bg-card mx-4 rounded-md">
-                <div className="w-12 h-12 bg-primary text-primary-foreground rounded-xl flex items-center justify-center mx-auto mb-4 text-xl font-bold">
-                  3
-                </div>
-                <h3 className="text-lg font-semibold text-foreground mb-3">
-                  Betaal & verstuur
-                </h3>
-                <p className="text-muted-foreground">
-                  Veilig betalen en direct versturen
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Limits Section */}
-          <div className="mb-20">
-            <h2 className="text-3xl font-bold text-foreground mb-8 text-center">
-              Limieten
-            </h2>
-            <div className="max-w-2xl mx-auto">
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="text-center p-6 bg-card mx-4 rounded-md">
-                  <div className="text-2xl font-bold text-foreground mb-2">€50</div>
-                  <div className="text-muted-foreground">Max per gift</div>
-                </div>
-                <div className="text-center p-6 bg-card mx-4 rounded-md">
-                  <div className="text-2xl font-bold text-foreground mb-2">10</div>
-                  <div className="text-muted-foreground">Gifts per dag</div>
-                </div>
-                <div className="text-center p-6 bg-card mx-4 rounded-md">
-                  <div className="text-2xl font-bold text-foreground mb-2">€1000</div>
-                  <div className="text-muted-foreground">Per maand</div>
+                {/* Tail border */}
+                <div className="absolute -bottom-2.5 left-1/2 transform -translate-x-1/2">
+                  <div className="w-0 h-0 border-l-9 border-r-9 border-t-9 border-l-transparent border-r-transparent"></div>
                 </div>
               </div>
             </div>
-          </div>
-          </div>
 
-      
+            {/* Lottie Animation */}
+            <div className="-mb-6  flex justify-center">
+              <div className="w-40 h-40">
+                <Lottie
+                  animationData={bearAnimation}
+                  loop={true}
+                  autoplay={true}
+                  style={{ width: "100%", height: "100%" }}
+                />
+              </div>
+            </div>
+
+            {/* CTA Button */}
+            <div className="mb-12 ">
+                <Link
+                  href="/maak-gift"
+                  className="border group inline-flex items-center gap-3 sm:gap-4 px-8  py-4  bg-primary text-primary-foreground rounded-xl sm:rounded-2xl hover:bg-primary/90 transition-all duration-200 font-bold text-lg "
+                >
+                  Maak een MonnieGift
+                  <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 xl:h-8 xl:w-8 group-hover:translate-x-1 transition-transform" />
+                </Link>
+
+            </div>
+          </div>
         </main>
-
-        {/* Footer */}
-        <footer className="px-4 py-8 border-t border-border">
-          <div className="text-center text-muted-foreground space-y-2">
-            <p className="text-sm">
-              Beveiligd door Stripe • Geen account nodig
-            </p>
-            <p className="text-xs">
-              Uitbetaling via ABN AMRO • Service fee: €0,99 per gift
-            </p>
-          </div>
-        </footer>
       </div>
     </div>
   );
