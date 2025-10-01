@@ -16,7 +16,6 @@ export default function SuccessPage() {
     authenticationCode: string;
     platformFeeAmount?: number;
   } | null>(null);
-  const [showConfetti, setShowConfetti] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
   const [claimUrl, setClaimUrl] = useState('');
@@ -163,7 +162,8 @@ export default function SuccessPage() {
           console.log('Payment verified successfully:', {
             amount: verifiedAmount,
             currency: verifiedCurrency,
-            message: verifiedMessage
+            message: verifiedMessage,
+            animationPreset: verifiedAnimationPreset
           });
 
           // Now process the gift with verified data
@@ -224,7 +224,6 @@ export default function SuccessPage() {
             const claimLink = `${baseUrl}/claim/${gift.id}`;
             setClaimUrl(claimLink);
             
-            setShowConfetti(true);
             setProcessingComplete(true);
             console.log('Existing gift data loaded successfully');
           } else {
@@ -265,7 +264,6 @@ export default function SuccessPage() {
           const claimLink = `${baseUrl}/claim/${gift.id}`;
           setClaimUrl(claimLink);
           
-          setShowConfetti(true);
           setProcessingComplete(true);
           sessionStorage.setItem(processingKey, 'true');
           console.log('Gift retrieved successfully');
@@ -295,7 +293,6 @@ export default function SuccessPage() {
                 const claimLink = `${baseUrl}/claim/${gift.id}`;
                 setClaimUrl(claimLink);
                 
-                setShowConfetti(true);
                 setProcessingComplete(true);
                 sessionStorage.setItem(processingKey, 'true');
                 console.log('Gift retrieved successfully on retry');
@@ -344,7 +341,6 @@ export default function SuccessPage() {
                       const claimLink = `${baseUrl}/claim/${gift.id}`;
                       setClaimUrl(claimLink);
                       
-                      setShowConfetti(true);
                       setProcessingComplete(true);
                       sessionStorage.setItem(processingKey, 'true');
                       console.log('Fallback gift creation and retrieval successful');
@@ -412,13 +408,6 @@ export default function SuccessPage() {
 
   return (
     <div className="">
-      {/* Confetti */}
-      {showConfetti && (
-        <div className="fixed inset-0 pointer-events-none z-50">
-          <div className="w-full h-full bg-transparent" />
-        </div>
-      )}
-
       <div className="w-full mx-auto max-w-4xl flex flex-col">
         {/* Header */}
         <div className="px-4 relative top-0 z-10 border-b py-3 border-border">

@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Gift, CheckCircle, ArrowRight, Home, Mail, User, CreditCard } from 'lucide-react';
 import { executeAnimation, AnimationPreset } from '@/lib/animations';
-import JSConfetti from 'js-confetti';
 import Lottie from 'lottie-react';
 import bearAnimation from '@/public/animation-hero/bear.json';
 import { TypingAnimation } from '@/components/ui/typing-animation';
@@ -24,7 +23,7 @@ export default function ClaimPage() {
   const [error, setError] = useState('');
   const [step, setStep] = useState<'loading' | 'verification' | 'onboarding' | 'claiming' | 'success' | 'error'>('loading');
   const [showConfetti, setShowConfetti] = useState(false);
-  const jsConfettiRef = useRef<JSConfetti | null>(null);
+  const confettiRef = useRef<any>(null);
 
   useEffect(() => {
     if (giftId) {
@@ -32,32 +31,33 @@ export default function ClaimPage() {
     }
   }, [giftId]);
 
-  // Initialize JSConfetti
+  // Initialize canvas-confetti
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      try {
-        jsConfettiRef.current = new JSConfetti();
-      } catch (error) {
-        console.error('Failed to initialize JSConfetti:', error);
-        jsConfettiRef.current = null;
-      }
+      import('canvas-confetti').then((module) => {
+        confettiRef.current = module.default;
+      }).catch((error) => {
+        console.error('Failed to initialize canvas-confetti:', error);
+      });
     }
   }, []);
 
   // Trigger animation when confetti should show
   const hasTriggeredAnimation = useRef(false);
   useEffect(() => {
-    if (showConfetti && jsConfettiRef.current && !hasTriggeredAnimation.current) {
+    if (showConfetti && confettiRef.current && !hasTriggeredAnimation.current) {
       hasTriggeredAnimation.current = true;
-      // Pass the confetti function from the JSConfetti instance
       // Use gift's animation preset or default to 'confettiRealistic' if missing/invalid
       const validPresets: AnimationPreset[] = ['customShapes', 'schoolPride', 'snow', 'stars', 'fireworks', 'confettiRealistic'];
-      const animationToUse = (gift?.animationPreset && validPresets.includes(gift.animationPreset as AnimationPreset)) 
+      const isValid = gift?.animationPreset && validPresets.includes(gift.animationPreset as AnimationPreset);
+      const animationToUse = isValid
         ? gift.animationPreset as AnimationPreset 
         : 'confettiRealistic';
-      executeAnimation(jsConfettiRef.current.addConfetti.bind(jsConfettiRef.current), animationToUse);
+      
+      // Pass canvas-confetti function
+      executeAnimation(confettiRef.current, animationToUse);
     }
-  }, [showConfetti, gift?.animationPreset]);
+  }, [showConfetti, gift?.animationPreset, gift?.id]);
 
   const fetchGift = async () => {
     try {
