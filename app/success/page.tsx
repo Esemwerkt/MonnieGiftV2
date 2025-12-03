@@ -514,7 +514,7 @@ export default function SuccessPage() {
   }
 
   const SectionHeading = ({ title }: { title: string }) => (
-    <h2 className="text-2xl md:text-3xl font-serif text-[#ddb17c]">{title}</h2>
+    <h2 className="text-xl md:text-3xl font-serif text-[#ddb17c]">{title}</h2>
   );
 
   return (
@@ -532,19 +532,19 @@ export default function SuccessPage() {
         </div>
       </header>
 
-      <main className="w-full pt-20 pb-16">
+      <main className="w-full pt-20 pb-16 md:pb-24">
         {/* Main Title */}
-        <div className="w-full text-center mb-4">
-          <h1 className="text-4xl md:text-5xl font-serif text-foreground">
+        <div className="w-full text-center mb-4 md:mb-8">
+          <h1 className="text-4xl md:text-7xl font-serif text-foreground">
             Cadeau succesvol aangemaakt
           </h1>
         </div>
 
         {/* Divider */}
-        <hr className="border-t border-[#4d7d75] mb-8 w-full" />
+        <hr className="border-t border-[#4d7d75] mb-8 md:mb-12 w-full" />
 
         {/* Main Content */}
-        <div className="w-full md:max-w-4xl md:mx-auto flex flex-col px-4 gap-8">
+        <div className="w-full md:max-w-4xl md:mx-auto flex flex-col px-4 gap-8 md:gap-12">
           {/* Section 1: Cadeau details */}
           {giftData && (
             <section>

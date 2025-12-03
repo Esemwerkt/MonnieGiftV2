@@ -60,7 +60,7 @@ export default function HomePage() {
 
       {/* Process Section */}
       <section className="w-full bg-[#ddb17c]">
-        <div className="w-full md:max-w-7xl md:mx-auto px-4 py-16">
+        <div className="w-full md:max-w-7xl md:mx-auto px-4 py-16 md:py-24">
           <div className="flex flex-col md:flex-row items-center justify-center md:justify-between gap-8 md:gap-4">
             {/* Step 1 - Bedrag kiezen */}
             <div className="flex flex-col items-center">
@@ -71,7 +71,7 @@ export default function HomePage() {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <p className="text-[#0a3530] text-base font-normal text-center">
+              <p className="text-[#0a3530] text-base md:text-lg font-normal text-center">
                 Bedrag kiezen
               </p>
             </div>
@@ -85,7 +85,7 @@ export default function HomePage() {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <p className="text-[#0a3530] text-base font-normal text-center">
+              <p className="text-[#0a3530] text-base md:text-lg font-normal text-center">
                 Thema selecteren
               </p>
             </div>
@@ -99,7 +99,7 @@ export default function HomePage() {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <p className="text-[#0a3530] text-base font-normal text-center">
+              <p className="text-[#0a3530] text-base md:text-lg font-normal text-center">
                 Bericht Versturen
               </p>
             </div>
@@ -109,13 +109,13 @@ export default function HomePage() {
 
       {/* Safety Section */}
       <section className="w-full bg-[#dbe3e2]">
-        <div className="w-full md:max-w-7xl md:mx-auto px-4 py-16">
+        <div className="w-full md:max-w-7xl md:mx-auto px-4 py-16 md:py-24">
           {/* Content */}
           <div className="flex flex-col md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
             {/* Left Content */}
             <div className="space-y-6 w-full md:max-w-none">
 
-              <h2 className="text-3xl md:text-5xl font-normal text-[#0a3530] leading-tight">
+              <h2 className="text-2xl md:text-5xl font-normal text-[#0a3530] leading-tight">
                 Veilig geld als cadeau versturen met een digitale ontvangst
                 kaart
               </h2>
@@ -151,8 +151,8 @@ export default function HomePage() {
 
       {/* FAQ Section */}
       <section id="faq" className="w-full">
-        <div className="w-full md:max-w-4xl md:mx-auto px-4 py-16">
-          <h2 className="text-3xl md:text-5xl font-normal text-center text-[#ddb17c] mb-8 leading-normal">
+        <div className="w-full md:max-w-4xl md:mx-auto px-4 py-16 md:py-24">
+          <h2 className="text-2xl md:text-5xl font-normal text-center text-[#ddb17c] mb-8 leading-normal">
             Veel gestelde vragen
           </h2>
 

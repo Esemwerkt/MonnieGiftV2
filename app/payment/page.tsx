@@ -143,8 +143,8 @@ function PaymentForm({
               />
             </div>
             <div className="flex-1">
-              <p className="text-lg font-normal text-white/85">iDeal</p>
-              <p className="text-sm text-white/85">
+              <p className="text-base md:text-lg font-normal text-white/85">iDeal</p>
+              <p className="text-sm md:text-base text-white/85">
                 Direct betalen via je bank
               </p>
             </div>
@@ -175,7 +175,7 @@ function PaymentForm({
         <button
           type="button"
           onClick={() => setShowCancelConfirm(true)}
-          className="h-14 rounded-full border-2 border-[#4d7d75] bg-transparent px-6 text-lg font-normal text-[#4d7d75] transition hover:bg-[#4d7d75]/10 focus:outline-none focus:ring-2 focus:ring-[#4d7d75]"
+          className="h-14 rounded-full border-2 border-[#4d7d75] bg-transparent px-6 text-base md:text-lg font-normal text-[#4d7d75] transition hover:bg-[#4d7d75]/10 focus:outline-none focus:ring-2 focus:ring-[#4d7d75]"
         >
           Annuleren
         </button>
@@ -184,7 +184,7 @@ function PaymentForm({
           disabled={
             !stripe || !elements || isProcessing || !isPaymentElementReady
           }
-          className="h-14 rounded-full border-2 border-[#c8f196] bg-[#c8f196] px-6 text-lg font-normal text-[#0a3530] transition hover:bg-[#c8f196]/90 focus:outline-none focus:ring-2 focus:ring-[#c8f196] disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2"
+          className="h-14 rounded-full border-2 border-[#c8f196] bg-[#c8f196] px-6 text-base md:text-lg font-normal text-[#0a3530] transition hover:bg-[#c8f196]/90 focus:outline-none focus:ring-2 focus:ring-[#c8f196] disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {isProcessing ? (
             <LoaderFiveDemo text="Verwerken..." />
@@ -218,7 +218,7 @@ export default function PaymentPage() {
   const [editedMessage, setEditedMessage] = useState("");
 
   const SectionHeading = ({ title }: { title: string }) => (
-    <h2 className="text-2xl md:text-3xl font-serif text-[#ddb17c]">
+    <h2 className="text-xl md:text-3xl font-serif text-[#ddb17c]">
       {title}
     </h2>
   );
@@ -361,42 +361,42 @@ export default function PaymentPage() {
         </div>
       </header>
 
-      <main className="w-full pt-20 pb-16">
+      <main className="w-full pt-20 pb-16 md:pb-24">
         {/* Main Title */}
-        <div className="w-full text-center mb-4">
-          <h1 className="text-4xl md:text-5xl font-serif text-white/85">
+        <div className="w-full text-center mb-4 md:mb-8">
+          <h1 className="text-4xl md:text-7xl font-serif text-white/85">
             Controleren en betalen
           </h1>
         </div>
 
         {/* Divider */}
-        <hr className="border-t border-[#4d7d75] mb-8 w-full" />
+        <hr className="border-t border-[#4d7d75] mb-8 md:mb-12 w-full" />
 
         {/* Main Content */}
-        <div className="w-full md:max-w-4xl md:mx-auto flex flex-col px-4 gap-8">
+        <div className="w-full md:max-w-4xl md:mx-auto flex flex-col px-4 gap-8 md:gap-12">
           {/* Section 1: Uw Monniegift */}
           <section>
             <SectionHeading title="Uw Monniegift" />
             <div className="mt-4 p-4 bg-[#4d7d75] rounded-lg">
               <div className="flex flex-col gap-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-lg text-white/85">Cadeaubedrag</span>
-                  <span className="text-lg text-white/85">
+                  <span className="text-base md:text-lg text-white/85">Cadeaubedrag</span>
+                  <span className="text-base md:text-lg text-white/85">
                     €{(giftAmount / 100).toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-lg text-white/85">Servicekosten</span>
-                  <span className="text-lg text-white/85">
+                  <span className="text-base md:text-lg text-white/85">Servicekosten</span>
+                  <span className="text-base md:text-lg text-white/85">
                     €{(platformFee / 100).toFixed(2)}
                   </span>
                 </div>
                 <div className="border-t border-white/85 pt-2" />
                 <div className="flex justify-between items-center">
-                  <span className="text-lg text-white/85">
+                  <span className="text-base md:text-lg text-white/85">
                     Totaal te betalen 
                   </span>
-                  <span className="text-lg text-white/85">
+                  <span className="text-base md:text-lg text-white/85">
                     €{(totalAmount / 100).toFixed(2)}
                   </span>
                 </div>
@@ -431,7 +431,7 @@ export default function PaymentPage() {
                       onChange={(e) => setEditedMessage(e.target.value)}
                       maxLength={120}
                       rows={1}
-                      className="bg-background block w-full resize-none rounded-lg border-2  px-4 py-3 text-lg text-foreground placeholder:text-foreground/70 focus:outline-none focus:ring-2 focus:ring-[#c8f196] focus:border-[#c8f196]"
+                      className="bg-background block w-full resize-none rounded-lg border-2  px-4 py-3 text-base md:text-lg text-foreground placeholder:text-foreground/70 focus:outline-none focus:ring-2 focus:ring-[#c8f196] focus:border-[#c8f196]"
                       placeholder="Lieve Sem, we zijn zo trots op jou, Kus opa en oma"
                       autoFocus
                     />
@@ -464,7 +464,7 @@ export default function PaymentPage() {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-lg text-white/85">{message}</p>
+                  <p className="text-base md:text-lg text-white/85">{message}</p>
                 )}
               </div>
             </section>

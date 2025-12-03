@@ -269,10 +269,10 @@ export default function HomePage() {
         </div>
 
         <div className="w-full flex flex-col flex-1 pt-8 md:pt-12 overflow-x-hidden">
-          <div className="flex-1 w-full py-8 space-y-8 overflow-x-hidden">
+          <div className="flex-1 w-full py-8 md:py-16 space-y-8 md:space-y-12 overflow-x-hidden">
             {/* Main Heading */}
-            <div className="md:max-w-4xl md:mx-auto px-4">
-              <h1 className="text-3xl md:text-5xl text-foreground text-center font-serif">
+            <div className="w-full md:max-w-4xl md:mx-auto px-4">
+              <h1 className="text-4xl md:text-7xl text-foreground text-center font-serif">
                 Laten we beginnen
               </h1>
             </div>
@@ -281,18 +281,18 @@ export default function HomePage() {
 
             {/* Gift Creation Form */}
             <div className="pt-8 w-full overflow-x-hidden">
-              <div className="flex flex-col gap-y-8 md:mx-auto w-full">
+              <div className="flex flex-col gap-y-8 md:gap-y-12 md:mx-auto w-full">
                 {/* Amount Selection */}
-                <div className="md:max-w-4xl md:mx-auto w-full px-4">
-                  <div className="flex items-center gap-3 mb-4">
+                <div className="w-full md:max-w-4xl md:mx-auto px-4">
+                  <div className="flex items-center gap-3 mb-4 md:mb-6">
                     <span
-                      className="inline-flex items-center justify-center px-4 py-1.5 rounded-full text-sm font-normal text-foreground"
+                      className="inline-flex items-center justify-center px-4 py-1.5 rounded-full text-sm md:text-base font-normal text-foreground"
                       style={{ backgroundColor: "#4d7d75" }}
                     >
                       Stap 1
                     </span>
                     <h2
-                      className="text-2xl md:text-3xl font-serif"
+                      className="text-xl md:text-3xl font-serif"
                       style={{ color: "#ddb17c" }}
                     >
                       Kies het bedrag
@@ -320,7 +320,7 @@ export default function HomePage() {
                           }`}
                         >
                           <Euro className="h-5 w-5" />
-                          <span className="text-lg font-normal">{amount}</span>
+                          <span className="text-base md:text-lg font-normal">{amount}</span>
                         </button>
                       ))}
                     </div>
@@ -338,7 +338,7 @@ export default function HomePage() {
                       >
                         <div className="flex items-center justify-center gap-2">
                           <Euro className="h-5 w-5" />
-                          <span className="text-lg font-normal text-foreground/70">
+                          <span className="text-base md:text-lg font-normal text-foreground/70">
                             Anders namelijk ...
                           </span>
                         </div>
@@ -358,7 +358,7 @@ export default function HomePage() {
                           max="50"
                           step="0.01"
                           required
-                          className={`block w-full h-14 pl-12 pr-4 border-2 rounded-lg text-lg text-foreground placeholder:text-foreground/70 focus:outline-none focus:ring-2 focus:ring-[#c8f196] focus:border-[#c8f196] ${
+                          className={`block w-full h-14 pl-12 pr-4 border-2 rounded-lg text-base md:text-lg text-foreground placeholder:text-foreground/70 focus:outline-none focus:ring-2 focus:ring-[#c8f196] focus:border-[#c8f196] ${
                             amountError
                               ? "border-red-400 bg-transparent focus:ring-red-400"
                               : "border-[#4d7d75] bg-transparent"
@@ -383,16 +383,16 @@ export default function HomePage() {
                 </div>
                 <hr className="border-t border-[#4d7d75] my-4 mx-4 md:mx-0" />
                 {/* Animation Preset Selection */}
-                <div className="md:max-w-4xl md:mx-auto w-full px-4">
-                  <div className="flex items-center gap-3 mb-4">
+                <div className="w-full md:max-w-4xl md:mx-auto px-4">
+                  <div className="flex items-center gap-3 mb-4 md:mb-6">
                     <span
-                      className="inline-flex items-center justify-center px-4 py-1.5 rounded-full text-sm font-normal text-foreground"
+                      className="inline-flex items-center justify-center px-4 py-1.5 rounded-full text-sm md:text-base font-normal text-foreground"
                       style={{ backgroundColor: "#4d7d75" }}
                     >
                       Stap 2
                     </span>
                     <h2
-                      className="text-2xl md:text-3xl font-serif"
+                      className="text-xl md:text-3xl font-serif"
                       style={{ color: "#ddb17c" }}
                     >
                       Kies het thema
@@ -421,16 +421,16 @@ export default function HomePage() {
                 <hr className="border-t border-[#4d7d75] my-4 mx-4 md:mx-0" />
 
                 {/* Message */}
-                <div className="md:max-w-4xl md:mx-auto w-full px-4">
-                  <div className="flex items-center gap-3 mb-4">
+                <div className="w-full md:max-w-4xl md:mx-auto px-4">
+                  <div className="flex items-center gap-3 mb-4 md:mb-6">
                     <span
-                      className="inline-flex items-center justify-center px-4 py-1.5 rounded-full text-sm font-normal text-foreground"
+                      className="inline-flex items-center justify-center px-4 py-1.5 rounded-full text-sm md:text-base font-normal text-foreground"
                       style={{ backgroundColor: "#4d7d75" }}
                     >
                       Stap 3
                     </span>
                     <h2
-                      className="text-2xl md:text-3xl font-serif"
+                      className="text-xl md:text-3xl font-serif"
                       style={{ color: "#ddb17c" }}
                     >
                       Je bericht
@@ -444,7 +444,7 @@ export default function HomePage() {
                     placeholder="Lieve Sem, we zijn zo trots op jou, Kus opa en oma"
                     rows={2}
                     maxLength={120}
-                    className=" block w-full resize-none rounded-lg border-2 border-[#4d7d75] bg-transparent px-4 py-3 text-lg text-foreground placeholder:text-foreground/70 focus:outline-none focus:ring-2 focus:ring-[#c8f196] focus:border-[#c8f196]"
+                    className=" block w-full resize-none rounded-lg border-2 border-[#4d7d75] bg-transparent px-4 py-3 text-base md:text-lg text-foreground placeholder:text-foreground/70 focus:outline-none focus:ring-2 focus:ring-[#c8f196] focus:border-[#c8f196]"
                   />
                 </div>
 
@@ -474,12 +474,12 @@ export default function HomePage() {
                 />
 
                 {/* Action Buttons */}
-                <div className="px-4 md:max-w-4xl md:mx-auto w-full flex flex-col-reverse sm:flex-row sm:justify-between gap-4 sm:items-center">
+                <div className="w-full md:max-w-4xl md:mx-auto px-4 flex flex-col-reverse sm:flex-row sm:justify-between gap-4 sm:items-center">
                   {/* Annuleren Button */}
                   <button
                     type="button"
                     onClick={() => setShowCancelConfirm(true)}
-                    className="w-full sm:w-auto h-14 px-6 rounded-full border-2 border-[#4d7d75] bg-transparent text-[#4d7d75] text-lg font-normal hover:bg-[#4d7d75]/10 focus:outline-none focus:ring-2 focus:ring-[#4d7d75] transition-all duration-200 flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto h-14 px-6 rounded-full border-2 border-[#4d7d75] bg-transparent text-[#4d7d75] text-base md:text-lg font-normal hover:bg-[#4d7d75]/10 focus:outline-none focus:ring-2 focus:ring-[#4d7d75] transition-all duration-200 flex items-center justify-center gap-2"
                   >
                     Annuleren
                   </button>
@@ -491,7 +491,7 @@ export default function HomePage() {
                     disabled={
                       isLoading || isCreatingPayment || !formData.amount
                     }
-                    className="w-full sm:w-auto h-14 px-6 rounded-full border-2 border-[#c8f196] bg-[#c8f196] text-[#0a3530] text-lg font-normal hover:bg-[#c8f196]/90 focus:outline-none focus:ring-2 focus:ring-[#c8f196] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto h-14 px-6 rounded-full border-2 border-[#c8f196] bg-[#c8f196] text-[#0a3530] text-base md:text-lg font-normal hover:bg-[#c8f196]/90 focus:outline-none focus:ring-2 focus:ring-[#c8f196] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
                   >
                     {isLoading || isCreatingPayment ? (
                       <LoaderFiveDemo
