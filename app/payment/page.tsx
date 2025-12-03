@@ -310,18 +310,18 @@ export default function PaymentPage() {
 
   if (error) {
     return (
-      <div className="bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
-        <div className="max-w-md mx-auto text-center space-y-4 p-6">
+      <div className="bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center min-h-screen">
+        <div className="w-full md:max-w-md md:mx-auto text-center space-y-4 p-4 md:p-6">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
             <CheckCircle className="h-8 w-8 text-red-600" />
           </div>
-          <h1 className="text-xl font-semibold text-foreground">
+          <h1 className="text-2xl md:text-4xl font-semibold text-foreground">
             Betaling mislukt
           </h1>
-          <p className="text-muted-foreground">{error}</p>
+          <p className="text-base md:text-lg text-muted-foreground">{error}</p>
           <button
             onClick={() => router.push("/maak-gift")}
-            className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors"
+            className="px-6 py-3 bg-primary text-primary-foreground rounded-xl text-base md:text-lg font-medium hover:bg-primary/90 transition-colors"
           >
             Opnieuw proberen
           </button>
@@ -332,15 +332,15 @@ export default function PaymentPage() {
 
   if (showSuccess) {
     return (
-      <div className="bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
-        <div className="max-w-md mx-auto text-center space-y-4 p-6">
+      <div className="bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center min-h-screen">
+        <div className="w-full md:max-w-md md:mx-auto text-center space-y-4 p-4 md:p-6">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
             <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
-          <h1 className="text-xl font-semibold text-foreground">
+          <h1 className="text-2xl md:text-4xl font-semibold text-foreground">
             Betaling succesvol!
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-base md:text-lg text-muted-foreground">
             Je wordt doorgestuurd naar de succespagina...
           </p>
         </div>

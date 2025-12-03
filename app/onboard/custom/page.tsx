@@ -102,19 +102,19 @@ export default function CustomOnboardPage() {
   }
 
   return (
-    <div className="bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center p-4">
+    <div className="bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center p-4 md:p-8">
       <div className="w-full max-w-4xl">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 md:mb-12">
       
-          <h1 className="text-3xl font-bold text-foreground mb-2">
+          <h1 className="text-4xl md:text-7xl font-bold text-foreground mb-2 md:mb-4">
            Je bent er bijna!
           </h1>
   
         </div>
 
         {/* Form */}
-        <div className="bg-card/50 backdrop-blur-sm border rounded-2xl p-3 max-w-md mx-auto">
+        <div className="bg-card/50 backdrop-blur-sm border rounded-2xl p-4 md:p-6 max-w-md mx-auto">
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email */}
             <div>
@@ -127,7 +127,7 @@ export default function CustomOnboardPage() {
                 value={formData.email}
                 onChange={handleInputChange}
                 required
-                className="w-full px-3 py-2 border border-input bg-background rounded-lg text-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                className="w-full px-3 py-2 border border-input bg-background rounded-lg text-base md:text-lg placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
                 placeholder="je@email.com"
               />
             </div>
@@ -142,7 +142,7 @@ export default function CustomOnboardPage() {
                 required
                 className="mt-1 h-4 w-4 text-primary border-input rounded focus:ring-2 focus:ring-ring"
               />
-              <label className="text-sm text-foreground">
+              <label className="text-sm md:text-base text-foreground">
                 Ik accepteer de{' '}
                 <a href="/terms" target="_blank" className="text-primary hover:underline">
                   Algemene Voorwaarden

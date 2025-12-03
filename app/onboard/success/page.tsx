@@ -98,7 +98,7 @@ export default function OnboardSuccessPage() {
   }
 
   return (
-    <div className="bg-gradient-to-br from-chart-1/10 to-chart-2/10 flex items-center justify-center p-4">
+    <div className="bg-gradient-to-br from-chart-1/10 to-chart-2/10 flex items-center justify-center p-4 md:p-8">
       {/* Confetti */}
       <BeautifulConfetti 
         trigger={showConfetti} 
@@ -113,11 +113,11 @@ export default function OnboardSuccessPage() {
             <CheckCircle className="h-8 w-8 text-chart-1" />
           </div>
 
-          <h1 className="text-3xl font-bold text-foreground mb-4">
+          <h1 className="text-4xl md:text-7xl font-bold text-foreground mb-4 md:mb-6">
             Account Klaar! 🎉
           </h1>
           
-          <p className="text-muted-foreground mb-6">
+          <p className="text-base md:text-lg text-muted-foreground mb-6 md:mb-8">
             Je account is succesvol ingesteld. Je kunt nu geld cadeaus ontvangen!
           </p>
 
@@ -125,10 +125,10 @@ export default function OnboardSuccessPage() {
           {giftData && (
             <div className="bg-gradient-to-r from-chart-1/20 to-chart-2/20 border border-chart-1/30 rounded-2xl p-6 mb-6 shadow-lg">
               <div className="text-center">
-                <h2 className="text-2xl font-bold text-chart-1 mb-2">
+                <h2 className="text-xl md:text-2xl font-bold text-chart-1 mb-2">
                   🎁 Je hebt een gift ontvangen!
                 </h2>
-                <div className="text-4xl font-bold text-foreground mb-2">
+                <div className="text-3xl md:text-4xl font-bold text-foreground mb-2">
                   €{(giftData.amount / 100).toFixed(2)}
                 </div>
                 {giftData.message && (

@@ -291,17 +291,17 @@ export default function ClaimPage() {
   if (step === "error") {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="max-w-md mx-auto text-center space-y-4 p-6">
+        <div className="w-full md:max-w-md md:mx-auto text-center space-y-4 p-4 md:p-6">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
             <Gift className="h-8 w-8 text-red-600" />
           </div>
-          <h1 className="text-xl font-semibold text-foreground">
+          <h1 className="text-2xl md:text-4xl font-semibold text-foreground">
             Cadeau niet gevonden
           </h1>
-          <p className="text-muted-foreground">{error}</p>
+          <p className="text-base md:text-lg text-muted-foreground">{error}</p>
           <button
             onClick={() => (window.location.href = "/")}
-            className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors"
+            className="px-6 py-3 bg-primary text-primary-foreground rounded-xl text-base md:text-lg font-medium hover:bg-primary/90 transition-colors"
           >
             Terug naar home
           </button>
@@ -341,7 +341,7 @@ export default function ClaimPage() {
                 </h1>
 
                 {/* Subheading */}
-                <p className="text-center text-base text-foreground leading-relaxed md:leading-normal">
+                <p className="text-center text-base md:text-lg text-foreground leading-relaxed md:leading-normal">
                   Het geld is overgemaakt naar jouw account.<br></br>Bedankt
                   voor het gebruiken van MonnieGift!
                 </p>
@@ -405,7 +405,7 @@ export default function ClaimPage() {
 
             <div className="flex flex-col items-center gap-4 relative z-1">
               {/* Main Heading */}
-              <h1 className="text-center text-3xl md:text-4xl md:text-7xl max-w-6xl px-3">
+              <h1 className="text-center text-4xl md:text-7xl max-w-6xl px-3">
                
                 <br></br>Je hebt een cadeau <br></br>van{" "}
                 <span className="text-primary font-bold">
@@ -443,7 +443,7 @@ export default function ClaimPage() {
                 {/* Message Box */}
                 {gift.message && (
                   <div className="flex-1 text-center md:text-left min-w-0">
-                    <p className="text-2xl font-light italic text-foreground/85 leading-relaxed">
+                    <p className="text-xl md:text-2xl font-light italic text-foreground/85 leading-relaxed">
                       <TypingAnimation
                         className="text-foreground/85"
                         duration={80}
@@ -463,7 +463,7 @@ export default function ClaimPage() {
               <div className="flex justify-center pt-4">
                 <button
                   onClick={() => setShowVerificationModal(true)}
-                  className="h-14 px-8 bg-secondary text-secondary-foreground rounded-full font-normal text-xl hover:bg-secondary/90 transition-all duration-200 flex items-center justify-center gap-3"
+                  className="h-14 px-8 bg-secondary text-secondary-foreground rounded-full font-normal text-base md:text-xl hover:bg-secondary/90 transition-all duration-200 flex items-center justify-center gap-3"
                   style={{ fontFamily: "Inter, sans-serif" }}
                 >
                   Haal je cadeau op
@@ -505,10 +505,10 @@ export default function ClaimPage() {
             </button>
 
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-foreground">
+              <h2 className="text-xl md:text-2xl font-semibold text-foreground">
                 Verifieer je gegevens
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm md:text-base text-muted-foreground">
                 Voer je e-mailadres en authenticatiecode in om je cadeau te
                 claimen.
               </p>
@@ -522,7 +522,7 @@ export default function ClaimPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="je@email.nl"
                     required
-                    className="w-full h-12 pl-12 pr-4 border border-input bg-background rounded-xl text-base placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                    className="w-full h-12 pl-12 pr-4 border border-input bg-background rounded-xl text-base md:text-lg placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
                   />
                 </div>
 
@@ -535,10 +535,10 @@ export default function ClaimPage() {
                     placeholder="ABC12345"
                     maxLength={8}
                     required
-                    className="w-full h-12 pl-12 pr-4 border border-input bg-background rounded-xl text-base placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent text-left text-lg tracking-widest"
+                    className="w-full h-12 pl-12 pr-4 border border-input bg-background rounded-xl text-base md:text-lg placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent text-left tracking-widest"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground text-center">
+                <p className="text-xs md:text-sm text-muted-foreground text-center">
                   Voer de 8-karakter code in die je hebt ontvangen
                 </p>
 
@@ -576,7 +576,7 @@ export default function ClaimPage() {
 
       {/* Claiming Step */}
       {step === "claiming" && (
-        <div className="w-full px-4 py-12">
+        <div className="w-full px-4 py-12 md:py-16">
           <div className="w-full md:max-w-4xl md:mx-auto">
             <div className="text-center space-y-4 p-8 bg-background/50 border border-input rounded-2xl">
               <LoaderFiveDemo text="Cadeau wordt opgehaald..." />
@@ -591,12 +591,12 @@ export default function ClaimPage() {
       {/* Promotional Section */}
       {gift && step === "verification" && (
         <section className="w-full bg-[#dbe3e2]">
-          <div className="w-full md:max-w-7xl md:mx-auto px-4 py-16">
+          <div className="w-full md:max-w-7xl md:mx-auto px-4 py-16 md:py-24">
             {/* Content */}
             <div className="flex flex-col md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
               {/* Left Content */}
               <div className="space-y-6 w-full md:max-w-none">
-                <h2 className="text-3xl md:text-5xl font-normal text-[#0a3530] leading-tight">
+                <h2 className="text-2xl md:text-5xl font-normal text-[#0a3530] leading-tight">
                   Veilig geld als cadeau versturen met een digitale ontvangst
                   kaart
                 </h2>
@@ -635,8 +635,8 @@ export default function ClaimPage() {
       {/* FAQ Section */}
       {gift && step === "verification" && (
         <section id="faq" className="w-full">
-          <div className="w-full md:max-w-4xl md:mx-auto px-4 py-16">
-            <h2 className="text-3xl md:text-5xl font-normal text-center text-[#ddb17c] mb-8 leading-normal">
+          <div className="w-full md:max-w-4xl md:mx-auto px-4 py-16 md:py-24">
+            <h2 className="text-2xl md:text-5xl font-normal text-center text-[#ddb17c] mb-8 leading-normal">
               Veel gestelde vragen
             </h2>
 

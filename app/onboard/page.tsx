@@ -68,7 +68,7 @@ export default function OnboardPage() {
 
       {/* Main Content */}
       <div className="flex-1 w-full bg-background flex items-center justify-center">
-        <div className="w-full md:max-w-4xl md:mx-auto px-4 py-12 md:py-16">
+        <div className="w-full md:max-w-4xl md:mx-auto px-4 py-16 md:py-24">
           {error ? (
             <div className="md:text-center space-y-4">
               <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-6">
@@ -86,12 +86,12 @@ export default function OnboardPage() {
               {/* Title */}
               <div className="md:text-center space-y-4">
                 <h1 
-                  className="text-4xl md:text-6xl font-normal text-foreground/85"
+                  className="text-4xl md:text-7xl font-normal text-foreground/85"
                   style={{ fontFamily: 'Rockwell, serif' }}
                 >
                   Account aanmaken
                 </h1>
-                <p className="text-lg md:text-xl text-foreground/85 max-w-2xl mx-auto" style={{ fontFamily: 'Inter, sans-serif' }}>
+                <p className="text-base md:text-lg text-foreground/85 max-w-2xl mx-auto" style={{ fontFamily: 'Inter, sans-serif' }}>
                   We hebben éénmalig je gegevens nodig zodat jij in de toekomst direct jouw monniegift kunt innen, woehoe!
                 </p>
               </div>
@@ -129,7 +129,7 @@ export default function OnboardPage() {
               {/* Verification Section */}
               <div className="space-y-6 md:text-center">
                 <h2 
-                  className="text-2xl md:text-3xl font-normal text-primary"
+                  className="text-xl md:text-3xl font-normal text-primary"
                   style={{ fontFamily: 'Rockwell, serif' }}
                 >
                   Verificatie bij onze betaalprovider (I)
@@ -142,7 +142,7 @@ export default function OnboardPage() {
                 <button
                   onClick={handleStartOnboarding}
                   disabled={!onboardingUrl || loading}
-                  className="w-full px-8 py-4 bg-secondary text-secondary-foreground rounded-full font-normal text-xl hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-3"
+                  className="w-full px-8 py-4 bg-secondary text-secondary-foreground rounded-full font-normal text-base md:text-xl hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-3"
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
                   {loading ? (

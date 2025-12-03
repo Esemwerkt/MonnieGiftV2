@@ -491,20 +491,20 @@ export default function SuccessPage() {
   if (processingError) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="max-w-md mx-auto text-center space-y-4 p-6">
+        <div className="w-full md:max-w-md md:mx-auto text-center space-y-4 p-4 md:p-6">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
             <CheckCircle className="h-8 w-8 text-red-600" />
           </div>
-          <h1 className="text-xl font-semibold text-foreground">
+          <h1 className="text-2xl md:text-4xl font-semibold text-foreground">
             Verwerking Fout
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-base md:text-lg text-muted-foreground">
             Er is een fout opgetreden bij het verwerken van je cadeau. Neem
             contact op met de ondersteuning.
           </p>
           <button
             onClick={() => (window.location.href = "/")}
-            className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors"
+            className="px-6 py-3 bg-primary text-primary-foreground rounded-xl text-base md:text-lg font-medium hover:bg-primary/90 transition-colors"
           >
             Terug naar home
           </button>
@@ -552,18 +552,18 @@ export default function SuccessPage() {
               <div className="mt-4">
                 <div className="flex flex-col gap-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-lg text-foreground">
+                    <span className="text-base md:text-lg text-foreground">
                       Cadeaubedrag
                     </span>
-                    <span className="text-lg text-foreground">
+                    <span className="text-base md:text-lg text-foreground">
                       {formatAmount(giftData.amount, giftData.currency)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-lg text-foreground">
+                    <span className="text-base md:text-lg text-foreground">
                       Servicekosten
                     </span>
-                    <span className="text-lg text-foreground">
+                    <span className="text-base md:text-lg text-foreground">
                       {formatAmount(
                         giftData.platformFeeAmount || 99,
                         giftData.currency
@@ -572,10 +572,10 @@ export default function SuccessPage() {
                   </div>
                   <div className="border-t pt-1" />
                   <div className="flex justify-between items-center">
-                    <span className="text-lg text-foreground">
+                    <span className="text-base md:text-lg text-foreground">
                       Totaal betaald
                     </span>
-                    <span className="text-lg text-foreground">
+                    <span className="text-base md:text-lg text-foreground">
                       {formatAmount(
                         giftData.amount + (giftData.platformFeeAmount || 99),
                         giftData.currency
@@ -590,7 +590,7 @@ export default function SuccessPage() {
           {/* Section 2: Persoonlijke boodschap */}
           {giftData?.message && (
             <section>
-              <span className="text-lg text-foreground">
+              <span className="text-base md:text-lg text-foreground">
                 Persoonlijke boodschap
               </span>
 
@@ -606,7 +606,7 @@ export default function SuccessPage() {
             <section>
               <SectionHeading title="Authenticatie code" />
               <div className="mt-4 space-y-2">
-                <p className="text-lg text-foreground">
+                <p className="text-base md:text-lg text-foreground">
                   Deel deze code met de ontvanger, de ontvanger heeft deze code
                   nodig om het cadeau op te halen
                 </p>
@@ -663,7 +663,7 @@ export default function SuccessPage() {
                 {/* WhatsApp Share Button */}
                 <button
                   onClick={handleWhatsAppShare}
-                  className="w-full h-14 rounded-full bg-[#c8f196] text-[#0a3530] font-normal text-lg hover:bg-[#c8f196]/90 transition-all duration-200 flex items-center justify-center gap-2"
+                  className="w-full h-14 rounded-full bg-[#c8f196] text-[#0a3530] font-normal text-base md:text-lg hover:bg-[#c8f196]/90 transition-all duration-200 flex items-center justify-center gap-2"
                 >
                   <MessageCircle className="h-5 w-5" />
                   Deel via Whatsapp
@@ -671,7 +671,7 @@ export default function SuccessPage() {
 
                 {/* Email Share Section */}
                 <div className="space-y-2">
-                  <p className="text-lg text-foreground">
+                  <p className="text-base md:text-lg text-foreground">
                     Of verstuur per email
                   </p>
                   <div className="flex flex-col sm:flex-row gap-2">
@@ -685,13 +685,13 @@ export default function SuccessPage() {
                           setEmailError("");
                         }}
                         placeholder="Email adres"
-                        className="w-full h-14 pl-12 pr-4 border-2 border-[#4d7d75] bg-transparent rounded-lg text-lg text-foreground placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-[#c8f196] focus:border-[#c8f196]"
+                        className="w-full h-14 pl-12 pr-4 border-2 border-[#4d7d75] bg-transparent rounded-lg text-base md:text-lg text-foreground placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-[#c8f196] focus:border-[#c8f196]"
                       />
                     </div>
                     <button
                       onClick={handleEmailShare}
                       disabled={isSendingEmail || !recipientEmail}
-                      className="px-6 h-14 justify-center rounded-full bg-[#ddb17c] text-[#0a3530] font-normal text-lg hover:bg-[#ddb17c]/90 transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-6 h-14 justify-center rounded-full bg-[#ddb17c] text-[#0a3530] font-normal text-base md:text-lg hover:bg-[#ddb17c]/90 transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSendingEmail ? (
                         <LoaderFiveDemo text="Verzenden..." />
@@ -727,27 +727,27 @@ export default function SuccessPage() {
             <div className="mt-4">
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-4">
-                  <span className="text-lg text-foreground">1</span>
-                  <span className="text-lg text-foreground">
+                  <span className="text-base md:text-lg text-foreground">1</span>
+                  <span className="text-base md:text-lg text-foreground">
                     Verstuur de link via whatsapp of per mail
                   </span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="text-lg text-foreground">2</span>
-                  <span className="text-lg text-foreground">
+                  <span className="text-base md:text-lg text-foreground">2</span>
+                  <span className="text-base md:text-lg text-foreground">
                     Ontvanger opent link en voert de authenticatie code in
                   </span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="text-lg text-foreground">3</span>
-                  <span className="text-lg text-foreground">
+                  <span className="text-base md:text-lg text-foreground">3</span>
+                  <span className="text-base md:text-lg text-foreground">
                     Ontvanger maakt 1-malig een account aan om uitbetaald te
                     krijgen
                   </span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="text-lg text-foreground">4</span>
-                  <span className="text-lg text-foreground">
+                  <span className="text-base md:text-lg text-foreground">4</span>
+                  <span className="text-base md:text-lg text-foreground">
                     Geld wordt overgemaakt
                   </span>
                 </div>
@@ -759,14 +759,14 @@ export default function SuccessPage() {
           <div className="flex gap-4 justify-between flex-col md:flex-row flex-col-reverse">
             <button
               onClick={() => (window.location.href = "/")}
-              className="h-14 rounded-full border-2 border-[#ddb17c] bg-transparent text-[#ddb17c] font-normal text-lg hover:bg-[#ddb17c]/10 transition-all duration-200 flex items-center justify-center gap-2 px-6"
+              className="h-14 rounded-full border-2 border-[#ddb17c] bg-transparent text-[#ddb17c] font-normal text-base md:text-lg hover:bg-[#ddb17c]/10 transition-all duration-200 flex items-center justify-center gap-2 px-6"
             >
               <Home className="h-5 w-5" />
               Terug naar home
             </button>
             <button
               onClick={() => (window.location.href = "/maak-gift")}
-              className="h-14 rounded-full bg-[#c8f196] text-[#0a3530] font-normal text-lg hover:bg-[#c8f196]/90 transition-all duration-200 flex items-center justify-center gap-2 px-6"
+              className="h-14 rounded-full bg-[#c8f196] text-[#0a3530] font-normal text-base md:text-lg hover:bg-[#c8f196]/90 transition-all duration-200 flex items-center justify-center gap-2 px-6"
             >
               <Gift className="h-5 w-5" />
               Maak een MonnieGift

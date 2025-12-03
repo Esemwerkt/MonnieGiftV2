@@ -128,7 +128,7 @@ export default function StripeReturnPage() {
 
   if (loading) {
     return (
-      <div className="bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center p-4">
+      <div className="bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center p-4 md:p-8">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-border border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-muted-foreground">Account status controleren...</p>
@@ -139,16 +139,16 @@ export default function StripeReturnPage() {
 
   if (status === 'success') {
     return (
-      <div className="bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center p-4">
+      <div className="bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center p-4 md:p-8">
         <div className="w-full max-w-md">
-          <div className="bg-card/50  p-8 text-center shadow-xl">
+          <div className="bg-card/50  p-6 md:p-8 text-center shadow-xl">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500/20 rounded-full mb-6">
               <CheckCircle className="h-8 w-8 text-green-500" />
             </div>
-            <h1 className="text-2xl font-bold text-foreground mb-4">
+            <h1 className="text-4xl md:text-7xl font-bold text-foreground mb-4 md:mb-6">
               Account Setup Voltooid! 🎉
             </h1>
-            <p className="text-muted-foreground mb-6">
+            <p className="text-base md:text-lg text-muted-foreground mb-6 md:mb-8">
               {message}
             </p>
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-6">
@@ -169,16 +169,16 @@ export default function StripeReturnPage() {
   }
 
   return (
-    <div className="bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center p-4">
+    <div className="bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center p-4 md:p-8">
       <div className="w-full max-w-md">
-        <div className="bg-card/50  p-8 text-center shadow-xl">
+        <div className="bg-card/50  p-6 md:p-8 text-center shadow-xl">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-red-500/20 rounded-full mb-6">
             <Gift className="h-8 w-8 text-red-500" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground mb-4">
+          <h1 className="text-4xl md:text-7xl font-bold text-foreground mb-4 md:mb-6">
             Account Setup Mislukt
           </h1>
-          <p className="text-muted-foreground mb-6">
+          <p className="text-base md:text-lg text-muted-foreground mb-6 md:mb-8">
             {message}
           </p>
           <div className="space-y-3">

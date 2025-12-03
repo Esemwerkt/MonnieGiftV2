@@ -54,17 +54,17 @@ export default function TestPaymentPage() {
 
   return (
     <div
-      className="min-h-screen w-full text-white p-8"
+      className="min-h-screen w-full text-white p-4 md:p-8"
       style={{ background: "linear-gradient(to bottom, #0a3530, #104b44)" }}
     >
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-4xl font-serif text-foreground mb-8">
+      <div className="w-full md:max-w-2xl md:mx-auto">
+        <h1 className="text-4xl md:text-7xl font-serif text-foreground mb-8 md:mb-12">
           Test Payment - Create Gift
         </h1>
 
         <div className="bg-background/10 border-2 border-[#4d7d75] rounded-lg p-6 space-y-6">
           <div>
-            <label className="block text-lg text-foreground mb-2">
+            <label className="block text-base md:text-lg text-foreground mb-2">
               Amount (in cents)
             </label>
             <input
@@ -81,13 +81,13 @@ export default function TestPaymentPage() {
           </div>
 
           <div>
-            <label className="block text-lg text-foreground mb-2">
+            <label className="block text-base md:text-lg text-foreground mb-2">
               Message
             </label>
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className="w-full px-4 py-3 bg-background/20 border-2 border-[#4d7d75] rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-[#c8f196]"
+              className="w-full px-4 py-3 bg-background/20 border-2 border-[#4d7d75] rounded-lg text-base md:text-lg text-foreground focus:outline-none focus:ring-2 focus:ring-[#c8f196]"
               rows={3}
               placeholder="Your gift message"
             />
@@ -96,7 +96,7 @@ export default function TestPaymentPage() {
           <button
             onClick={handleCreateTestGift}
             disabled={loading}
-            className="w-full h-14 rounded-full bg-[#c8f196] text-[#0a3530] font-normal text-lg hover:bg-[#c8f196]/90 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-14 rounded-full bg-[#c8f196] text-[#0a3530] font-normal text-base md:text-lg hover:bg-[#c8f196]/90 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <LoaderFiveDemo text="Creating..." />
@@ -113,30 +113,30 @@ export default function TestPaymentPage() {
 
           {result && (
             <div className="p-6 bg-background/20 border-2 border-[#4d7d75] rounded-lg space-y-4">
-              <h2 className="text-2xl font-serif text-[#ddb17c]">
+              <h2 className="text-xl md:text-3xl font-serif text-[#ddb17c]">
                 ✅ Test Gift Created!
               </h2>
 
               <div className="space-y-2">
                 <div>
-                  <span className="text-muted-foreground">Gift ID:</span>
-                  <p className="text-foreground font-mono text-sm">
+                  <span className="text-base md:text-lg text-muted-foreground">Gift ID:</span>
+                  <p className="text-base md:text-lg text-foreground font-mono">
                     {result.gift.id}
                   </p>
                 </div>
 
                 <div>
-                  <span className="text-muted-foreground">Amount:</span>
-                  <p className="text-foreground">
+                  <span className="text-base md:text-lg text-muted-foreground">Amount:</span>
+                  <p className="text-base md:text-lg text-foreground">
                     €{(result.gift.amount / 100).toFixed(2)}
                   </p>
                 </div>
 
                 <div>
-                  <span className="text-muted-foreground">
+                  <span className="text-base md:text-lg text-muted-foreground">
                     Authentication Code:
                   </span>
-                  <p className="text-foreground font-mono text-2xl tracking-wider">
+                  <p className="text-xl md:text-2xl text-foreground font-mono tracking-wider">
                     {result.gift.authenticationCode}
                   </p>
                 </div>
