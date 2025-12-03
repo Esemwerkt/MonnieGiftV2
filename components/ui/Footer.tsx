@@ -42,19 +42,19 @@ const Footer = () => {
           <div className="flex items-center gap-6 md:gap-8">
             <a
               href="/voorwaarden"
-              className="text-primary underline text-sm md:text-base hover:text-primary/80 transition-colors"
+              className="text-foreground opacity-60 hover:opacity-100 underline text-sm md:text-base hover:text-foreground/80 transition-colors"
             >
               Voorwaarden
             </a>
             <a
               href="/privacyverklaring"
-              className="text-primary underline text-sm md:text-base hover:text-primary/80 transition-colors"
+              className="text-foreground opacity-60 hover:opacity-100 underline text-sm md:text-base hover:text-foreground/80 transition-colors"
             >
               Privacyverklaring
             </a>
             <a
               href="/cookieverklaring"
-              className="text-primary underline text-sm md:text-base hover:text-primary/80 transition-colors"
+              className="text-foreground opacity-60 hover:opacity-100 underline text-sm md:text-base hover:text-foreground/80 transition-colors"
             >
               Cookieverklaring
             </a>
