@@ -196,6 +196,37 @@ export default function SuccessPage() {
               return;
             }
 
+            // For test payments, try to fetch gift directly if verification fails
+            if (paymentIntentId.startsWith('pi_test_')) {
+              console.log('Test payment verification failed, trying to fetch gift directly...');
+              try {
+                const giftResponse = await fetch(
+                  `/api/gifts/by-payment-intent/${paymentIntentId}`
+                );
+                if (giftResponse.ok) {
+                  const gift = await giftResponse.json();
+                  console.log('Found test gift directly:', gift);
+                  
+                  // Use URL params as fallback for test payments
+                  const fallbackAmount = amount ? parseInt(amount) : gift.amount;
+                  const fallbackCurrency = currency || gift.currency || 'eur';
+                  const fallbackMessage = message || gift.message || '';
+                  const fallbackAnimationPreset = animationPreset || gift.animationPreset || 'confettiRealistic';
+                  
+                  processGiftWithVerifiedData({
+                    paymentIntentId,
+                    amount: fallbackAmount,
+                    currency: fallbackCurrency,
+                    message: fallbackMessage,
+                    animationPreset: fallbackAnimationPreset,
+                  });
+                  return;
+                }
+              } catch (fallbackError) {
+                console.error('Fallback gift fetch failed:', fallbackError);
+              }
+            }
+
             console.error("Payment verification failed:", verificationResult);
             setProcessingError(true);
             setProcessingComplete(true);

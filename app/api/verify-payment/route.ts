@@ -29,18 +29,67 @@ export async function POST(request: NextRequest) {
     // Handle test payment intents (created via /api/test-payment)
     if (paymentIntentId.startsWith('pi_test_')) {
       console.log('Test payment intent detected, fetching gift from database');
-      const { data: gift } = await supabaseAdmin
+      console.log('Looking for payment intent ID:', paymentIntentId);
+      
+      const { data: gift, error: giftError } = await supabaseAdmin
         .from('gifts')
         .select('*')
         .eq('stripePaymentIntentId', paymentIntentId)
         .single();
 
-      if (!gift) {
+      if (giftError) {
+        console.error('Error fetching test gift:', giftError);
+        // Try to find by partial match in case of ID mismatch
+        const { data: gifts } = await supabaseAdmin
+          .from('gifts')
+          .select('*')
+          .like('stripePaymentIntentId', `%${paymentIntentId.substring(8)}%`)
+          .limit(1);
+        
+        if (gifts && gifts.length > 0) {
+          console.log('Found gift by partial match');
+          const foundGift = gifts[0];
+          return NextResponse.json({
+            success: true,
+            paymentIntent: {
+              id: paymentIntentId,
+              amount: foundGift.amount + (foundGift.platformFeeAmount || 99),
+              currency: foundGift.currency,
+              status: 'succeeded',
+              metadata: {
+                type: 'gift',
+                message: foundGift.message || '',
+                animationPreset: foundGift.animationPreset || 'confettiRealistic',
+                giftAmount: foundGift.amount.toString(),
+                platformFee: (foundGift.platformFeeAmount || 99).toString(),
+              },
+              created: Math.floor(new Date(foundGift.createdAt).getTime() / 1000),
+            }
+          });
+        }
+        
         return NextResponse.json(
-          { error: 'Test gift not found' },
+          { 
+            error: 'Test gift not found',
+            details: giftError.message,
+            paymentIntentId: paymentIntentId
+          },
           { status: 404 }
         );
       }
+
+      if (!gift) {
+        console.error('Test gift not found for payment intent:', paymentIntentId);
+        return NextResponse.json(
+          { 
+            error: 'Test gift not found',
+            paymentIntentId: paymentIntentId
+          },
+          { status: 404 }
+        );
+      }
+
+      console.log('Test gift found:', gift.id);
 
       // Return mock payment intent data for test payments
       return NextResponse.json({
