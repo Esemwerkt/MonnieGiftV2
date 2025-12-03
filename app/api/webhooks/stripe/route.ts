@@ -107,7 +107,8 @@ export async function POST(request: NextRequest) {
                     message: message || '',
                     senderEmail: paymentIntent.metadata?.senderEmail || 'unknown@example.com',
                     recipientEmail: paymentIntent.metadata?.recipientEmail || 'pending@example.com',
-                    authenticationCode: hashedCode, // Store hashed version
+                    authenticationCode: hashedCode, // Store hashed version for verification
+                    plainTextCode: plainTextCode, // Store plain text for display/email
                     stripePaymentIntentId: paymentIntent.id,
                     platformFee: parseInt(paymentIntent.metadata?.platformFee || '0'),
                     animationPreset: animationPreset || 'confettiRealistic',

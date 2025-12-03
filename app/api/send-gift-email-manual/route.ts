@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     // Fetch gift from database
     const { data: gift, error: giftError } = await supabaseAdmin
       .from('gifts')
-      .select('*')
+      .select('*, plainTextCode')
       .eq('id', giftId)
       .single();
 
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     await sendGiftEmail({
       recipientEmail: recipientEmail,
       giftId: gift.id,
-      authenticationCode: gift.authenticationCode,
+      authenticationCode: gift.plainTextCode || gift.authenticationCode, // Use plain text code for email
       amount: gift.amount,
       message: gift.message || undefined,
       senderEmail: 'gift@monniegift.com',

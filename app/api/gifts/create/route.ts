@@ -76,7 +76,8 @@ export async function POST(request: NextRequest) {
       amount,
       currency,
       message,
-      authenticationCode: hashedCode, // Store hashed version
+      authenticationCode: hashedCode, // Store hashed version for verification
+      plainTextCode: plainTextCode, // Store plain text for display/email
       animationPreset: finalAnimationPreset,
       stripePaymentIntentId: paymentIntentId || null,
       stripeConnectAccountId: null, // No Stripe Connect in simplified flow

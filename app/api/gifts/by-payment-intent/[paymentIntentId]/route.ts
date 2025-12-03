@@ -44,7 +44,7 @@ export async function GET(
       isClaimed: gift.isClaimed,
       claimedAt: gift.claimedAt,
       createdAt: gift.createdAt,
-      authenticationCode: gift.authenticationCode,
+      authenticationCode: gift.plainTextCode || gift.authenticationCode, // Return plain text for display, fallback to hash for backward compatibility
       animationPreset: gift.animationPreset,
     });
 
