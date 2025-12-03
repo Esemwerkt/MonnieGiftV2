@@ -250,7 +250,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full overflow-x-hidden">
       {/* Success Confetti */}
       <BeautifulConfetti
         trigger={showSuccessConfetti}
@@ -258,7 +258,7 @@ export default function HomePage() {
         onComplete={() => setShowSuccessConfetti(false)}
       />
 
-      <div className="w-full flex flex-col min-h-screen">
+      <div className="w-full flex flex-col min-h-screen overflow-x-hidden">
         {/* Header matching Figma design */}
         <div className="w-full h-20 flex items-center justify-center bg-primary">
           <div className="flex items-center justify-center">
@@ -268,8 +268,8 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="w-full flex flex-col flex-1 px-0 pt-8 md:pt-12">
-          <div className="flex-1 w-full py-8 space-y-8">
+        <div className="w-full flex flex-col flex-1 pt-8 md:pt-12 overflow-x-hidden">
+          <div className="flex-1 w-full py-8 space-y-8 overflow-x-hidden">
             {/* Main Heading */}
             <div className="md:max-w-4xl md:mx-auto px-4">
               <h1 className="text-3xl md:text-5xl text-foreground text-center font-serif">
@@ -277,11 +277,11 @@ export default function HomePage() {
               </h1>
             </div>
 
-            <hr className="border-t-1 border-[#4d7d75] my-4" />
+            <hr className="border-t border-[#4d7d75] my-4 mx-4 md:mx-0" />
 
             {/* Gift Creation Form */}
-            <div className="pt-8">
-              <div className="flex flex-col gap-y-8 md:mx-auto">
+            <div className="pt-8 w-full overflow-x-hidden">
+              <div className="flex flex-col gap-y-8 md:mx-auto w-full">
                 {/* Amount Selection */}
                 <div className="md:max-w-4xl md:mx-auto w-full px-4">
                   <div className="flex items-center gap-3 mb-4">
@@ -381,9 +381,9 @@ export default function HomePage() {
                     </div>
                   )}
                 </div>
-                <hr className="border-t-1 border-[#4d7d75] my-4" />
+                <hr className="border-t border-[#4d7d75] my-4 mx-4 md:mx-0" />
                 {/* Animation Preset Selection */}
-                <div className="md:max-w-4xl md:mx-auto w-full pl-4">
+                <div className="md:max-w-4xl md:mx-auto w-full px-4">
                   <div className="flex items-center gap-3 mb-4">
                     <span
                       className="inline-flex items-center justify-center px-4 py-1.5 rounded-full text-sm font-normal text-foreground"
@@ -399,12 +399,12 @@ export default function HomePage() {
                     </h2>
                   </div>
 
-                  <div className="md:hidden -mx-4 px-4">
-                    <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2">
+                  <div className="md:hidden w-full overflow-x-auto snap-x snap-mandatory pb-2 scrollbar-hide">
+                    <div className="flex gap-4 w-max px-4">
                       {presetsToRender.map((presetKey) =>
                         renderPresetCard(
                           presetKey,
-                          "min-w-[13rem] flex-shrink-0 snap-center",
+                          "w-[13rem] flex-shrink-0 snap-center",
                           "mobile"
                         )
                       )}
@@ -418,7 +418,7 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <hr className="border-t-1 border-[#4d7d75] my-4" />
+                <hr className="border-t border-[#4d7d75] my-4 mx-4 md:mx-0" />
 
                 {/* Message */}
                 <div className="md:max-w-4xl md:mx-auto w-full px-4">
@@ -448,7 +448,7 @@ export default function HomePage() {
                   />
                 </div>
 
-                <hr className="border-t-1 border-[#4d7d75] my-4" />
+                <hr className="border-t border-[#4d7d75] my-4 mx-4 md:mx-0" />
 
                 {/* Error/Success Messages */}
                 {error && (
