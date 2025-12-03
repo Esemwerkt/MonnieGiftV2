@@ -14,6 +14,7 @@ import Image from "next/image";
 import { LoaderFiveDemo } from "@/components/ui/shimmerload";
 import { AnimatedLogo } from "@/components/ui/animated-logo";
 import { CancelConfirmationModal } from "@/components/ui/cancel-confirmation-modal";
+import { motion } from "motion/react";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
@@ -352,7 +353,7 @@ export default function PaymentPage() {
     <div
       className="min-h-screen w-full text-white "
     >
-      <header className="w-full bg-primary">
+  <header className="w-full bg-primary">
         <div className="mx-auto flex h-20 w-full max-w-6xl items-center justify-center">
           <p className="flex items-center gap-2 text-2xl font-semibold text-primary-foreground">
             <Gift className="h-6 w-6 text-primary-foreground" />
@@ -363,11 +364,16 @@ export default function PaymentPage() {
 
       <main className="w-full pt-20 pb-16 md:pb-24">
         {/* Main Title */}
-        <div className="w-full text-center mb-4 md:mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full text-center mb-4 md:mb-8"
+        >
           <h1 className="text-4xl md:text-7xl font-serif text-white/85">
             Controleren en betalen
           </h1>
-        </div>
+        </motion.div>
 
         {/* Divider */}
         <hr className="border-t border-[#4d7d75] mb-8 md:mb-12 w-full" />
@@ -375,7 +381,11 @@ export default function PaymentPage() {
         {/* Main Content */}
         <div className="w-full md:max-w-4xl md:mx-auto flex flex-col px-4 gap-8 md:gap-12">
           {/* Section 1: Uw Monniegift */}
-          <section>
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
             <SectionHeading title="Uw Monniegift" />
             <div className="mt-4 p-4 bg-[#4d7d75] rounded-lg">
               <div className="flex flex-col gap-2">
@@ -402,11 +412,15 @@ export default function PaymentPage() {
                 </div>
               </div>
             </div>
-          </section>
+          </motion.section>
 
           {/* Section 2: Persoonlijk bericht */}
           {message && (
-            <section>
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
               <div className="flex items-center justify-between mb-4">
                 <SectionHeading title="Persoonlijk bericht" />
                 {!isEditingMessage && (
@@ -467,11 +481,15 @@ export default function PaymentPage() {
                   <p className="text-base md:text-lg text-white/85">{message}</p>
                 )}
               </div>
-            </section>
+            </motion.section>
           )}
 
           {/* Section 3: Betaalmethode */}
-          <section>
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
             <SectionHeading title="Betaalmethode" />
             <div className="mt-4">
               {clientSecret && (
@@ -508,7 +526,7 @@ export default function PaymentPage() {
               </Elements>
               )}
             </div>
-          </section>
+          </motion.section>
         </div>
       </main>
     </div>

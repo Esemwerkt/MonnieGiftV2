@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/input-otp";
 import { SurveyForm } from "@/components/ui/survey-form";
 import { SurveyButton } from "@/components/ui/survey-button";
+import { motion } from "motion/react";
 
 export default function SuccessPage() {
   const searchParams = useSearchParams();
@@ -534,11 +535,16 @@ export default function SuccessPage() {
 
       <main className="w-full pt-20 pb-16 md:pb-24">
         {/* Main Title */}
-        <div className="w-full text-center mb-4 md:mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full text-center mb-4 md:mb-8"
+        >
           <h1 className="text-4xl md:text-7xl font-serif text-foreground">
             Cadeau succesvol aangemaakt
           </h1>
-        </div>
+        </motion.div>
 
         {/* Divider */}
         <hr className="border-t border-[#4d7d75] mb-8 md:mb-12 w-full" />
@@ -547,7 +553,11 @@ export default function SuccessPage() {
         <div className="w-full md:max-w-4xl md:mx-auto flex flex-col px-4 gap-8 md:gap-12">
           {/* Section 1: Cadeau details */}
           {giftData && (
-            <section>
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
               <SectionHeading title="Cadeau details" />
               <div className="mt-4">
                 <div className="flex flex-col gap-2">
@@ -584,12 +594,16 @@ export default function SuccessPage() {
                   </div>
                 </div>
               </div>
-            </section>
+            </motion.section>
           )}
 
           {/* Section 2: Persoonlijke boodschap */}
           {giftData?.message && (
-            <section>
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
               <span className="text-base md:text-lg text-foreground">
                 Persoonlijke boodschap
               </span>
@@ -598,12 +612,16 @@ export default function SuccessPage() {
                 <span className="absolute left-2 top-2 text-accent text-3xl select-none leading-none">“</span>
                 <span className="pl-4">{giftData.message}</span>
               </blockquote>
-            </section>
+            </motion.section>
           )}
 
           {/* Section 3: Authenticatie code */}
           {giftData && (
-            <section>
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
               <SectionHeading title="Authenticatie code" />
               <div className="mt-4 space-y-2">
                 <p className="text-base md:text-lg text-foreground">
@@ -629,12 +647,16 @@ export default function SuccessPage() {
                   </div>
                 </div>
               </div>
-            </section>
+            </motion.section>
           )}
 
           {/* Section 4: Deel je cadeau */}
           {giftData && claimUrl && (
-            <section>
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
               <SectionHeading title="Deel je cadeau" />
               <div className="mt-4 space-y-4">
                 {/* Copy Link Section */}
@@ -718,11 +740,15 @@ export default function SuccessPage() {
                   )}
                 </div>
               </div>
-            </section>
+            </motion.section>
           )}
 
           {/* Section 5: Wat gebeurt er nu */}
-          <section>
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+          >
             <SectionHeading title="Wat gebeurt er nu" />
             <div className="mt-4">
               <div className="flex flex-col gap-2">
@@ -753,10 +779,15 @@ export default function SuccessPage() {
                 </div>
               </div>
             </div>
-          </section>
+          </motion.section>
 
           {/* Action Buttons */}
-          <div className="flex gap-4 justify-between flex-col md:flex-row flex-col-reverse">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+            className="flex gap-4 justify-between flex-col md:flex-row flex-col-reverse"
+          >
             <button
               onClick={() => (window.location.href = "/")}
               className="h-14 rounded-full border-2 border-[#ddb17c] bg-transparent text-[#ddb17c] font-normal text-base md:text-lg hover:bg-[#ddb17c]/10 transition-all duration-200 flex items-center justify-center gap-2 px-6"
@@ -771,7 +802,7 @@ export default function SuccessPage() {
               <Gift className="h-5 w-5" />
               Maak een MonnieGift
             </button>
-          </div>
+          </motion.div>
         </div>
       </main>
 

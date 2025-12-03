@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircle, Home, ArrowRight } from 'lucide-react';
 import BeautifulConfetti from '@/components/BeautifulConfetti';
+import { motion } from 'motion/react';
 
 export default function OnboardSuccessPage() {
   const searchParams = useSearchParams();
@@ -108,7 +109,12 @@ export default function OnboardSuccessPage() {
       
       <div className="w-full max-w-md">
         {/* Success Content */}
-        <div className="text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center"
+        >
           <div className="inline-flex items-center justify-center w-16 h-16 bg-chart-1/20 rounded-full mb-6">
             <CheckCircle className="h-8 w-8 text-chart-1" />
           </div>
@@ -206,7 +212,7 @@ export default function OnboardSuccessPage() {
               💡 Geld cadeaus worden automatisch overgemaakt naar je bankrekening binnen 1-2 werkdagen.
             </p>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

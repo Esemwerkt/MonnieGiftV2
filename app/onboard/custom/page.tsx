@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CreditCard, ArrowRight, Home, CheckCircle } from 'lucide-react';
+import { motion } from 'motion/react';
 
 export default function CustomOnboardPage() {
   const router = useRouter();
@@ -105,16 +106,26 @@ export default function CustomOnboardPage() {
     <div className="bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center p-4 md:p-8">
       <div className="w-full max-w-4xl">
         {/* Header */}
-        <div className="text-center mb-8 md:mb-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-8 md:mb-12"
+        >
       
           <h1 className="text-4xl md:text-7xl font-bold text-foreground mb-2 md:mb-4">
            Je bent er bijna!
           </h1>
   
-        </div>
+        </motion.div>
 
         {/* Form */}
-        <div className="bg-card/50 backdrop-blur-sm border rounded-2xl p-4 md:p-6 max-w-md mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="bg-card/50 backdrop-blur-sm border rounded-2xl p-4 md:p-6 max-w-md mx-auto"
+        >
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email */}
             <div>
@@ -193,7 +204,7 @@ export default function CustomOnboardPage() {
               Terug naar Home
             </button>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

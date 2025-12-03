@@ -20,6 +20,7 @@ import {
 } from "@/lib/animations";
 import { LoaderFiveDemo } from "@/components/ui/shimmerload";
 import { CancelConfirmationModal } from "@/components/ui/cancel-confirmation-modal";
+import { motion } from "motion/react";
 
 // Message templates based on animation presets
 const getMessageTemplates = (animationPreset: string): string[] => {
@@ -271,11 +272,16 @@ export default function HomePage() {
         <div className="w-full flex flex-col flex-1 pt-8 md:pt-12 overflow-x-hidden">
           <div className="flex-1 w-full py-8 md:py-16 space-y-8 md:space-y-12 overflow-x-hidden">
             {/* Main Heading */}
-            <div className="w-full md:max-w-4xl md:mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="w-full md:max-w-4xl md:mx-auto px-4"
+            >
               <h1 className="text-4xl md:text-7xl text-foreground text-center font-serif">
                 Laten we beginnen
               </h1>
-            </div>
+            </motion.div>
 
             <hr className="border-t border-[#4d7d75] my-4 mx-4 md:mx-0" />
 
@@ -283,7 +289,12 @@ export default function HomePage() {
             <div className="pt-8 w-full overflow-x-hidden">
               <div className="flex flex-col gap-y-8 md:gap-y-12 md:mx-auto w-full">
                 {/* Amount Selection */}
-                <div className="w-full md:max-w-4xl md:mx-auto px-4">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  className="w-full md:max-w-4xl md:mx-auto px-4"
+                >
                   <div className="flex items-center gap-3 mb-4 md:mb-6">
                     <span
                       className="inline-flex items-center justify-center px-4 py-1.5 rounded-full text-sm md:text-base font-normal text-foreground"
@@ -380,10 +391,15 @@ export default function HomePage() {
                       )}
                     </div>
                   )}
-                </div>
+                </motion.div>
                 <hr className="border-t border-[#4d7d75] my-4 mx-4 md:mx-0" />
                 {/* Animation Preset Selection */}
-                <div className="w-full md:max-w-4xl md:mx-auto px-4">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="w-full md:max-w-4xl md:mx-auto px-4"
+                >
                   <div className="flex items-center gap-3 mb-4 md:mb-6">
                     <span
                       className="inline-flex items-center justify-center px-4 py-1.5 rounded-full text-sm md:text-base font-normal text-foreground"
@@ -416,12 +432,17 @@ export default function HomePage() {
                       renderPresetCard(presetKey)
                     )}
                   </div>
-                </div>
+                </motion.div>
 
                 <hr className="border-t border-[#4d7d75] my-4 mx-4 md:mx-0" />
 
                 {/* Message */}
-                <div className="w-full md:max-w-4xl md:mx-auto px-4">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                  className="w-full md:max-w-4xl md:mx-auto px-4"
+                >
                   <div className="flex items-center gap-3 mb-4 md:mb-6">
                     <span
                       className="inline-flex items-center justify-center px-4 py-1.5 rounded-full text-sm md:text-base font-normal text-foreground"
@@ -444,9 +465,9 @@ export default function HomePage() {
                     placeholder="Lieve Sem, we zijn zo trots op jou, Kus opa en oma"
                     rows={2}
                     maxLength={120}
-                    className=" block w-full resize-none rounded-lg border-2 border-[#4d7d75] bg-transparent px-4 py-3 text-base md:text-lg text-foreground placeholder:text-foreground/70 focus:outline-none focus:ring-2 focus:ring-[#c8f196] focus:border-[#c8f196]"
+                    className=" block w-full resize-none rounded-lg border-2 border-[#4d7d75] bg-transparent px-4 py-3 text-base md:text-lg text-foreground placeholder:text-foreground/70 focus:outline-none focus:ring-2 focus:ring-[#c8f196]                     focus:border-[#c8f196]"
                   />
-                </div>
+                </motion.div>
 
                 <hr className="border-t border-[#4d7d75] my-4 mx-4 md:mx-0" />
 
@@ -474,7 +495,12 @@ export default function HomePage() {
                 />
 
                 {/* Action Buttons */}
-                <div className="w-full md:max-w-4xl md:mx-auto px-4 flex flex-col-reverse sm:flex-row sm:justify-between gap-4 sm:items-center">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                  className="w-full md:max-w-4xl md:mx-auto px-4 flex flex-col-reverse sm:flex-row sm:justify-between gap-4 sm:items-center"
+                >
                   {/* Annuleren Button */}
                   <button
                     type="button"
@@ -508,7 +534,7 @@ export default function HomePage() {
                       </>
                     )}
                   </button>
-                </div>
+                </motion.div>
               </div>
             </div>
           </div>

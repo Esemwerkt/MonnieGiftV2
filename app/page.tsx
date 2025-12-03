@@ -5,6 +5,7 @@ import { Gift } from "lucide-react";
 import { Header } from "@/components/ui/header";
 import AccordionTabsDemo from "@/components/ui/faq";
 import { Button } from "@/components/ui/button";
+import { motion } from "motion/react";
 
 export default function HomePage() {
   return (
@@ -28,32 +29,53 @@ export default function HomePage() {
 
 <div className="flex flex-col items-center gap-4 relative z-1">
           {/* Gift Box Icon */}
-          <div className="w-44 h-44 flex items-center justify-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="w-44 h-44 flex items-center justify-center"
+          >
             <img
               src="/hero-icon.png"
               alt="Gift Box"
               className="w-full h-full object-contain"
             />
-          </div>
+          </motion.div>
 
           {/* Main Heading */}
-          <h1 className="text-center text-4xl md:text-7xl max-w-2xl px-4">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-center text-4xl md:text-7xl max-w-2xl px-4"
+          >
             Maak iemand blij met een
             <span className="text-primary ml-2">MonnieGift</span>
-          </h1>
+          </motion.h1>
 
           {/* Subheading */}
-          <p className="text-center text-2xl text-foreground leading-relaxed md:leading-normal">
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="text-center text-2xl text-foreground leading-relaxed md:leading-normal"
+          >
             <b>Verstuur geld</b> als cadeau voor maar €0.99
-          </p>
+          </motion.p>
 
           {/* CTA Button */}
-          <Link href="/maak-gift">
-            <Button className="bg-secondary text-background hover:bg-secondary/80 rounded-full px-8 py-3 h-14 text-lg font-normal flex items-center gap-3 max-w-xs justify-center">
-              <img src="/cad.png" alt="Gift Icon" className="w-8 h-8" />
-              <span>Maak een Monniegift</span>
-            </Button>
-          </Link>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <Link href="/maak-gift">
+              <Button className="bg-secondary text-background hover:bg-secondary/80 rounded-full px-8 py-3 h-14 text-lg font-normal flex items-center gap-3 max-w-xs justify-center">
+                <img src="/cad.png" alt="Gift Icon" className="w-8 h-8" />
+                <span>Maak een Monniegift</span>
+              </Button>
+            </Link>
+          </motion.div>
           </div>
         </div>
       </section>
@@ -63,7 +85,13 @@ export default function HomePage() {
         <div className="w-full md:max-w-7xl md:mx-auto px-4 py-16 md:py-24">
           <div className="flex flex-col md:flex-row items-center justify-center md:justify-between gap-8 md:gap-4">
             {/* Step 1 - Bedrag kiezen */}
-            <div className="flex flex-col items-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="flex flex-col items-center"
+            >
               <div className="w-40 h-40 rounded-full bg-[#00504A] flex items-center justify-center mb-4 overflow-hidden">
                 <img
                   src="/home-img/bedrag-kiezen.png"
@@ -74,10 +102,16 @@ export default function HomePage() {
               <p className="text-[#0a3530] text-base md:text-lg font-normal text-center">
                 Bedrag kiezen
               </p>
-            </div>
+            </motion.div>
 
             {/* Step 2 - Thema selecteren */}
-            <div className="flex flex-col items-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="flex flex-col items-center"
+            >
               <div className="w-40 h-40 rounded-full bg-[#00504A] flex items-center justify-center mb-4 overflow-hidden">
                 <img
                   src="/home-img/thema-select.png"
@@ -88,10 +122,16 @@ export default function HomePage() {
               <p className="text-[#0a3530] text-base md:text-lg font-normal text-center">
                 Thema selecteren
               </p>
-            </div>
+            </motion.div>
 
             {/* Step 3 - Bericht Versturen */}
-            <div className="flex flex-col items-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="flex flex-col items-center"
+            >
               <div className="w-40 h-40 rounded-full bg-[#004441] flex items-center justify-center mb-4 overflow-hidden relative">
                 <img
                   src="/home-img/bericht-versturen.png"
@@ -102,7 +142,7 @@ export default function HomePage() {
               <p className="text-[#0a3530] text-base md:text-lg font-normal text-center">
                 Bericht Versturen
               </p>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -113,7 +153,13 @@ export default function HomePage() {
           {/* Content */}
           <div className="flex flex-col md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
             {/* Left Content */}
-            <div className="space-y-6 w-full md:max-w-none">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.5 }}
+              className="space-y-6 w-full md:max-w-none"
+            >
 
               <h2 className="text-2xl md:text-5xl font-normal text-[#0a3530] leading-tight">
                 Veilig geld als cadeau versturen met een digitale ontvangst
@@ -133,10 +179,16 @@ export default function HomePage() {
                   Maak een Monniegift
                 </Button>
               </Link>
-            </div>
+            </motion.div>
 
             {/* Right Image */}
-            <div className="relative w-full md:max-w-none mx-auto md:mx-0">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="relative w-full md:max-w-none mx-auto md:mx-0"
+            >
               <div className="w-full h-56 md:h-[440px] rounded-lg overflow-hidden">
                 <img
                   src="/image.png"
@@ -144,7 +196,7 @@ export default function HomePage() {
                   className="w-full h-full object-cover"
                 />
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -152,13 +204,25 @@ export default function HomePage() {
       {/* FAQ Section */}
       <section id="faq" className="w-full">
         <div className="w-full md:max-w-4xl md:mx-auto px-4 py-16 md:py-24">
-          <h2 className="text-2xl md:text-5xl font-normal text-center text-[#ddb17c] mb-8 leading-normal">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.5 }}
+            className="text-2xl md:text-5xl font-normal text-center text-[#ddb17c] mb-8 leading-normal"
+          >
             Veel gestelde vragen
-          </h2>
+          </motion.h2>
 
-          <div className="bg-[#4d7d75]/30 backdrop-blur-sm rounded-2xl p-3 md:p-8 w-full mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="bg-[#4d7d75]/30 backdrop-blur-sm rounded-2xl p-3 md:p-8 w-full mx-auto"
+          >
             <AccordionTabsDemo />
-          </div>
+          </motion.div>
         </div>
       </section>
 

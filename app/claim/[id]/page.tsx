@@ -22,6 +22,7 @@ import { Header } from "@/components/ui/header";
 import { CancelConfirmationModal } from "@/components/ui/cancel-confirmation-modal";
 import { SurveyForm } from "@/components/ui/survey-form";
 import { SurveyButton } from "@/components/ui/survey-button";
+import { motion } from "motion/react";
 
 export default function ClaimPage() {
   const params = useParams();
@@ -333,21 +334,36 @@ export default function ClaimPage() {
              
 
                 {/* Main Heading */}
-                <h1 className="text-center text-4xl md:text-7xl max-w-2xl px-4 text-primary font-bold"  style={{ fontFamily: 'Rockwell, serif' }}>
+                <motion.h1
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="text-center text-4xl md:text-7xl max-w-2xl px-4 text-primary font-bold"  style={{ fontFamily: 'Rockwell, serif' }}
+                >
                   Gelukt<br></br>
                   <span className="text-foreground">
                     Je krijgt Monnie op je rekening
                   </span>
-                </h1>
+                </motion.h1>
 
                 {/* Subheading */}
-                <p className="text-center text-base md:text-lg text-foreground leading-relaxed md:leading-normal">
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="text-center text-base md:text-lg text-foreground leading-relaxed md:leading-normal"
+                >
                   Het geld is overgemaakt naar jouw account.<br></br>Bedankt
                   voor het gebruiken van MonnieGift!
-                </p>
+                </motion.p>
 
                 <div className="w-full max-w-2xl mx-auto h-8 border-t border-foreground/15" />
-                <div className="flex justify-center pt-4">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                  className="flex justify-center pt-4"
+                >
                 {/* CTA Button */}
                 <Link href="/maak-gift">
                   <Button className="bg-secondary text-background hover:bg-secondary/80 rounded-full px-8 py-3 h-14 text-lg font-normal flex items-center gap-3 max-w-xs justify-center">
@@ -356,7 +372,7 @@ export default function ClaimPage() {
                   </Button>
                 </Link>
                 
-                </div>
+                </motion.div>
               </div>
             </div>
           </section>
@@ -403,16 +419,21 @@ export default function ClaimPage() {
               />
             </div>
 
-            <div className="flex flex-col items-center gap-4 relative z-1">
+              <div className="flex flex-col items-center gap-4 relative z-1">
               {/* Main Heading */}
-              <h1 className="text-center text-4xl md:text-7xl max-w-6xl px-3">
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="text-center text-4xl md:text-7xl max-w-6xl px-3"
+              >
                
                 <br></br>Je hebt een cadeau <br></br>van{" "}
                 <span className="text-primary font-bold">
                   {formatAmount(gift.amount, gift.currency)}
                 </span>{" "}
                 ontvangen!
-              </h1>
+              </motion.h1>
 
               
             </div>
@@ -430,7 +451,12 @@ export default function ClaimPage() {
               <div className="w-full max-w-2xl mx-auto h-8 border-t border-foreground/15" />
 
               {/* Bear Animation and Message */}
-              <div className="flex items-center flex-col md:flex-row items-center justify-center mt-0 mb-8 gap-6 max-w-2xl mx-auto px-4">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="flex items-center flex-col md:flex-row items-center justify-center mt-0 mb-8 gap-6 max-w-2xl mx-auto px-4"
+              >
                 {/* Bear Animation */}
                 <div className="w-20 h-20 flex items-center justify-center">
                   <img
@@ -454,13 +480,18 @@ export default function ClaimPage() {
                     </p>
                   </div>
                 )}
-              </div>
+              </motion.div>
 
               {/* Separator Line */}
               <div className="w-full max-w-2xl mx-auto h-8 border-t border-foreground/15" />
 
               {/* Claim Button */}
-              <div className="flex justify-center pt-4">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="flex justify-center pt-4"
+              >
                 <button
                   onClick={() => setShowVerificationModal(true)}
                   className="h-14 px-8 bg-secondary text-secondary-foreground rounded-full font-normal text-base md:text-xl hover:bg-secondary/90 transition-all duration-200 flex items-center justify-center gap-3"
@@ -469,7 +500,7 @@ export default function ClaimPage() {
                   Haal je cadeau op
                   <ArrowRight className="h-5 w-5" />
                 </button>
-              </div>
+              </motion.div>
             </div>
           </div>
         </div>
@@ -595,7 +626,13 @@ export default function ClaimPage() {
             {/* Content */}
             <div className="flex flex-col md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
               {/* Left Content */}
-              <div className="space-y-6 w-full md:max-w-none">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.5 }}
+                className="space-y-6 w-full md:max-w-none"
+              >
                 <h2 className="text-2xl md:text-5xl font-normal text-[#0a3530] leading-tight">
                   Veilig geld als cadeau versturen met een digitale ontvangst
                   kaart
@@ -615,10 +652,16 @@ export default function ClaimPage() {
                     Maak een Monniegift
                   </Button>
                 </Link>
-              </div>
+              </motion.div>
 
               {/* Right Image */}
-              <div className="relative w-full md:max-w-none mx-auto md:mx-0">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="relative w-full md:max-w-none mx-auto md:mx-0"
+              >
                 <div className="w-full h-56 md:h-[440px] rounded-lg overflow-hidden">
                   <img
                     src="/image.png"
@@ -626,7 +669,7 @@ export default function ClaimPage() {
                     className="w-full h-full object-cover"
                   />
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         </section>
@@ -636,13 +679,25 @@ export default function ClaimPage() {
       {gift && step === "verification" && (
         <section id="faq" className="w-full">
           <div className="w-full md:max-w-4xl md:mx-auto px-4 py-16 md:py-24">
-            <h2 className="text-2xl md:text-5xl font-normal text-center text-[#ddb17c] mb-8 leading-normal">
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.5 }}
+              className="text-2xl md:text-5xl font-normal text-center text-[#ddb17c] mb-8 leading-normal"
+            >
               Veel gestelde vragen
-            </h2>
+            </motion.h2>
 
-            <div className="bg-[#4d7d75]/30 backdrop-blur-sm rounded-2xl p-3 md:p-8 w-full mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="bg-[#4d7d75]/30 backdrop-blur-sm rounded-2xl p-3 md:p-8 w-full mx-auto"
+            >
               <AccordionTabsDemo />
-            </div>
+            </motion.div>
           </div>
         </section>
       )}

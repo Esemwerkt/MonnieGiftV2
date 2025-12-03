@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { CreditCard, CheckCircle, ArrowRight, Home, Gift } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { motion } from 'motion/react';
 
 export default function OnboardPage() {
   const searchParams = useSearchParams();
@@ -65,7 +66,6 @@ export default function OnboardPage() {
           </p>
         </div>
       </header>
-
       {/* Main Content */}
       <div className="flex-1 w-full bg-background flex items-center justify-center">
         <div className="w-full md:max-w-4xl md:mx-auto px-4 py-16 md:py-24">
@@ -84,7 +84,12 @@ export default function OnboardPage() {
           ) : (
             <div className="space-y-8">
               {/* Title */}
-              <div className="md:text-center space-y-4">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="md:text-center space-y-4"
+              >
                 <h1 
                   className="text-4xl md:text-7xl font-normal text-foreground/85"
                   style={{ fontFamily: 'Rockwell, serif' }}
@@ -94,10 +99,15 @@ export default function OnboardPage() {
                 <p className="text-base md:text-lg text-foreground/85 max-w-2xl mx-auto" style={{ fontFamily: 'Inter, sans-serif' }}>
                   We hebben éénmalig je gegevens nodig zodat jij in de toekomst direct jouw monniegift kunt innen, woehoe!
                 </p>
-              </div>
+              </motion.div>
 
               {/* Progress Steps */}
-              <div className="flex flex-col md:flex-row md:items-center items-start justify-center gap-4 md:gap-8 py-8">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="flex flex-col md:flex-row md:items-center items-start justify-center gap-4 md:gap-8 py-8"
+              >
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
                     <span className="text-primary-foreground font-bold text-lg">1</span>
@@ -124,10 +134,15 @@ export default function OnboardPage() {
                     Bevestig je email
                   </p>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Verification Section */}
-              <div className="space-y-6 md:text-center">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="space-y-6 md:text-center"
+              >
                 <h2 
                   className="text-xl md:text-3xl font-normal text-primary"
                   style={{ fontFamily: 'Rockwell, serif' }}
@@ -157,7 +172,7 @@ export default function OnboardPage() {
                     </>
                   )}
                 </button>
-              </div>
+              </motion.div>
             </div>
           )}
         </div>
