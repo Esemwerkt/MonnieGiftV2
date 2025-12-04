@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { supabaseAdmin } from '@/lib/supabase';
-import { generateUniqueVerificationCode, hashAuthenticationCode } from '@/lib/auth';
+import { generateUniqueVerificationCode } from '@/lib/auth';
 import { sendGiftEmail } from '@/lib/email';
 import { checkUserLimits, LIMITS } from '@/lib/limits';
 
@@ -59,25 +59,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Generate plain text code for display/email
-    const plainTextCode = await generateUniqueVerificationCode(supabaseAdmin);
-    console.log('Generated authentication code:', plainTextCode, 'Length:', plainTextCode.length);
-    
-    // Verify code length (should be 8 characters)
-    if (plainTextCode.length !== 8) {
-      console.error('WARNING: Authentication code length is not 8! Code:', plainTextCode, 'Length:', plainTextCode.length);
-    }
-
-    // Hash the code for secure storage
-    const hashedCode = await hashAuthenticationCode(plainTextCode);
+    const authenticationCode = await generateUniqueVerificationCode(supabaseAdmin);
 
     let gift;
     const giftData = {
       amount,
       currency,
       message,
-      authenticationCode: hashedCode, // Store hashed version for verification
-      plainTextCode: plainTextCode, // Store plain text for display/email
+      authenticationCode,
       animationPreset: finalAnimationPreset,
       stripePaymentIntentId: paymentIntentId || null,
       stripeConnectAccountId: null, // No Stripe Connect in simplified flow

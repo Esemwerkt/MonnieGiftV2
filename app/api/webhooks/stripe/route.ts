@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { supabaseAdmin } from '@/lib/supabase';
 import { sendGiftEmail } from '@/lib/email';
-import { generateUniqueVerificationCode, hashAuthenticationCode } from '@/lib/auth';
 import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
@@ -85,17 +84,9 @@ export async function POST(request: NextRequest) {
                   animationPreset
                 });
                 
-                // Generate plain text code for display/email
-                const plainTextCode = await generateUniqueVerificationCode(supabaseAdmin);
-                console.log('Generated authentication code:', plainTextCode, 'Length:', plainTextCode.length);
-                
-                // Verify code length (should be 8 characters)
-                if (plainTextCode.length !== 8) {
-                  console.error('WARNING: Authentication code length is not 8! Code:', plainTextCode, 'Length:', plainTextCode.length);
-                }
-                
-                // Hash the code for secure storage
-                const hashedCode = await hashAuthenticationCode(plainTextCode);
+                // Generate authentication code
+                const authenticationCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+                console.log('Generated authentication code:', authenticationCode);
                 
                 const now = new Date().toISOString();
                 const { data: gift, error: giftError } = await supabaseAdmin
@@ -107,8 +98,7 @@ export async function POST(request: NextRequest) {
                     message: message || '',
                     senderEmail: paymentIntent.metadata?.senderEmail || 'unknown@example.com',
                     recipientEmail: paymentIntent.metadata?.recipientEmail || 'pending@example.com',
-                    authenticationCode: hashedCode, // Store hashed version for verification
-                    plainTextCode: plainTextCode, // Store plain text for display/email
+                    authenticationCode,
                     stripePaymentIntentId: paymentIntent.id,
                     platformFee: parseInt(paymentIntent.metadata?.platformFee || '0'),
                     animationPreset: animationPreset || 'confettiRealistic',

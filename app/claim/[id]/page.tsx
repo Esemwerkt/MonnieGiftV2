@@ -243,9 +243,19 @@ export default function ClaimPage() {
         setShowConfetti(true);
       } else {
         const errorData = await response.json();
-        setError(
-          errorData.error || "Er is een fout opgetreden bij het claimen"
-        );
+        const errorMessage = errorData.error || "Er is een fout opgetreden bij het claimen";
+        
+        // Check if it's a Stripe account setup issue
+        if (errorMessage.includes("Stripe account is nog niet volledig ingesteld")) {
+          // Redirect to onboarding to complete account setup
+          const accountId = gift?.stripeConnectAccountId;
+          if (accountId) {
+            window.location.href = `/onboard?email=${encodeURIComponent(email)}&account_id=${accountId}&gift_id=${giftId}`;
+            return;
+          }
+        }
+        
+        setError(errorMessage);
         setStep("error");
       }
     } catch (err) {
@@ -290,6 +300,9 @@ export default function ClaimPage() {
   }
 
   if (step === "error") {
+    // Check if error is about Stripe account setup
+    const isStripeAccountError = error?.includes("Stripe account is nog niet volledig ingesteld");
+    
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-full md:max-w-md md:mx-auto text-center space-y-4 p-4 md:p-6">
@@ -297,14 +310,25 @@ export default function ClaimPage() {
             <Gift className="h-8 w-8 text-red-600" />
           </div>
           <h1 className="text-2xl md:text-4xl font-semibold text-foreground">
-            Cadeau niet gevonden
+            {isStripeAccountError ? "Account Setup Vereist" : "Cadeau niet gevonden"}
           </h1>
           <p className="text-base md:text-lg text-muted-foreground">{error}</p>
+          {isStripeAccountError && gift?.stripeConnectAccountId && (
+            <p className="text-sm text-muted-foreground">
+              Je wordt doorgestuurd om je account te voltooien...
+            </p>
+          )}
           <button
-            onClick={() => (window.location.href = "/")}
+            onClick={() => {
+              if (isStripeAccountError && gift?.stripeConnectAccountId) {
+                window.location.href = `/onboard?email=${encodeURIComponent(email)}&account_id=${gift.stripeConnectAccountId}&gift_id=${giftId}`;
+              } else {
+                window.location.href = "/";
+              }
+            }}
             className="px-6 py-3 bg-primary text-primary-foreground rounded-xl text-base md:text-lg font-medium hover:bg-primary/90 transition-colors"
           >
-            Terug naar home
+            {isStripeAccountError ? "Account Voltooien" : "Terug naar home"}
           </button>
         </div>
       </div>

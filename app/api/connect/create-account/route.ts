@@ -21,11 +21,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Create Express account
     const account = await stripe.accounts.create({
       type: 'express',
       country: 'NL',
       email: email,
-      business_type: 'individual', 
+      business_type: 'individual', // Required when using individual parameter
       capabilities: {
         card_payments: { requested: true },
         transfers: { requested: true },
@@ -33,11 +34,12 @@ export async function POST(request: NextRequest) {
       business_profile: {
         product_description: 'Money gift platform - secure money transfers',
         url: process.env.NEXTAUTH_URL || 'https://monniegift.nl',
-        mcc: '7399', 
+        mcc: '7399', // Computer Software Stores (appropriate for digital gift platform)
       },
       individual: {
-        first_name: '', 
-        last_name: '', 
+        // Pre-fill as individual (natuurlijke persoon)
+        first_name: '', // Will be filled during onboarding
+        last_name: '', // Will be filled during onboarding
         email: email,
       },
       settings: {
@@ -47,6 +49,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Create account link for Express onboarding
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
       refresh_url: `${process.env.NEXTAUTH_URL || 'https://monniegift.nl'}/stripe/terug?account_id=${account.id}&gift_id=${giftId}&email=${encodeURIComponent(email)}`,
@@ -54,6 +57,7 @@ export async function POST(request: NextRequest) {
       type: 'account_onboarding',
     });
 
+    // Store the account in our database
     const { error: dbError } = await supabase
       .from('users')
       .upsert({
@@ -67,6 +71,7 @@ export async function POST(request: NextRequest) {
 
     if (dbError) {
       console.error('Database error:', dbError);
+      // Don't fail the request, just log the error
     }
 
     return NextResponse.json({
@@ -77,18 +82,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error creating Stripe account:', error);
     
-    if (error.type === 'invalid_request_error' && error.statusCode === 401) {
-      return NextResponse.json(
-        { 
-          error: 'Stripe authentication failed',
-          code: error.code,
-          message: 'Er is een authenticatiefout opgetreden. Controleer of je Stripe API-sleutel geldig is en of Stripe Connect is ingeschakeld voor je account.',
-          details: error.message
-        },
-        { status: 401 }
-      );
-    }
-    
+    // Handle Stripe verification errors
     if (error.type === 'invalid_request_error' && error.code) {
       const verificationErrors = [
         'invalid_product_description_length',

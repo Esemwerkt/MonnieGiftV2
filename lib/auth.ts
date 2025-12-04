@@ -1,6 +1,5 @@
 import * as jwt from 'jsonwebtoken';
 import * as crypto from 'crypto';
-import * as bcrypt from 'bcryptjs';
 
 const JWT_SECRET = process.env.NEXTAUTH_SECRET || 'your-secret-key';
 
@@ -23,9 +22,7 @@ export function verifyAuthToken(token: string): AuthToken | null {
 }
 
 export function generateVerificationCode(): string {
-  // Use 4 bytes = 8 hex characters for better security while remaining user-friendly
-  // 8 hex chars = 4,294,967,296 possible combinations (much better than 6 chars)
-  return crypto.randomBytes(4).toString('hex').toUpperCase();
+  return crypto.randomBytes(6).toString('hex').toUpperCase();
 }
 
 export async function generateUniqueVerificationCode(supabase: any, maxRetries: number = 5): Promise<string> {
@@ -59,23 +56,4 @@ export async function generateUniqueVerificationCode(supabase: any, maxRetries: 
 export function generateMagicLink(email: string): string {
   const token = generateAuthToken(email);
   return `${process.env.NEXTAUTH_URL}/auth/verify?token=${token}`;
-}
-
-/**
- * Hash an authentication code for secure storage
- * Uses bcrypt with 10 rounds (good balance of security and performance)
- */
-export async function hashAuthenticationCode(code: string): Promise<string> {
-  return await bcrypt.hash(code.toUpperCase(), 10);
-}
-
-/**
- * Verify an authentication code against a hash
- * Returns true if the code matches the hash
- */
-export async function verifyAuthenticationCode(
-  code: string,
-  hash: string
-): Promise<boolean> {
-  return await bcrypt.compare(code.toUpperCase(), hash);
 }

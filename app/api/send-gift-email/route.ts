@@ -1,61 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
-);
+import { supabaseAdmin } from '@/lib/supabase';
 import { sendGiftEmail } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
-  return NextResponse.json({ 
-    message: 'This endpoint only accepts POST requests',
-    method: 'POST'
-  });
-}
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { giftId } = body;
+    const { giftId, recipientEmail } = body;
     
-
-    if (!giftId) {
+    if (!giftId || !recipientEmail) {
       return NextResponse.json(
-        { error: 'Gift ID is required' },
+        { error: 'Gift ID and recipient email are required' },
         { status: 400 }
       );
     }
 
-    const { data: gift } = await supabase
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(recipientEmail)) {
+      return NextResponse.json(
+        { error: 'Invalid email format' },
+        { status: 400 }
+      );
+    }
+
+    // Fetch gift from database
+    const { data: gift, error: giftError } = await supabaseAdmin
       .from('gifts')
-      .select('*, plainTextCode')
+      .select('*')
       .eq('id', giftId)
       .single();
 
-    if (!gift) {
+    if (giftError || !gift) {
       return NextResponse.json(
         { error: 'Gift not found' },
         { status: 404 }
       );
     }
 
+    // Send email to the custom recipient
     await sendGiftEmail({
-      recipientEmail: gift.recipientEmail,
+      recipientEmail: recipientEmail,
       giftId: gift.id,
-      authenticationCode: gift.plainTextCode || gift.authenticationCode, // Use plain text code for email
+      authenticationCode: gift.authenticationCode,
       amount: gift.amount,
       message: gift.message || undefined,
-      senderEmail: gift.senderEmail,
+      senderEmail: 'gift@monniegift.com',
     });
-
 
     return NextResponse.json({
       success: true,
       message: 'Email sent successfully',
-      giftId: gift.id
     });
 
   } catch (error) {

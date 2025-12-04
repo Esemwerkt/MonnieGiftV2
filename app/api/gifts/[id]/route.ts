@@ -10,7 +10,7 @@ export async function GET(
   try {
     const { data: gift } = await supabaseAdmin
       .from('gifts')
-      .select('id, amount, currency, message, senderEmail, recipientEmail, authenticationCode, plainTextCode, isClaimed, claimedAt, createdAt, stripeTransferId, animationPreset')
+      .select('id, amount, currency, message, senderEmail, recipientEmail, authenticationCode, isClaimed, claimedAt, createdAt, stripeTransferId, animationPreset')
       .eq('id', params.id)
       .single();
 
@@ -21,11 +21,7 @@ export async function GET(
       );
     }
 
-    // Return plain text code for display, but keep authenticationCode for backward compatibility
-    return NextResponse.json({
-      ...gift,
-      authenticationCode: gift.plainTextCode || gift.authenticationCode, // Return plain text for display
-    });
+    return NextResponse.json(gift);
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to fetch gift' },
